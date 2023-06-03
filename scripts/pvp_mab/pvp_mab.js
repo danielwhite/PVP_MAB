@@ -1373,7 +1373,7 @@ function pvpAttack(attackType, activeMinis) {
     pvpChoice = bestChoice;
   } else {
     (0,external_kolmafia_namespaceObject.print)("Exploring", "green");
-    var ballots = Array(12).fill(0).map(() => 0);
+    var ballots = Array(12).fill(0);
     pvpIDs.forEach(i => {
       var wins = get("myCurrentPVPWins_".concat(i), 0);
       var losses = get("myCurrentPVPLosses_".concat(i), 0);
