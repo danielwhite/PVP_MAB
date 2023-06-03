@@ -110,9 +110,7 @@ function pvpAttack(attackType: string, activeMinis: string[]): string {
     pvpChoice = bestChoice;
   } else {
     print("Exploring", "green");
-    const ballots = Array(12)
-      .fill(0)
-      .map(() => 0);
+    const ballots: number[] = Array(12).fill(0);
     pvpIDs.forEach((i) => {
       const wins = get(`myCurrentPVPWins_${i}`, 0);
       const losses = get(`myCurrentPVPLosses_${i}`, 0);
