@@ -57,11 +57,8 @@ jobs:
           git stash && git stash clear      
           git switch release    
 
-          # Push build into the release branch
-          mkdir todelete
-          mv * todelete/
-          mv todelete/BUILD .
-          rm -rf todelete
+          # Push build into the release branch          
+          rm -rf !(BUILD)
           mv BUILD/scripts scripts
           mv BUILD/dependencies.txt dependencies.txt
           mv BUILD/README.md README.md
