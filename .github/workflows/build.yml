@@ -2,9 +2,17 @@ name: Build pvp_mab
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "package.json"
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "package.json"
   workflow_dispatch:
 
 env:
