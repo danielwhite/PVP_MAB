@@ -55,13 +55,17 @@ jobs:
           git fetch --all
           echo "Switching into release"    
           git stash && git stash clear      
-          git switch release        
+          git switch release    
 
           # Push build into the release branch
-          rm -rf *
+          mkdir todelete
+          mv * todelete/
+          mv todelete/BUILD .
+          rm -rf todelete
           mv BUILD/scripts scripts
           mv BUILD/dependencies.txt dependencies.txt
           mv BUILD/README.md README.md
+          rm -rf BUILD
           git add scripts
           git add dependencies.txt
           git add README.md
