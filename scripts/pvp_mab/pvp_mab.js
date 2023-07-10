@@ -1351,6 +1351,7 @@ function UCB() {
 function gaussianRandom() {
   var mean = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
   var stdev = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  // Taken from https://stackoverflow.com/a/36481059
   var u = 1 - Math.random(); // Converting [0,1) to (0,1]
 
   var v = Math.random();
