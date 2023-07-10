@@ -9,10 +9,15 @@ import {
   use,
   visitUrl,
 } from "kolmafia";
-import { $item, get, maxBy, set } from "libram";
+import { $item, get, maxBy, set, sumNumbers } from "libram";
 
-const epsilonLowerBound = 0.05;
-const pvpIDs = Array.from(Array(12).keys());
+// The fight page does not sort the minis by alphabetical order
+// So we have to reorder them to the rules page
+const activeMinis =
+  visitUrl("peevpee.php?place=fight")
+    .match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))
+    ?.splice(3)
+    .map((s) => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, "")) ?? [];
 const activeMinisSorted =
   visitUrl("peevpee.php?place=rules")
     .match(RegExp(/nowrap><b>(.*?)\\*?<\/b>/g))
@@ -24,15 +29,44 @@ const activeMinisSorted =
         .replace("<b>", "")
         .replace("</b>", "")
     ) ?? [];
+const pvpIDs = Array.from(Array(activeMinis.length).keys());
+
 const verbose = !get("PVP_MAB_reduced_verbosity", false);
 
-function getBestMini(): number {
-  const winRatios = pvpIDs.map((i) => {
+function getFightRecords(): number[][] {
+  return pvpIDs.map((i) => {
     const wins = get(`myCurrentPVPWins_${i}`, 0);
     const losses = get(`myCurrentPVPLosses_${i}`, 0);
-    return wins / (wins + losses);
+    return [wins, losses];
   });
-  return maxBy(pvpIDs, (i) => winRatios[i]);
+}
+
+export function UCB(): number {
+  const fightRecords = getFightRecords();
+  const t = sumNumbers(fightRecords.map(([wins, losses]) => wins + losses));
+  const logConst = 2 * Math.log(t);
+  const payoffs = pvpIDs.map((i) => {
+    const [wins, losses] = fightRecords[i];
+    const n = wins + losses;
+    const payoff = n > 0 ? wins / n + Math.sqrt(logConst / n) : 10; // Try all at least once at the start
+    return payoff;
+  });
+  return maxBy(pvpIDs, (i) => payoffs[i]);
+}
+
+export function gaussianThompson(): number {
+  const fightRecords = getFightRecords();
+  const payoffs = pvpIDs.map((i) => {
+    const [wins, losses] = fightRecords[i];
+    const n = wins + losses;
+    const payoff = wins / n + Math.random() / Math.sqrt(n > 0 ? n : 1e-4);
+    return payoff;
+  });
+  return maxBy(pvpIDs, (i) => payoffs[i]);
+}
+
+function getBestMini(): number {
+  return get("PVP_MAB_policy", "UCB").toLowerCase() === "thompson" ? gaussianThompson() : UCB();
 }
 
 function useMeteoriteade(): void {
@@ -73,9 +107,6 @@ function updateSeason(): void {
   // The rules page simply sorts the minis by alphabetical order
   // We can always see this (even if we don't have any fites left)
 
-  // Reset multi-armed bandit epsilon
-  set("myCurrentPVPEpsilon", 0.9);
-
   // Reset our season's wins and losses
   set("totalSeasonPVPWins", 0);
   set("totalSeasonPVPLosses", 0);
@@ -98,27 +129,10 @@ function equipPVPOutfit(): void {
   cliExecute("UberPvPOptimizer");
 }
 
-function pvpAttack(attackType: string, activeMinis: string[]): string {
-  const epsilon = get("myCurrentPVPEpsilon", 0.0);
-  const bestChoice = getBestMini();
-  let pvpChoice: number;
+function pvpAttack(attackType: string): string {
+  const pvpChoice = getBestMini();
 
   print("");
-  if (Math.random() > epsilon) {
-    // Choose highest win-rate minigame
-    print("Exploiting", "green");
-    pvpChoice = bestChoice;
-  } else {
-    print("Exploring", "green");
-    const ballots: number[] = Array(12).fill(0);
-    pvpIDs.forEach((i) => {
-      const wins = get(`myCurrentPVPWins_${i}`, 0);
-      const losses = get(`myCurrentPVPLosses_${i}`, 0);
-      ballots[i] = wins / (wins + losses) + (i > 0 ? ballots[i - 1] : 0);
-    });
-    const randomBallot = Math.random() * ballots[ballots.length - 1];
-    pvpChoice = ballots.findIndex((ballot) => ballot >= randomBallot);
-  }
   print(`Chose mini: ${activeMinis[pvpChoice]}`, "green");
 
   return visitUrl(
@@ -158,10 +172,6 @@ function parseCompactMode(result: string, whoAreWe: string[]): boolean {
       }
     }
     slicedResult = slicedResult.slice(slicedResult.indexOf("</td></tr>") + 9);
-    set(
-      "myCurrentPVPEpsilon",
-      Math.max(get("myCurrentPVPEpsilon", 0.0) - 0.001, epsilonLowerBound)
-    );
   }
 
   return slicedResult.includes(whoAmI);
@@ -195,10 +205,6 @@ function parseNonCompactMode(result: string, whoAreWe: string[]): boolean {
       }
     }
     slicedResult = slicedResult.slice(splitIdx);
-    set(
-      "myCurrentPVPEpsilon",
-      Math.max(get("myCurrentPVPEpsilon", 0.0) - 0.001, epsilonLowerBound)
-    );
   }
 
   return slicedResult.includes(whoAmI);
@@ -266,17 +272,8 @@ export function main(): void {
     const attackType = inHardcore() ? "fame" : "lootwhatever";
     equipPVPOutfit();
 
-    // The fight page does not sort the minis by alphabetical order
-    // So we have to reorder them to the rules page
-    const activeMinis =
-      visitUrl("peevpee.php?place=fight")
-        .match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))
-        ?.splice(3)
-        .map((s) => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, "")) ??
-      [];
-
     while (pvpAttacksLeft() > 0) {
-      const result = pvpAttack(attackType, activeMinis);
+      const result = pvpAttack(attackType);
       if (result.includes("Sorry, I couldn't find the player")) {
         print("Could not find anyone to fight!", "red");
         break;
