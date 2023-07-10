@@ -39,6 +39,8 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
+  "UCB": () => (/* binding */ UCB),
+  "gaussianThompson": () => (/* binding */ gaussianThompson),
   "main": () => (/* binding */ main)
 });
 
@@ -1290,24 +1292,77 @@ var $path = createSingleConstant(external_kolmafia_namespaceObject.Path);
 
 var $paths = createPluralConstant(external_kolmafia_namespaceObject.Path);
 ;// CONCATENATED MODULE: ./src/main.ts
-var _visitUrl$match$map, _visitUrl$match, _templateObject, _templateObject2, _templateObject3;
+var _visitUrl$match$splic, _visitUrl$match, _visitUrl$match$map, _visitUrl$match2, _templateObject, _templateObject2, _templateObject3;
 
 function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
+function main_slicedToArray(arr, i) { return main_arrayWithHoles(arr) || main_iterableToArrayLimit(arr, i) || main_unsupportedIterableToArray(arr, i) || main_nonIterableRest(); }
+
+function main_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function main_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return main_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return main_arrayLikeToArray(o, minLen); }
+
+function main_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function main_iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function main_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
-var epsilonLowerBound = 0.05;
-var pvpIDs = Array.from(Array(12).keys());
-var activeMinisSorted = (_visitUrl$match$map = (_visitUrl$match = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/nowrap><b>(.*?)\\*?<\/b>/g))) === null || _visitUrl$match === void 0 ? void 0 : _visitUrl$match.map(s => s.replace("nowrap>", "").replace("*", "").replace("arrr", "ar").replace("<b>", "").replace("</b>", ""))) !== null && _visitUrl$match$map !== void 0 ? _visitUrl$match$map : [];
+ // The fight page does not sort the minis by alphabetical order
+// So we have to reorder them to the rules page
+
+var activeMinis = (_visitUrl$match$splic = (_visitUrl$match = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight").match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))) === null || _visitUrl$match === void 0 ? void 0 : _visitUrl$match.splice(3).map(s => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""))) !== null && _visitUrl$match$splic !== void 0 ? _visitUrl$match$splic : [];
+var activeMinisSorted = (_visitUrl$match$map = (_visitUrl$match2 = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/nowrap><b>(.*?)\\*?<\/b>/g))) === null || _visitUrl$match2 === void 0 ? void 0 : _visitUrl$match2.map(s => s.replace("nowrap>", "").replace("*", "").replace("arrr", "ar").replace("<b>", "").replace("</b>", ""))) !== null && _visitUrl$match$map !== void 0 ? _visitUrl$match$map : [];
+var pvpIDs = Array.from(Array(activeMinis.length).keys());
 var verbose = !get("PVP_MAB_reduced_verbosity", false);
 
-function getBestMini() {
-  var winRatios = pvpIDs.map(i => {
+function getFightRecords() {
+  return pvpIDs.map(i => {
     var wins = get("myCurrentPVPWins_".concat(i), 0);
     var losses = get("myCurrentPVPLosses_".concat(i), 0);
-    return wins / (wins + losses);
+    return [wins, losses];
   });
-  return maxBy(pvpIDs, i => winRatios[i]);
+}
+
+function UCB() {
+  var fightRecords = getFightRecords();
+  var t = sumNumbers(fightRecords.map(_ref => {
+    var _ref2 = main_slicedToArray(_ref, 2),
+        wins = _ref2[0],
+        losses = _ref2[1];
+
+    return wins + losses;
+  }));
+  var logConst = 2 * Math.log(t);
+  var payoffs = pvpIDs.map(i => {
+    var _fightRecords$i = main_slicedToArray(fightRecords[i], 2),
+        wins = _fightRecords$i[0],
+        losses = _fightRecords$i[1];
+
+    var n = wins + losses;
+    var payoff = n > 0 ? wins / n + Math.sqrt(logConst / n) : 10; // Try all at least once at the start
+
+    return payoff;
+  });
+  return maxBy(pvpIDs, i => payoffs[i]);
+}
+function gaussianThompson() {
+  var fightRecords = getFightRecords();
+  var payoffs = pvpIDs.map(i => {
+    var _fightRecords$i2 = main_slicedToArray(fightRecords[i], 2),
+        wins = _fightRecords$i2[0],
+        losses = _fightRecords$i2[1];
+
+    var n = wins + losses;
+    var payoff = wins / n + Math.random() / Math.sqrt(n > 0 ? n : 1e-4);
+    return payoff;
+  });
+  return maxBy(pvpIDs, i => payoffs[i]);
+}
+
+function getBestMini() {
+  return get("PVP_MAB_policy", "UCB").toLowerCase() === "thompson" ? gaussianThompson() : UCB();
 }
 
 function useMeteoriteade() {
@@ -1325,9 +1380,9 @@ function breakStone() {
 }
 
 function updateSeason() {
-  var _visitUrl$match2;
+  var _visitUrl$match3;
 
-  var currentSeason = Array.from((_visitUrl$match2 = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/<b>Current Season: <\/b>(.*?)( \\(Post-Season\\))?<br \/>/))) !== null && _visitUrl$match2 !== void 0 ? _visitUrl$match2 : ["", "0"])[1];
+  var currentSeason = Array.from((_visitUrl$match3 = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/<b>Current Season: <\/b>(.*?)( \\(Post-Season\\))?<br \/>/))) !== null && _visitUrl$match3 !== void 0 ? _visitUrl$match3 : ["", "0"])[1];
   if (get("myCurrentPVPSeason", "") === currentSeason) return; // Reset wins and losses (pad all at 7 wins 7 losses [prime numbers good])
 
   pvpIDs.forEach(i => {
@@ -1337,9 +1392,7 @@ function updateSeason() {
     _set("myCurrentPVPMini_".concat(i), activeMinisSorted[i]);
   }); // The rules page simply sorts the minis by alphabetical order
   // We can always see this (even if we don't have any fites left)
-  // Reset multi-armed bandit epsilon
-
-  _set("myCurrentPVPEpsilon", 0.9); // Reset our season's wins and losses
+  // Reset our season's wins and losses
 
   _set("totalSeasonPVPWins", 0);
   _set("totalSeasonPVPLosses", 0); // save pvp season as current pvp season
@@ -1361,28 +1414,9 @@ function equipPVPOutfit() {
   (0,external_kolmafia_namespaceObject.cliExecute)("UberPvPOptimizer");
 }
 
-function pvpAttack(attackType, activeMinis) {
-  var epsilon = get("myCurrentPVPEpsilon", 0.0);
-  var bestChoice = getBestMini();
-  var pvpChoice;
+function pvpAttack(attackType) {
+  var pvpChoice = getBestMini();
   (0,external_kolmafia_namespaceObject.print)("");
-
-  if (Math.random() > epsilon) {
-    // Choose highest win-rate minigame
-    (0,external_kolmafia_namespaceObject.print)("Exploiting", "green");
-    pvpChoice = bestChoice;
-  } else {
-    (0,external_kolmafia_namespaceObject.print)("Exploring", "green");
-    var ballots = Array(12).fill(0);
-    pvpIDs.forEach(i => {
-      var wins = get("myCurrentPVPWins_".concat(i), 0);
-      var losses = get("myCurrentPVPLosses_".concat(i), 0);
-      ballots[i] = wins / (wins + losses) + (i > 0 ? ballots[i - 1] : 0);
-    });
-    var randomBallot = Math.random() * ballots[ballots.length - 1];
-    pvpChoice = ballots.findIndex(ballot => ballot >= randomBallot);
-  }
-
   (0,external_kolmafia_namespaceObject.print)("Chose mini: ".concat(activeMinis[pvpChoice]), "green");
   return (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?action=fight&place=fight&ranked=1&stance=".concat(pvpChoice, "&attacktype=").concat(attackType, "&pwd"));
 }
@@ -1418,7 +1452,6 @@ function parseCompactMode(result, whoAreWe) {
       }
     }
     slicedResult = slicedResult.slice(slicedResult.indexOf("</td></tr>") + 9);
-    _set("myCurrentPVPEpsilon", Math.max(get("myCurrentPVPEpsilon", 0.0) - 0.001, epsilonLowerBound));
   };
 
   while (slicedResult.includes("td nowrap")) {
@@ -1452,7 +1485,6 @@ function parseNonCompactMode(result, whoAreWe) {
       }
     }
     slicedResult = slicedResult.slice(splitIdx);
-    _set("myCurrentPVPEpsilon", Math.max(get("myCurrentPVPEpsilon", 0.0) - 0.001, epsilonLowerBound));
   };
 
   while (slicedResult.includes("Round ")) {
@@ -1503,16 +1535,11 @@ function main() {
       todaysLosses = get("todaysPVPLosses", 0);
 
   if ((0,external_kolmafia_namespaceObject.pvpAttacksLeft)() > 0) {
-    var _visitUrl$match$splic, _visitUrl$match3;
-
     var attackType = (0,external_kolmafia_namespaceObject.inHardcore)() ? "fame" : "lootwhatever";
-    equipPVPOutfit(); // The fight page does not sort the minis by alphabetical order
-    // So we have to reorder them to the rules page
-
-    var activeMinis = (_visitUrl$match$splic = (_visitUrl$match3 = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight").match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))) === null || _visitUrl$match3 === void 0 ? void 0 : _visitUrl$match3.splice(3).map(s => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""))) !== null && _visitUrl$match$splic !== void 0 ? _visitUrl$match$splic : [];
+    equipPVPOutfit();
 
     while ((0,external_kolmafia_namespaceObject.pvpAttacksLeft)() > 0) {
-      var result = pvpAttack(attackType, activeMinis);
+      var result = pvpAttack(attackType);
 
       if (result.includes("Sorry, I couldn't find the player")) {
         (0,external_kolmafia_namespaceObject.print)("Could not find anyone to fight!", "red");
