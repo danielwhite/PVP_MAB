@@ -54,12 +54,20 @@ export function UCB(): number {
   return maxBy(pvpIDs, (i) => payoffs[i]);
 }
 
+function gaussianRandom(mean = 0, stdev = 1): number {
+  const u = 1 - Math.random(); // Converting [0,1) to (0,1]
+  const v = Math.random();
+  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  // Transform to the desired mean and standard deviation:
+  return z * stdev + mean;
+}
+
 export function gaussianThompson(): number {
   const fightRecords = getFightRecords();
   const payoffs = pvpIDs.map((i) => {
     const [wins, losses] = fightRecords[i];
     const n = wins + losses;
-    const payoff = wins / n + Math.random() / Math.sqrt(n > 0 ? n : 1e-4);
+    const payoff = wins / n + gaussianRandom() / Math.sqrt(n > 0 ? n : 1e-4);
     return payoff;
   });
   return maxBy(pvpIDs, (i) => payoffs[i]);
