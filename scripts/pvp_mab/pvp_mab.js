@@ -1347,6 +1347,18 @@ function UCB() {
   });
   return maxBy(pvpIDs, i => payoffs[i]);
 }
+
+function gaussianRandom() {
+  var mean = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+  var stdev = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var u = 1 - Math.random(); // Converting [0,1) to (0,1]
+
+  var v = Math.random();
+  var z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v); // Transform to the desired mean and standard deviation:
+
+  return z * stdev + mean;
+}
+
 function gaussianThompson() {
   var fightRecords = getFightRecords();
   var payoffs = pvpIDs.map(i => {
@@ -1355,7 +1367,7 @@ function gaussianThompson() {
         losses = _fightRecords$i2[1];
 
     var n = wins + losses;
-    var payoff = wins / n + Math.random() / Math.sqrt(n > 0 ? n : 1e-4);
+    var payoff = wins / n + gaussianRandom() / Math.sqrt(n > 0 ? n : 1e-4);
     return payoff;
   });
   return maxBy(pvpIDs, i => payoffs[i]);
