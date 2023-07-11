@@ -1315,6 +1315,9 @@ function main_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 var activeMinis = (_visitUrl$match$splic = (_visitUrl$match = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight").match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))) === null || _visitUrl$match === void 0 ? void 0 : _visitUrl$match.splice(3).map(s => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""))) !== null && _visitUrl$match$splic !== void 0 ? _visitUrl$match$splic : [];
 var activeMinisSorted = (_visitUrl$match$map = (_visitUrl$match2 = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/nowrap><b>(.*?)\\*?<\/b>/g))) === null || _visitUrl$match2 === void 0 ? void 0 : _visitUrl$match2.map(s => s.replace("nowrap>", "").replace("*", "").replace("arrr", "ar").replace("<b>", "").replace("</b>", ""))) !== null && _visitUrl$match$map !== void 0 ? _visitUrl$match$map : [];
 var pvpIDs = Array.from(Array(activeMinis.length).keys());
+var sortedPvpIDs = activeMinis.map(mini => activeMinisSorted.findIndex(sortedMini => sortedMini === mini));
+activeMinis.forEach((mini, i) => (0,external_kolmafia_namespaceObject.print)("".concat(mini, " ").concat(get("myCurrentPVPMini_".concat(sortedPvpIDs[i])))));
+if (!sortedPvpIDs.every((id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i)) throw new Error("Error with sortedPvpIDs: ".concat(sortedPvpIDs));
 var verbose = !get("PVP_MAB_reduced_verbosity", false);
 
 function getFightRecords() {
@@ -1343,11 +1346,24 @@ function UCB() {
     var n = wins + losses;
     var payoff = n > 0 ? wins / n + Math.sqrt(logConst / n) : 10; // Try all at least once at the start
 
-    (0,external_kolmafia_namespaceObject.print)("".concat(activeMinis[i], ": ").concat(payoff));
+    (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(payoff));
     return payoff;
   });
-  return maxBy(pvpIDs, i => payoffs[i]);
+  return sortedPvpIDs[maxBy(pvpIDs, i => payoffs[i])];
 }
+
+function gaussianRandom() {
+  var mean = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+  var stdev = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  // Taken from https://stackoverflow.com/a/36481059
+  var u = 1 - Math.random(); // Converting [0,1) to (0,1]
+
+  var v = Math.random();
+  var z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v); // Transform to the desired mean and standard deviation:
+
+  return z * stdev + mean;
+}
+
 function gaussianThompson() {
   var fightRecords = getFightRecords();
   var payoffs = pvpIDs.map(i => {
@@ -1356,11 +1372,11 @@ function gaussianThompson() {
         losses = _fightRecords$i2[1];
 
     var n = wins + losses;
-    var payoff = wins / n + Math.random() / Math.sqrt(n > 0 ? n : 1e-4);
-    (0,external_kolmafia_namespaceObject.print)("".concat(activeMinis[i], ": ").concat(payoff));
+    var payoff = wins / n + gaussianRandom() / Math.sqrt(n > 0 ? n : 1e-4);
+    (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(payoff));
     return payoff;
   });
-  return maxBy(pvpIDs, i => payoffs[i]);
+  return sortedPvpIDs[maxBy(pvpIDs, i => payoffs[i])];
 }
 
 function getBestMini() {
@@ -1549,6 +1565,7 @@ function main() {
       }
 
       parseResult(result) ? _set("todaysPVPWins", todaysWins += 1) : _set("todaysPVPLosses", todaysLosses += 1);
+      break;
     }
   } else {
     (0,external_kolmafia_namespaceObject.print)("Out of PVP fights", "red");

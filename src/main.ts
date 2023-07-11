@@ -30,6 +30,18 @@ const activeMinisSorted =
         .replace("</b>", "")
     ) ?? [];
 const pvpIDs = Array.from(Array(activeMinis.length).keys());
+const sortedPvpIDs = activeMinis.map((mini) =>
+  activeMinisSorted.findIndex((sortedMini) => sortedMini === mini)
+);
+
+// activeMinis.forEach((mini, i) => print(`${mini} ${get(`myCurrentPVPMini_${sortedPvpIDs[i]}`)}`));
+
+if (
+  !sortedPvpIDs.every(
+    (id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i
+  )
+)
+  throw new Error(`Error with sortedPvpIDs: ${sortedPvpIDs}`);
 
 const verbose = !get("PVP_MAB_reduced_verbosity", false);
 
@@ -49,9 +61,10 @@ export function UCB(): number {
     const [wins, losses] = fightRecords[i];
     const n = wins + losses;
     const payoff = n > 0 ? wins / n + Math.sqrt(logConst / n) : 10; // Try all at least once at the start
+    // print(`${activeMinisSorted[i]}: ${payoff}`);
     return payoff;
   });
-  return maxBy(pvpIDs, (i) => payoffs[i]);
+  return sortedPvpIDs[maxBy(pvpIDs, (i) => payoffs[i])];
 }
 
 function gaussianRandom(mean = 0, stdev = 1): number {
@@ -69,9 +82,10 @@ export function gaussianThompson(): number {
     const [wins, losses] = fightRecords[i];
     const n = wins + losses;
     const payoff = wins / n + gaussianRandom() / Math.sqrt(n > 0 ? n : 1e-4);
+    // print(`${activeMinisSorted[i]}: ${payoff}`);
     return payoff;
   });
-  return maxBy(pvpIDs, (i) => payoffs[i]);
+  return sortedPvpIDs[maxBy(pvpIDs, (i) => payoffs[i])];
 }
 
 function getBestMini(): number {
