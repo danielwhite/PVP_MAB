@@ -1,7 +1,9 @@
+import { Args } from "grimoire-kolmafia";
+import { canInteract } from "kolmafia";
+import { abort, hippyStoneBroken } from "kolmafia";
 import {
   buy,
   cliExecute,
-  inHardcore,
   itemAmount,
   print,
   pvpAttacksLeft,
@@ -105,6 +107,9 @@ function useMeteoriteade(): void {
 }
 
 function breakStone(): void {
+  if (!args.breakStone && hippyStoneBroken())
+    abort("Your stone is unbroken, and you won't let us do it!");
+
   const buffer = visitUrl("peevpee.php?confirm=on&action=smashstone&pwd");
   if (buffer.includes("Pledge allegiance to"))
     visitUrl("peevpee.php?action=pledge&place=fight&pwd");
@@ -282,9 +287,31 @@ function printStats(): void {
   });
 }
 
-export function main(): void {
-  useMeteoriteade();
+type PvpTarget = "fame" | "loot" | "flowers";
+
+const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp", {
+  breakStone: Args.boolean({
+    help: "Should pvp_mab break your stone?",
+    default: true,
+  }),
+  target: Args.custom<PvpTarget>(
+    {
+      default: canInteract() ? "loot" : "fame",
+      options: [["fame"], ["loot"], ["flowers"]],
+    },
+    (x) => x as PvpTarget,
+    "pvp target"
+  ),
+});
+
+export function main(argstring = ""): void {
+  Args.fill(args, argstring);
+  if (args.help) {
+    Args.showHelp(args);
+    return;
+  }
   breakStone();
+  useMeteoriteade();
   updateSeason();
   updateWinRate();
 
@@ -292,7 +319,7 @@ export function main(): void {
     todaysLosses = get("todaysPVPLosses", 0);
 
   if (pvpAttacksLeft() > 0) {
-    const attackType = inHardcore() ? "fame" : "lootwhatever";
+    const attackType = args.target === "loot" ? "lootwhatever" : args.target;
     equipPVPOutfit();
 
     while (pvpAttacksLeft() > 0) {
