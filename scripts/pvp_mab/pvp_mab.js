@@ -1315,6 +1315,9 @@ function main_arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 var activeMinis = (_visitUrl$match$splic = (_visitUrl$match = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight").match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))) === null || _visitUrl$match === void 0 ? void 0 : _visitUrl$match.splice(3).map(s => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""))) !== null && _visitUrl$match$splic !== void 0 ? _visitUrl$match$splic : [];
 var activeMinisSorted = (_visitUrl$match$map = (_visitUrl$match2 = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/nowrap><b>(.*?)\\*?<\/b>/g))) === null || _visitUrl$match2 === void 0 ? void 0 : _visitUrl$match2.map(s => s.replace("nowrap>", "").replace("*", "").replace("arrr", "ar").replace("<b>", "").replace("</b>", ""))) !== null && _visitUrl$match$map !== void 0 ? _visitUrl$match$map : [];
 var pvpIDs = Array.from(Array(activeMinis.length).keys());
+var sortedPvpIDs = activeMinis.map(mini => activeMinisSorted.findIndex(sortedMini => sortedMini === mini)); // activeMinis.forEach((mini, i) => print(`${mini} ${get(`myCurrentPVPMini_${sortedPvpIDs[i]}`)}`));
+
+if (!sortedPvpIDs.every((id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i)) throw new Error("Error with sortedPvpIDs: ".concat(sortedPvpIDs));
 var verbose = !get("PVP_MAB_reduced_verbosity", false);
 
 function getFightRecords() {
@@ -1342,10 +1345,11 @@ function UCB() {
 
     var n = wins + losses;
     var payoff = n > 0 ? wins / n + Math.sqrt(logConst / n) : 10; // Try all at least once at the start
+    // print(`${activeMinisSorted[i]}: ${payoff}`);
 
     return payoff;
   });
-  return maxBy(pvpIDs, i => payoffs[i]);
+  return sortedPvpIDs[maxBy(pvpIDs, i => payoffs[i])];
 }
 
 function gaussianRandom() {
@@ -1368,10 +1372,11 @@ function gaussianThompson() {
         losses = _fightRecords$i2[1];
 
     var n = wins + losses;
-    var payoff = wins / n + gaussianRandom() / Math.sqrt(n > 0 ? n : 1e-4);
+    var payoff = wins / n + gaussianRandom() / Math.sqrt(n > 0 ? n : 1e-4); // print(`${activeMinisSorted[i]}: ${payoff}`);
+
     return payoff;
   });
-  return maxBy(pvpIDs, i => payoffs[i]);
+  return sortedPvpIDs[maxBy(pvpIDs, i => payoffs[i])];
 }
 
 function getBestMini() {
