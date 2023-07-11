@@ -8,27 +8,22 @@ import {
   todayToString,
   use,
   visitUrl,
+  xpath,
 } from "kolmafia";
 import { $item, get, maxBy, set, sumNumbers } from "libram";
 
 // The fight page does not sort the minis by alphabetical order
 // So we have to reorder them to the rules page
-const activeMinis =
-  visitUrl("peevpee.php?place=fight")
-    .match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))
-    ?.splice(3)
-    .map((s) => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, "")) ?? [];
-const activeMinisSorted =
-  visitUrl("peevpee.php?place=rules")
-    .match(RegExp(/nowrap><b>(.*?)\\*?<\/b>/g))
-    ?.map((s) =>
-      s
-        .replace("nowrap>", "")
-        .replace("*", "")
-        .replace("arrr", "ar")
-        .replace("<b>", "")
-        .replace("</b>", "")
-    ) ?? [];
+const activeMinis = xpath(
+  visitUrl("peevpee.php?place=fight"),
+  "//select[@name='stance']/option/text()"
+)
+  .splice(3)
+  .map((s) => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""));
+const activeMinisSorted = xpath(
+  visitUrl("peevpee.php?place=rules"),
+  "//tr[@class='small']/td[@nowrap='']/text()"
+);
 const pvpIDs = Array.from(Array(activeMinis.length).keys());
 const sortedPvpIDs = activeMinis.map((mini) =>
   activeMinisSorted.findIndex((sortedMini) => sortedMini === mini)
