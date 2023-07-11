@@ -22,7 +22,7 @@ const activeMinis = xpath(
   .map((s) => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""));
 const activeMinisSorted = xpath(
   visitUrl("peevpee.php?place=rules"),
-  "//tr[@class='small']/td[@nowrap='']/text()"
+  "//tr[@class='small']/td[@nowrap]/text()"
 );
 const pvpIDs = Array.from(Array(activeMinis.length).keys());
 const sortedPvpIDs = activeMinis.map((mini) =>
