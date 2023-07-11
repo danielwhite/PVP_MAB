@@ -290,7 +290,7 @@ function printStats(): void {
 type PvpTarget = "fame" | "loot" | "flowers";
 
 const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp", {
-  breakStone: Args.boolean({
+  breakStone: Args.flag({
     help: "Should pvp_mab break your stone?",
     default: true,
   }),
