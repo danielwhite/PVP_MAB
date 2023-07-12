@@ -16,4 +16,8 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
     (x) => x as PvpTarget,
     "pvp target"
   ),
+  debug: Args.flag({
+    help: "Print debugging information for strategies",
+    default: false,
+  }),
 });

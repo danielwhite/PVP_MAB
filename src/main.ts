@@ -12,6 +12,7 @@ import {
   useMeteoriteade,
 } from "./lib";
 import { parseResult } from "./parsing";
+import { printStrategiesEstimates, updateExp3Weights } from "./strategies";
 
 export function main(argstring = ""): void {
   Args.fill(args, argstring);
@@ -32,6 +33,7 @@ export function main(argstring = ""): void {
     equipPVPOutfit();
 
     while (pvpAttacksLeft() > 0) {
+      if (args.debug) printStrategiesEstimates();
       const result = pvpAttack(attackType);
       if (result.includes("Sorry, I couldn't find the player")) {
         print("Could not find anyone to fight!", "red");
@@ -40,6 +42,7 @@ export function main(argstring = ""): void {
       parseResult(result)
         ? set("todaysPVPWins", (todaysWins += 1))
         : set("todaysPVPLosses", (todaysLosses += 1));
+      updateExp3Weights();
     }
   } else {
     print("Out of PVP fights", "red");
