@@ -47,6 +47,36 @@ if (
 
 const verbose = !get("PVP_MAB_reduced_verbosity", false);
 
+function sampleNormal(mean = 0, stdev = 1): number {
+  // Taken from https://stackoverflow.com/a/36481059
+  const u = 1 - Math.random(); // Converting [0,1) to (0,1]
+  const v = Math.random();
+  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  // Transform to the desired mean and standard deviation:
+  return z * stdev + mean;
+}
+
+function sampleGamma(a: number): number {
+  // Adapted from https://dl.acm.org/doi/pdf/10.1145/358407.358414
+  const d = a - 1.0 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+
+  while (true) {
+    const x = sampleNormal();
+    const v = Math.pow(1 + c * x, 3);
+    const U = Math.random();
+    if (U < 1 - 0.0331 * Math.pow(x, 4)) return d * v;
+    else if (Math.log(U) < 0.5 * Math.pow(x, 2) < d * (1 - v + Math.log(v)))
+      return d * v;
+  }
+}
+
+function sampleBeta(a: number, b: number): number {
+  const X = sampleGamma(a);
+  const Y = sampleGamma(b);
+  return X / (X + Y);
+}
+
 function getFightRecords(): number[][] {
   return pvpIDs.map((i) => {
     const wins = get(`myCurrentPVPWins_${i}`, 0);
@@ -57,7 +87,7 @@ function getFightRecords(): number[][] {
 
 export function UCB(): number {
   const fightRecords = getFightRecords();
-  const t = sumNumbers(fightRecords.map(([wins, losses]) => wins + losses));
+  const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
   const logConst = 2 * Math.log(t);
   const payoffs = pvpIDs.map((i) => {
     const [wins, losses] = fightRecords[i];
@@ -69,29 +99,79 @@ export function UCB(): number {
   return sortedPvpIDs[maxBy(pvpIDs, (i) => payoffs[i])];
 }
 
-function gaussianRandom(mean = 0, stdev = 1): number {
-  // Taken from https://stackoverflow.com/a/36481059
-  const u = 1 - Math.random(); // Converting [0,1) to (0,1]
-  const v = Math.random();
-  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-  // Transform to the desired mean and standard deviation:
-  return z * stdev + mean;
-}
-
 export function gaussianThompson(): number {
   const fightRecords = getFightRecords();
   const payoffs = pvpIDs.map((i) => {
     const [wins, losses] = fightRecords[i];
     const n = wins + losses;
-    const payoff = wins / n + gaussianRandom() / Math.sqrt(n > 0 ? n : 1e-4);
+    const payoff = n > 0 ? sampleNormal(wins / n, Math.sqrt(n)) : sampleNormal(0.5, 1e-2);
     // print(`${activeMinisSorted[i]}: ${payoff}`);
     return payoff;
   });
   return sortedPvpIDs[maxBy(pvpIDs, (i) => payoffs[i])];
 }
 
+export function bernoulliThompson(): number {
+  const fightRecords = getFightRecords();
+  const payoffs = pvpIDs.map((i) => {
+    const [wins, losses] = fightRecords[i];
+    const payoff = sampleBeta(wins, losses);
+    // print(`${activeMinisSorted[i]}: ${payoff}`);
+    return payoff;
+  });
+  return sortedPvpIDs[maxBy(pvpIDs, (i) => payoffs[i])];
+}
+
+export function epsilonGreedy(): number {
+  const fightRecords = getFightRecords();
+  const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
+  const payoffs = pvpIDs.map((i) => {
+    const [wins, losses] = fightRecords[i];
+    const payoff = wins / (wins + losses);
+    // print(`${activeMinisSorted[i]}: ${payoff}`);
+    return payoff;
+  });
+  const idx = Math.random() <= 1.0 / Math.sqrt(t)
+    ? Math.floor(Math.random() * activeMinis.length)
+    : maxBy(pvpIDs, (i) => payoffs[i]);
+  return sortedPvpIDs[idx];
+}
+
+export function Exp3(): number {
+  const fightRecords = getFightRecords();
+  let carry = 0;
+  const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
+  const gamma = 1 / Math.sqrt(t);
+  const K = activeMinis.length;
+
+  const weights = pvpIDs.map((i) => {
+    const [wins, losses] = fightRecords[i];
+    const n = wins + losses;
+    const w = get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0) * Math.exp(gamma * (wins / n) / K);    
+    set(`myCurrentPVPMiniExp3Weight_${i}`, w);
+    return w;
+  });
+  const weightSum = sumNumbers(weights);
+  
+  const CDF = pvpIDs.map((i) => {
+    const prob = (1 - gamma) * weights[i] / weightSum + gamma / K;
+    carry += prob;
+    // print(`${activeMinisSorted[i]}: ${prob}`);
+    return carry;
+  });
+  const rnd = Math.random() * carry;
+  const idx = CDF.findIndex((cdf) => cdf >= rnd);
+    
+  return sortedPvpIDs[idx];
+}
+
 function getBestMini(): number {
-  return get("PVP_MAB_strategy", "UCB").toLowerCase() === "thompson" ? gaussianThompson() : UCB();
+  const strategy = get("PVP_MAB_strategy", "UCB").toLowerCase();
+  if (strategy === "gaussianthompson") return gaussianThompson();
+  else if (strategy === "bernoullithompson") return bernoulliThompson();
+  else if (strategy === "epsilongreedy") return epsilonGreedy();
+  else if (strategy === "exp3") return Exp3();
+  else return UCB(); // default
 }
 
 function useMeteoriteade(): void {
@@ -131,6 +211,10 @@ function updateSeason(): void {
     set(`myCurrentPVPMini_${i}`, "");
     set(`myCurrentPVPMini_${i}`, activeMinisSorted[i]);
   });
+
+  pvpIDs.forEach((i) => {
+    set(`myCurrentPVPMiniExp3Weight_${i}`, 1.0);
+  })
 
   // The rules page simply sorts the minis by alphabetical order
   // We can always see this (even if we don't have any fites left)
