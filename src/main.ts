@@ -91,7 +91,7 @@ export function gaussianThompson(): number {
 }
 
 function getBestMini(): number {
-  return get("PVP_MAB_policy", "UCB").toLowerCase() === "thompson" ? gaussianThompson() : UCB();
+  return get("PVP_MAB_strategy", "UCB").toLowerCase() === "thompson" ? gaussianThompson() : UCB();
 }
 
 function useMeteoriteade(): void {
