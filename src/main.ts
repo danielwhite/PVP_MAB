@@ -66,7 +66,7 @@ function sampleGamma(a: number): number {
     const v = Math.pow(1 + c * x, 3);
     const U = Math.random();
     if (U < 1 - 0.0331 * Math.pow(x, 4)) return d * v;
-    else if (Math.log(U) < 0.5 * Math.pow(x, 2) < d * (1 - v + Math.log(v)))
+    else if (Math.log(U) < 0.5 * Math.pow(x, 2) + d * (1 - v + Math.log(v)))
       return d * v;
   }
 }
