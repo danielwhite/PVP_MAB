@@ -7152,7 +7152,7 @@ function gaussianThompson() {
 }
 
 function getBestMini() {
-  return property_get("PVP_MAB_policy", "UCB").toLowerCase() === "thompson" ? gaussianThompson() : UCB();
+  return property_get("PVP_MAB_strategy", "UCB").toLowerCase() === "thompson" ? gaussianThompson() : UCB();
 }
 
 function useMeteoriteade() {

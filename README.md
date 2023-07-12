@@ -16,7 +16,7 @@ git checkout https://github.com/Pantocyclus/PVP_MAB.git release
 
 ## Running the Script
 
-To run the script, simply type `PVP_MAB` into the CLI. It accepts one argument (loot|fame|flowers) to set the PVP attack type (i.e. `PVP_MAB fame`), but defaults to fame for HC and loot otherwise.
+To run the script, simply type `PVP_MAB` into the CLI. It accepts arguments (loot|fame|flowers) to set the PVP attack type (i.e. `PVP_MAB target=fame`), but defaults to fame for HC and loot otherwise.
 
 ## Why do I need a Multi-Armed Bandit PVP script?
 
