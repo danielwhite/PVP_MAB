@@ -2,7 +2,7 @@
 
 `PVP_MAB` is a [Multi-Armed Bandit](https://en.wikipedia.org/wiki/Multi-armed_bandit) PVP Script that seeks to automatically figure out which is your strongest minigame in a given PVP season, and does so (figuring out the strongest minigame) as fast as possible.
 
-The default implementation is the [UCB1](https://jeremykun.com/2013/10/28/optimism-in-the-face-of-uncertainty-the-ucb1-algorithm/) multi-armed bandit strategy which attempts to optimistically estimate your best minigame and greedily (deterministically) chooses that mini. There are a few other supported bandit strategies, which may be selected by setting the preference `set PVP_MAB_strategy=bernoullithompson|gaussianthompson|exp3|epsilongreedy`. [This post](https://lilianweng.github.io/posts/2018-01-23-multi-armed-bandit/) covers certain classical bandit strategies and more strategies may be added in the future.
+The default implementation is the [UCB1](https://jeremykun.com/2013/10/28/optimism-in-the-face-of-uncertainty-the-ucb1-algorithm/) multi-armed bandit strategy which attempts to optimistically estimate your best minigame and greedily (deterministically) chooses that mini. There are a few other supported bandit strategies, which may be selected by calling the script with the relevant arguments. [This post](https://lilianweng.github.io/posts/2018-01-23-multi-armed-bandit/) covers certain classical bandit strategies and more strategies may be added in the future.
 
 This script has a hardcoded dependency on UberPVPOptimizer, but may otherwise be run out of the box. It should reset the stats every time the season changes (unfortunately, this means that even if a mini is repeated in the future, we do not consider how it has performed historically in the previous PVP seasons), so unless there's a drastic change to the peevpee.php?place=fight page, there's pretty much no upkeep to be done on the base script logic.
 
@@ -16,7 +16,7 @@ git checkout https://github.com/Pantocyclus/PVP_MAB.git release
 
 ## Running the Script
 
-To run the script, simply type `PVP_MAB` into the CLI. It accepts arguments (loot|fame|flowers) to set the PVP attack type (i.e. `PVP_MAB target=fame`), but defaults to fame for HC and loot otherwise.
+To run the script, simply type `PVP_MAB` into the CLI. It accepts arguments (loot|fame|flowers) to set the PVP attack type, and (UCB|Exp3|bernoulliThompson|gaussianThompson|epsilonGreedy) to set the strategy (i.e. `PVP_MAB target=fame strategy=bernoulliThompson`), and defaults to fame (HC)/loot (otherwise) for attack and UCB for strategy.
 
 ## Why do I need a Multi-Armed Bandit PVP script?
 
