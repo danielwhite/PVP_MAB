@@ -22,15 +22,15 @@ To run the script, simply type `PVP_MAB` into the CLI. It accepts one argument (
 
 [Flogger](https://github.com/DamianDominoDavis/kol-flogger) is a good way of keeping track of your PVP stats, which then provides you with the necessary information to determine which is your best mini. However, consider the following scenarios/stats.
 
-Scenario 1
-Mini 1: 667W/333L (66.7% winrate over 1000 fites)
-Mini 2: 333W/667L (33.3% winrate over 1000 fites)
-Mini 3: 500W/500L (50.0% winrate over 1000 fites)
+Scenario 1<br/>
+Mini 1: 667W/333L (66.7% winrate over 1000 fites)<br/>
+Mini 2: 333W/667L (33.3% winrate over 1000 fites)<br/>
+Mini 3: 500W/500L (50.0% winrate over 1000 fites)<br/>
 
-Scenario 2
-Mini 1: 2W/1L (66.7% winrate over 3 fites)
-Mini 2: 1W/2L (33.3% winrate over 3 fites)
-Mini 3: 500W/500L (50.0% winrate over 1000 fites)
+Scenario 2<br/>
+Mini 1: 2W/1L (66.7% winrate over 3 fites)<br/>
+Mini 2: 1W/2L (33.3% winrate over 3 fites)<br/>
+Mini 3: 500W/500L (50.0% winrate over 1000 fites)<br/>
 
 In Scenario 1, it is pretty clear which mini we should choose - we are confident that Mini 1 has the highest winrate.
 
@@ -38,10 +38,10 @@ However, in Scenario 2 it is pretty much unclear whether Mini 1 is in fact bette
 
 It is clear then, we need to attribute to exploration a certain value. The more certain we are of a given mini's winrate, the less we need to explore that mini. But it is not obvious how we should go about the exploration. Consider this third scenario.
 
-Scenario 3
-Mini 1: 49W/51L (49.0% winrate over 100 fites)
-Mini 2: 1W/99L (1.0% winrate over 100 fites)
-Mini 3: 500W/500L (50.0 winrate over 100 fites)
+Scenario 3<br/>
+Mini 1: 49W/51L (49.0% winrate over 100 fites)<br/>
+Mini 2: 1W/99L (1.0% winrate over 100 fites)<br/>
+Mini 3: 500W/500L (50.0 winrate over 100 fites)<br/>
 
 In Scenario 3, we can be pretty confident that Mini 2 will not have a true winrate anywhere close to Mini 3's 50% winrate - i.e. there is almost no value in exploring Mini 2 any further. Intuitively, there is, however, potential value in exploring Mini 1 further. But how much more data do we need? (In fact, did we really need to play out Mini 2 100 times to determine that it was bad? Could we have cut our losses earlier?)
 
