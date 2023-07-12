@@ -11,9 +11,10 @@ import {
   use,
   visitUrl,
 } from "kolmafia";
-import { $item, get, set } from "libram";
-import { bernoulliThompson, epsilonGreedy, Exp3, gaussianThompson, UCB } from "./strategies";
+import { $item, get, set, sumNumbers } from "libram";
+import * as STRATEGIES from "./strategies";
 import { args } from "./args";
+import { sampleBeta, sampleNormal } from "./distributions";
 
 // So we have to reorder them to the rules page
 export const activeMinis =
@@ -56,13 +57,9 @@ export function getFightRecords(): number[][] {
   });
 }
 
+export type Strategy = keyof typeof STRATEGIES;
 export function getBestMini(): number {
-  const strategy = get("PVP_MAB_strategy", "UCB").toLowerCase();
-  if (strategy === "gaussianthompson") return gaussianThompson();
-  else if (strategy === "bernoullithompson") return bernoulliThompson();
-  else if (strategy === "epsilongreedy") return epsilonGreedy();
-  else if (strategy === "exp3") return Exp3();
-  else return UCB(); // default
+  return STRATEGIES[args.strategy]();
 }
 
 export function useMeteoriteade(): void {
@@ -159,4 +156,60 @@ export function printStats(): void {
         "blue"
       );
   });
+}
+
+export function printStrategiesEstimates(): void {
+  const fightRecords = getFightRecords();
+  const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
+  const gamma = 1 / Math.pow(t, 0.2);
+  const K = activeMinis.length;
+  const logConst = 2 * Math.log(t);
+  const weights = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
+  const weightSum = sumNumbers(weights);
+
+  pvpIDs.forEach((i) => {
+    const [wins, losses] = fightRecords[i];
+    const n = wins + losses;
+
+    // payoffs
+    const UCBPayoff = n > 0 ? wins / n + Math.sqrt(logConst / n) : 10;
+    const gaussianThompsonPayoff =
+      n > 0 ? sampleNormal(wins / n, 1.0 / Math.sqrt(n)) : sampleNormal(0.5, 1e-2);
+    const bernoulliThompsonPayoff = sampleBeta(wins, losses);
+    const epsilonGreedyPayoff = wins / (wins + losses);
+    const Exp3Payoff = ((1 - gamma) * weights[i]) / weightSum + gamma / K;
+
+    const stats = [
+      UCBPayoff,
+      gaussianThompsonPayoff,
+      bernoulliThompsonPayoff,
+      epsilonGreedyPayoff,
+      Exp3Payoff,
+    ]
+      .map((val) => val.toFixed(3))
+      .join(" | ");
+
+    print(`${activeMinisSorted[i]}: ${stats}`, "blue");
+  });
+  print();
+}
+
+export function updateExp3Weights(): void {
+  const fightRecords = getFightRecords();
+  const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
+  const gamma = 1 / Math.pow(t, 0.2);
+  const K = activeMinis.length;
+
+  const weights = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
+  const weightSum = sumNumbers(weights);
+  const Pr = pvpIDs.map((i) => ((1 - gamma) * weights[i]) / weightSum + gamma / K);
+  print("Updating Exp3 Weights...");
+  set("logPreferenceChange", false);
+  pvpIDs.map((i) => {
+    const [wins, losses] = fightRecords[i];
+    const n = wins + losses;
+    const weightNew = weights[i] * Math.exp((gamma * wins) / (n * Pr[i] * K));
+    set(`myCurrentPVPMiniExp3Weight_${i}`, weightNew);
+  });
+  set("logPreferenceChange", true);
 }

@@ -6,13 +6,14 @@ import {
   breakStone,
   equipPVPOutfit,
   printStats,
+  printStrategiesEstimates,
   pvpAttack,
+  updateExp3Weights,
   updateSeason,
   updateWinRate,
   useMeteoriteade,
 } from "./lib";
 import { parseResult } from "./parsing";
-import { printStrategiesEstimates, updateExp3Weights } from "./strategies";
 
 export function main(argstring = ""): void {
   Args.fill(args, argstring);

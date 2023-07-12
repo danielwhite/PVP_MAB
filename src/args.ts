@@ -1,5 +1,6 @@
 import { Args } from "grimoire-kolmafia";
 import { canInteract } from "kolmafia";
+import { Strategy } from "./lib";
 
 type PvpTarget = "fame" | "loot" | "flowers";
 
@@ -20,4 +21,12 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
     help: "Print debugging information for strategies",
     default: false,
   }),
+  strategy: Args.custom<Strategy>(
+    {
+      default: "UCB",
+      options: [["UCB"], ["Exp3"], ["bernoulliThompson"], ["epsilonGreedy"], ["gaussianThompson"]],
+    },
+    (x) => x as Strategy,
+    "multi-armed bandit strategy"
+  ),
 });
