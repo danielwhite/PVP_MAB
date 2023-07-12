@@ -39,7 +39,10 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
+  "Exp3": () => (/* binding */ Exp3),
   "UCB": () => (/* binding */ UCB),
+  "bernoulliThompson": () => (/* binding */ bernoulliThompson),
+  "epsilonGreedy": () => (/* binding */ epsilonGreedy),
   "gaussianThompson": () => (/* binding */ gaussianThompson),
   "main": () => (/* binding */ main)
 });
@@ -7092,6 +7095,37 @@ var sortedPvpIDs = activeMinis.map(mini => activeMinisSorted.findIndex(sortedMin
 if (!sortedPvpIDs.every((id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i)) throw new Error("Error with sortedPvpIDs: ".concat(sortedPvpIDs));
 var verbose = !property_get("PVP_MAB_reduced_verbosity", false);
 
+function sampleNormal() {
+  var mean = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+  var stdev = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  // Taken from https://stackoverflow.com/a/36481059
+  var u = 1 - Math.random(); // Converting [0,1) to (0,1]
+
+  var v = Math.random();
+  var z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v); // Transform to the desired mean and standard deviation:
+
+  return z * stdev + mean;
+}
+
+function sampleGamma(a) {
+  // Adapted from https://dl.acm.org/doi/pdf/10.1145/358407.358414
+  var d = a - 1.0 / 3;
+  var c = 1 / Math.sqrt(9 * d);
+
+  while (true) {
+    var x = sampleNormal();
+    var v = Math.pow(1 + c * x, 3);
+    var U = Math.random();
+    if (U < 1 - 0.0331 * Math.pow(x, 4)) return d * v;else if (Math.log(U) < 0.5 * Math.pow(x, 2) + d * (1 - v + Math.log(v))) return d * v;
+  }
+}
+
+function sampleBeta(a, b) {
+  var X = sampleGamma(a);
+  var Y = sampleGamma(b);
+  return X / (X + Y);
+}
+
 function getFightRecords() {
   return pvpIDs.map(i => {
     var wins = property_get("myCurrentPVPWins_".concat(i), 0);
@@ -7102,13 +7136,13 @@ function getFightRecords() {
 
 function UCB() {
   var fightRecords = getFightRecords();
-  var t = sumNumbers(fightRecords.map(_ref => {
+  var t = Math.max(1, sumNumbers(fightRecords.map(_ref => {
     var _ref2 = main_slicedToArray(_ref, 2),
         wins = _ref2[0],
         losses = _ref2[1];
 
     return wins + losses;
-  }));
+  })));
   var logConst = 2 * Math.log(t);
   var payoffs = pvpIDs.map(i => {
     var _fightRecords$i = main_slicedToArray(fightRecords[i], 2),
@@ -7123,19 +7157,6 @@ function UCB() {
   });
   return sortedPvpIDs[maxBy(pvpIDs, i => payoffs[i])];
 }
-
-function gaussianRandom() {
-  var mean = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-  var stdev = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-  // Taken from https://stackoverflow.com/a/36481059
-  var u = 1 - Math.random(); // Converting [0,1) to (0,1]
-
-  var v = Math.random();
-  var z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v); // Transform to the desired mean and standard deviation:
-
-  return z * stdev + mean;
-}
-
 function gaussianThompson() {
   var fightRecords = getFightRecords();
   var payoffs = pvpIDs.map(i => {
@@ -7144,15 +7165,83 @@ function gaussianThompson() {
         losses = _fightRecords$i2[1];
 
     var n = wins + losses;
-    var payoff = wins / n + gaussianRandom() / Math.sqrt(n > 0 ? n : 1e-4); // print(`${activeMinisSorted[i]}: ${payoff}`);
+    var payoff = n > 0 ? sampleNormal(wins / n, Math.sqrt(n)) : sampleNormal(0.5, 1e-2); // print(`${activeMinisSorted[i]}: ${payoff}`);
 
     return payoff;
   });
   return sortedPvpIDs[maxBy(pvpIDs, i => payoffs[i])];
 }
+function bernoulliThompson() {
+  var fightRecords = getFightRecords();
+  var payoffs = pvpIDs.map(i => {
+    var _fightRecords$i3 = main_slicedToArray(fightRecords[i], 2),
+        wins = _fightRecords$i3[0],
+        losses = _fightRecords$i3[1];
+
+    var payoff = sampleBeta(wins, losses); // print(`${activeMinisSorted[i]}: ${payoff}`);
+
+    return payoff;
+  });
+  return sortedPvpIDs[maxBy(pvpIDs, i => payoffs[i])];
+}
+function epsilonGreedy() {
+  var fightRecords = getFightRecords();
+  var t = Math.max(1, sumNumbers(fightRecords.map(_ref3 => {
+    var _ref4 = main_slicedToArray(_ref3, 2),
+        wins = _ref4[0],
+        losses = _ref4[1];
+
+    return wins + losses;
+  })));
+  var payoffs = pvpIDs.map(i => {
+    var _fightRecords$i4 = main_slicedToArray(fightRecords[i], 2),
+        wins = _fightRecords$i4[0],
+        losses = _fightRecords$i4[1];
+
+    var payoff = wins / (wins + losses); // print(`${activeMinisSorted[i]}: ${payoff}`);
+
+    return payoff;
+  });
+  var idx = Math.random() <= 1.0 / Math.sqrt(t) ? Math.floor(Math.random() * activeMinis.length) : maxBy(pvpIDs, i => payoffs[i]);
+  return sortedPvpIDs[idx];
+}
+function Exp3() {
+  var fightRecords = getFightRecords();
+  var carry = 0;
+  var t = Math.max(1, sumNumbers(fightRecords.map(_ref5 => {
+    var _ref6 = main_slicedToArray(_ref5, 2),
+        wins = _ref6[0],
+        losses = _ref6[1];
+
+    return wins + losses;
+  })));
+  var gamma = 1 / Math.sqrt(t);
+  var K = activeMinis.length;
+  var weights = pvpIDs.map(i => {
+    var _fightRecords$i5 = main_slicedToArray(fightRecords[i], 2),
+        wins = _fightRecords$i5[0],
+        losses = _fightRecords$i5[1];
+
+    var n = wins + losses;
+    var w = property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0) * Math.exp(gamma * (wins / n) / K);
+    _set("myCurrentPVPMiniExp3Weight_".concat(i), w);
+    return w;
+  });
+  var weightSum = sumNumbers(weights);
+  var CDF = pvpIDs.map(i => {
+    var prob = (1 - gamma) * weights[i] / weightSum + gamma / K;
+    carry += prob; // print(`${activeMinisSorted[i]}: ${prob}`);
+
+    return carry;
+  });
+  var rnd = Math.random() * carry;
+  var idx = CDF.findIndex(cdf => cdf >= rnd);
+  return sortedPvpIDs[idx];
+}
 
 function getBestMini() {
-  return property_get("PVP_MAB_strategy", "UCB").toLowerCase() === "thompson" ? gaussianThompson() : UCB();
+  var strategy = property_get("PVP_MAB_strategy", "UCB").toLowerCase();
+  if (strategy === "gaussianthompson") return gaussianThompson();else if (strategy === "bernoullithompson") return bernoulliThompson();else if (strategy === "epsilongreedy") return epsilonGreedy();else if (strategy === "exp3") return Exp3();else return UCB(); // default
 }
 
 function useMeteoriteade() {
@@ -7181,6 +7270,9 @@ function updateSeason() {
     _set("myCurrentPVPLosses_".concat(i), 7);
     _set("myCurrentPVPMini_".concat(i), "");
     _set("myCurrentPVPMini_".concat(i), activeMinisSorted[i]);
+  });
+  pvpIDs.forEach(i => {
+    _set("myCurrentPVPMiniExp3Weight_".concat(i), 1.0);
   }); // The rules page simply sorts the minis by alphabetical order
   // We can always see this (even if we don't have any fites left)
   // Reset our season's wins and losses
