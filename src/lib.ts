@@ -34,18 +34,22 @@ export const activeMinisSorted =
         .replace("</b>", "")
     ) ?? [];
 export const pvpIDs = Array.from(Array(activeMinis.length).keys());
-export const sortedPvpIDs = activeMinisSorted.map((mini) =>
-  activeMinis.findIndex((sortedMini) => sortedMini === mini)
-);
+export let sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
-if (
-  !sortedPvpIDs.every(
-    (id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i
+export function initializeSortedPvpIDs(): void {
+  sortedPvpIDs = activeMinisSorted.map((mini) =>
+    activeMinis.findIndex((sortedMini) => sortedMini === mini)
+  );
+  
+  if (
+    !sortedPvpIDs.every(
+      (id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i
+    )
   )
-)
-  throw new Error(`Error with sortedPvpIDs: ${sortedPvpIDs}!`);
-if (!pvpIDs.every((i) => activeMinisSorted[i] === activeMinis[sortedPvpIDs[i]]))
-  throw new Error(`Error with mapping!`);
+    throw new Error(`Error with sortedPvpIDs: ${sortedPvpIDs}!`);
+  if (!pvpIDs.every((i) => activeMinisSorted[i] === activeMinis[sortedPvpIDs[i]]))
+    throw new Error(`Error with mapping!`);
+}
 
 export const verbose = !get("PVP_MAB_reduced_verbosity", false);
 
