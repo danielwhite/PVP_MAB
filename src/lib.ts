@@ -10,6 +10,7 @@ import {
   todayToString,
   use,
   visitUrl,
+  xpath,
 } from "kolmafia";
 import { $item, get, set, sumNumbers } from "libram";
 import * as STRATEGIES from "./strategies";
@@ -17,37 +18,35 @@ import { args } from "./args";
 import { sampleBeta, sampleNormal } from "./distributions";
 
 // So we have to reorder them to the rules page
-export const activeMinis =
-  visitUrl("peevpee.php?place=fight")
-    .match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))
-    ?.splice(3)
-    .map((s) => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, "")) ?? [];
-export const activeMinisSorted =
-  visitUrl("peevpee.php?place=rules")
-    .match(RegExp(/nowrap><b>(.*?)\\*?<\/b>/g))
-    ?.map((s) =>
-      s
-        .replace("nowrap>", "")
-        .replace("*", "")
-        .replace("arrr", "ar")
-        .replace("<b>", "")
-        .replace("</b>", "")
-    ) ?? [];
+export const activeMinis = xpath(
+  visitUrl("peevpee.php?place=fight"),
+  "//select[@name='stance']/option/text()"
+);
+export const activeMinisSorted = xpath(
+  visitUrl("peevpee.php?place=rules"),
+  "//tr[@class='small']/td[@nowrap]/text()"
+).map((sortedMini) => (sortedMini in activeMinis ? sortedMini : sortedMini.replace("*", "")));
 export const pvpIDs = Array.from(Array(activeMinis.length).keys());
 export let sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
 export function initializeSortedPvpIDs(): void {
-  sortedPvpIDs = activeMinisSorted.map((mini) =>
-    activeMinis.findIndex((sortedMini) => sortedMini === mini)
+  sortedPvpIDs = activeMinisSorted.map((sortedMini) =>
+    activeMinis.findIndex((mini) => sortedMini.slice(0, mini.length) === mini)
   );
-  
+
   if (
     !sortedPvpIDs.every(
       (id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i
     )
   )
     throw new Error(`Error with sortedPvpIDs: ${sortedPvpIDs}!`);
-  if (!pvpIDs.every((i) => activeMinisSorted[i] === activeMinis[sortedPvpIDs[i]]))
+  if (
+    !pvpIDs.every((i) => {
+      const sortedMini = activeMinisSorted[i];
+      const mini = activeMinis[sortedPvpIDs[i]];
+      return sortedMini.slice(0, mini.length) === mini;
+    })
+  )
     throw new Error(`Error with mapping!`);
 }
 
