@@ -7261,15 +7261,21 @@ function lib_taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.sli
 
  // So we have to reorder them to the rules page
 
-var activeMinis = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight"), "//select[@name='stance']/option/text()").splice(3).map(s => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""));
-var activeMinisSorted = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules"), "//tr[@class='small']/td[@nowrap]/text()");
+var activeMinis = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight"), "//select[@name='stance']/option/text()");
+var activeMinisSorted = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules"), "//tr[@class='small']/td[@nowrap]/text()").map(sortedMini => sortedMini in activeMinis ? sortedMini : sortedMini.replace("*", ""));
+activeMinis.forEach(mini => (0,external_kolmafia_namespaceObject.print)("".concat(mini), "green"));
+activeMinisSorted.forEach(mini => (0,external_kolmafia_namespaceObject.print)("".concat(mini), "red"));
 var pvpIDs = Array.from(Array(activeMinis.length).keys());
 var sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
 function initializeSortedPvpIDs() {
-  sortedPvpIDs = activeMinisSorted.map(mini => activeMinis.findIndex(sortedMini => sortedMini === mini));
+  sortedPvpIDs = activeMinisSorted.map(sortedMini => activeMinis.findIndex(mini => sortedMini.slice(0, mini.length) === mini));
   if (!sortedPvpIDs.every((id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i)) throw new Error("Error with sortedPvpIDs: ".concat(sortedPvpIDs, "!"));
-  if (!pvpIDs.every(i => activeMinisSorted[i] === activeMinis[sortedPvpIDs[i]])) throw new Error("Error with mapping!");
+  if (!pvpIDs.every(i => {
+    var sortedMini = activeMinisSorted[i];
+    var mini = activeMinis[sortedPvpIDs[i]];
+    return sortedMini.slice(0, mini.length) === mini;
+  })) throw new Error("Error with mapping!");
 }
 var verbose = !property_get("PVP_MAB_reduced_verbosity", false);
 function getFightRecords() {

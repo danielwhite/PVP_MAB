@@ -21,19 +21,17 @@ import { sampleBeta, sampleNormal } from "./distributions";
 export const activeMinis = xpath(
   visitUrl("peevpee.php?place=fight"),
   "//select[@name='stance']/option/text()"
-)
-  .splice(3)
-  .map((s) => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""));
+);
 export const activeMinisSorted = xpath(
   visitUrl("peevpee.php?place=rules"),
   "//tr[@class='small']/td[@nowrap]/text()"
-);
+).map((sortedMini) => (sortedMini in activeMinis ? sortedMini : sortedMini.replace("*", "")));
 export const pvpIDs = Array.from(Array(activeMinis.length).keys());
 export let sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
 export function initializeSortedPvpIDs(): void {
-  sortedPvpIDs = activeMinisSorted.map((mini) =>
-    activeMinis.findIndex((sortedMini) => sortedMini === mini)
+  sortedPvpIDs = activeMinisSorted.map((sortedMini) =>
+    activeMinis.findIndex((mini) => sortedMini.slice(0, mini.length) === mini)
   );
 
   if (
@@ -42,7 +40,13 @@ export function initializeSortedPvpIDs(): void {
     )
   )
     throw new Error(`Error with sortedPvpIDs: ${sortedPvpIDs}!`);
-  if (!pvpIDs.every((i) => activeMinisSorted[i] === activeMinis[sortedPvpIDs[i]]))
+  if (
+    !pvpIDs.every((i) => {
+      const sortedMini = activeMinisSorted[i];
+      const mini = activeMinis[sortedPvpIDs[i]];
+      return sortedMini.slice(0, mini.length) === mini;
+    })
+  )
     throw new Error(`Error with mapping!`);
 }
 
