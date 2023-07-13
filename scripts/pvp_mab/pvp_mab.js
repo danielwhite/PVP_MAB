@@ -7238,7 +7238,7 @@ function Exp3() {
   return sortedPvpIDs[idx];
 }
 ;// CONCATENATED MODULE: ./src/lib.ts
-var _visitUrl$match$splic, _visitUrl$match, _visitUrl$match$map, _visitUrl$match2, lib_templateObject, lib_templateObject2, lib_templateObject3;
+var lib_templateObject, lib_templateObject2, lib_templateObject3;
 
 function src_lib_slicedToArray(arr, i) { return src_lib_arrayWithHoles(arr) || src_lib_iterableToArrayLimit(arr, i) || src_lib_unsupportedIterableToArray(arr, i) || src_lib_nonIterableRest(); }
 
@@ -7261,15 +7261,19 @@ function lib_taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.sli
 
  // So we have to reorder them to the rules page
 
-var activeMinis = (_visitUrl$match$splic = (_visitUrl$match = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight").match(RegExp(/option value="\d+"(.*?)>(.*?)<\/option/g))) === null || _visitUrl$match === void 0 ? void 0 : _visitUrl$match.splice(3).map(s => s.replace(/option value="([0-9]+)"(.*?)>/g, "").replace(/<\/option/g, ""))) !== null && _visitUrl$match$splic !== void 0 ? _visitUrl$match$splic : [];
-var activeMinisSorted = (_visitUrl$match$map = (_visitUrl$match2 = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/nowrap><b>(.*?)\\*?<\/b>/g))) === null || _visitUrl$match2 === void 0 ? void 0 : _visitUrl$match2.map(s => s.replace("nowrap>", "").replace("*", "").replace("arrr", "ar").replace("<b>", "").replace("</b>", ""))) !== null && _visitUrl$match$map !== void 0 ? _visitUrl$match$map : [];
+var activeMinis = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight"), "//select[@name='stance']/option/text()");
+var activeMinisSorted = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules"), "//tr[@class='small']/td[@nowrap]/text()").map(sortedMini => sortedMini in activeMinis ? sortedMini : sortedMini.replace("*", ""));
 var pvpIDs = Array.from(Array(activeMinis.length).keys());
 var sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
 function initializeSortedPvpIDs() {
-  sortedPvpIDs = activeMinisSorted.map(mini => activeMinis.findIndex(sortedMini => sortedMini === mini));
+  sortedPvpIDs = activeMinisSorted.map(sortedMini => activeMinis.findIndex(mini => sortedMini.slice(0, mini.length) === mini));
   if (!sortedPvpIDs.every((id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i)) throw new Error("Error with sortedPvpIDs: ".concat(sortedPvpIDs, "!"));
-  if (!pvpIDs.every(i => activeMinisSorted[i] === activeMinis[sortedPvpIDs[i]])) throw new Error("Error with mapping!");
+  if (!pvpIDs.every(i => {
+    var sortedMini = activeMinisSorted[i];
+    var mini = activeMinis[sortedPvpIDs[i]];
+    return sortedMini.slice(0, mini.length) === mini;
+  })) throw new Error("Error with mapping!");
 }
 var verbose = !property_get("PVP_MAB_reduced_verbosity", false);
 function getFightRecords() {
@@ -7296,9 +7300,9 @@ function breakStone() {
   if (buffer.includes("Pledge allegiance to")) (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?action=pledge&place=fight&pwd");
 }
 function updateSeason() {
-  var _visitUrl$match3;
+  var _visitUrl$match;
 
-  var currentSeason = Array.from((_visitUrl$match3 = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/<b>Current Season: <\/b>(.*?)( \\(Post-Season\\))?<br \/>/))) !== null && _visitUrl$match3 !== void 0 ? _visitUrl$match3 : ["", "0"])[1];
+  var currentSeason = Array.from((_visitUrl$match = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/<b>Current Season: <\/b>(.*?)( \\(Post-Season\\))?<br \/>/))) !== null && _visitUrl$match !== void 0 ? _visitUrl$match : ["", "0"])[1];
   if (property_get("myCurrentPVPSeason", "") === currentSeason) return; // Reset wins and losses (pad all at 7 wins 7 losses [prime numbers good])
 
   pvpIDs.forEach(i => {
