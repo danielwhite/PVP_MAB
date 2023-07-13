@@ -30,6 +30,7 @@ export function main(argstring = ""): void {
     todaysLosses = get("todaysPVPLosses", 0);
 
   if (pvpAttacksLeft() > 0) {
+    initializeSortedPvpIDs();
     const attackType = args.target === "loot" ? "lootwhatever" : args.target;
     equipPVPOutfit();
 
