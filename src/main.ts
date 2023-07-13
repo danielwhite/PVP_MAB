@@ -5,6 +5,7 @@ import { args } from "./args";
 import {
   breakStone,
   equipPVPOutfit,
+  initializeSortedPvpIDs,
   printStats,
   printStrategiesEstimates,
   pvpAttack,
