@@ -7086,7 +7086,7 @@ var args = Args.create("pvp_mab", "A multi-armed bandit script for pvp", {
     default: false
   }),
   strategy: Args.custom({
-    default: "UCB",
+    default: "bernoulliThompson",
     options: [["UCB"], ["Exp3"], ["bernoulliThompson"], ["epsilonGreedy"], ["gaussianThompson"]]
   }, x => x, "multi-armed bandit strategy")
 });
