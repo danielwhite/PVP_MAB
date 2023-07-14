@@ -1,9 +1,17 @@
 import { get, maxBy, sumNumbers } from "libram";
 import { sampleBeta, sampleNormal } from "./distributions";
-import { activeMinis, activeMinisSorted, getFightRecords, pvpIDs, sortedPvpIDs } from "./lib";
+import {
+  activeMinis,
+  activeMinisSorted,
+  getExp3IXProbabilities,
+  getExp3Probabilities,
+  getFightRecords,
+  pvpIDs,
+  sampleProbabilitiesIdx,
+  sortedPvpIDs,
+} from "./lib";
 import { print } from "kolmafia";
 import { args } from "./args";
-
 
 export function UCB(): number {
   if (args.debug) print("Using UCB strategy", "blue");
@@ -64,22 +72,22 @@ export function epsilonGreedy(): number {
 
 export function Exp3(): number {
   if (args.debug) print("Using Exp3 strategy", "blue");
-  const fightRecords = getFightRecords();
-  let carry = 0;
-  const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
-  const gamma = 1 / Math.pow(t, 0.2);
-  const K = activeMinis.length;
-  const weights = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
-  const weightSum = sumNumbers(weights);
+  const Ls = sortedPvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
+  const Ps = getExp3Probabilities(Ls);
+  if (args.debug) Ps.forEach((P, i) => print(`${activeMinisSorted[i]}: ${P.toFixed(3)}`, "blue"));
 
-  const CDF = pvpIDs.map((i) => {
-    const prob = ((1 - gamma) * weights[i]) / weightSum + gamma / K;
-    carry += prob;
-    if (args.debug) print(`${activeMinisSorted[i]}: ${prob.toFixed(3)}`, "blue");
-    return carry;
-  });
-  const rnd = Math.random() * carry;
-  const idx = CDF.findIndex((cdf) => cdf >= rnd);
+  const idx = sampleProbabilitiesIdx(Ps);
+
+  return sortedPvpIDs[idx];
+}
+
+export function Exp3IX(): number {
+  if (args.debug) print("Using Exp3IX strategy", "blue");
+  const Ls = sortedPvpIDs.map((i) => get(`myCurrentPVPMiniExp3IXWeight_${i}`, 0.0));
+  const Ps = getExp3IXProbabilities(Ls);
+  if (args.debug) Ps.forEach((P, i) => print(`${activeMinisSorted[i]}: ${P.toFixed(3)}`, "blue"));
+
+  const idx = sampleProbabilitiesIdx(Ps);
 
   return sortedPvpIDs[idx];
 }

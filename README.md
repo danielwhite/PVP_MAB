@@ -16,7 +16,7 @@ git checkout https://github.com/Pantocyclus/PVP_MAB.git release
 
 ## Running the Script
 
-To run the script, simply type `PVP_MAB` into the CLI. It accepts arguments (loot|fame|flowers) to set the PVP attack type, and (UCB|Exp3|bernoulliThompson|gaussianThompson|epsilonGreedy) to set the strategy (i.e. `PVP_MAB target=fame strategy=UCB`), and defaults to fame (HC)/loot (otherwise) for attack and bernoulliThompson for strategy.
+To run the script, simply type `PVP_MAB` into the CLI. It accepts arguments (loot|fame|flowers) to set the PVP attack type, and (UCB|Exp3|Exp3IX|bernoulliThompson|gaussianThompson|epsilonGreedy) to set the strategy (i.e. `PVP_MAB target=fame strategy=UCB`), and defaults to fame (HC)/loot (otherwise) for attack and bernoulliThompson for strategy.
 
 ## Why do I need a Multi-Armed Bandit PVP script?
 

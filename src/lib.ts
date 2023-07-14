@@ -105,6 +105,7 @@ export function updateSeason(): void {
 
   pvpIDs.forEach((i) => {
     set(`myCurrentPVPMiniExp3Weight_${i}`, 1.0);
+    set(`myCurrentPVPMiniExp3IXWeight_${i}`, 0.0);
   });
 
   // The rules page simply sorts the minis by alphabetical order
@@ -164,11 +165,11 @@ export function printStats(): void {
 export function printStrategiesEstimates(): void {
   const fightRecords = getFightRecords();
   const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
-  const gamma = 1 / Math.pow(t, 0.2);
-  const K = activeMinis.length;
   const logConst = 2 * Math.log(t);
-  const weights = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
-  const weightSum = sumNumbers(weights);
+  const Exp3Ls = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
+  const Exp3Ps = getExp3Probabilities(Exp3Ls);
+  const Exp3IXLs = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3IXWeight_${i}`, 1.0));
+  const Exp3IXPs = getExp3IXProbabilities(Exp3IXLs);
 
   pvpIDs.forEach((i) => {
     const [wins, losses] = fightRecords[i];
@@ -180,7 +181,8 @@ export function printStrategiesEstimates(): void {
       n > 0 ? sampleNormal(wins / n, 1.0 / Math.sqrt(n)) : sampleNormal(0.5, 1e-2);
     const bernoulliThompsonPayoff = sampleBeta(wins, losses);
     const epsilonGreedyPayoff = wins / (wins + losses);
-    const Exp3Payoff = ((1 - gamma) * weights[i]) / weightSum + gamma / K;
+    const Exp3Payoff = Exp3Ps[i];
+    const Exp3IXPayoff = Exp3IXPs[i];
 
     const stats = [
       UCBPayoff,
@@ -188,6 +190,7 @@ export function printStrategiesEstimates(): void {
       bernoulliThompsonPayoff,
       epsilonGreedyPayoff,
       Exp3Payoff,
+      Exp3IXPayoff,
     ]
       .map((val) => val.toFixed(3))
       .join(" | ");
@@ -197,22 +200,61 @@ export function printStrategiesEstimates(): void {
   print();
 }
 
-export function updateExp3Weights(): void {
-  const fightRecords = getFightRecords();
-  const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
-  const gamma = 1 / Math.pow(t, 0.2);
+export function sampleProbabilitiesIdx(Ps: number[]): number {
+  let carry = 0.0;
+  const PCumSum = Ps.map((P) => {
+    carry += P;
+    return carry;
+  });
+
+  const rnd = Math.random() * carry;
+  return PCumSum.findIndex((v) => v >= rnd);
+}
+
+const Exp3Gamma = 0.05;
+export function getExp3Probabilities(Ls: number[]): number[] {
   const K = activeMinis.length;
 
-  const weights = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
-  const weightSum = sumNumbers(weights);
-  const Pr = pvpIDs.map((i) => ((1 - gamma) * weights[i]) / weightSum + gamma / K);
-  print("Updating Exp3 Weights...");
-  set("logPreferenceChange", false);
-  pvpIDs.map((i) => {
-    const [wins, losses] = fightRecords[i];
-    const n = wins + losses;
-    const weightNew = weights[i] * Math.exp((gamma * wins) / (n * Pr[i] * K));
-    set(`myCurrentPVPMiniExp3Weight_${i}`, weightNew);
-  });
-  set("logPreferenceChange", true);
+  const LSum = sumNumbers(Ls);
+  return Ls.map((L) => ((1 - Exp3Gamma) * L) / LSum + Exp3Gamma / K);
+}
+
+const Exp3IXHorizon = 1000;
+export function getExp3IXProbabilities(Ls: number[]): number[] {
+  const K = activeMinis.length;
+
+  const eta = Math.sqrt((2.0 * Math.log(K + 1)) / (Exp3IXHorizon * K));
+
+  const Es = Ls.map((L) => Math.exp(-eta * L));
+  const ESum = sumNumbers(Es);
+  return Es.map((E) => E / ESum);
+}
+
+export function updateExpBandits(miniID: number, result: boolean): void {
+  updateExp3Weights(miniID, result);
+  updateExp3IXWeights(miniID, result);
+}
+
+function updateExp3Weights(miniID: number, result: boolean): void {
+  const K = activeMinis.length;
+
+  const Ls = sortedPvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
+  const Ps = getExp3Probabilities(Ls);
+  const reward = result ? 1.0 / Ps[miniID] : 0.0;
+
+  set(`myCurrentPVPMiniExp3Weight_${miniID}`, Ls[miniID] * Math.exp((reward * Exp3Gamma) / K));
+}
+
+function updateExp3IXWeights(miniID: number, result: boolean): void {
+  const K = activeMinis.length;
+
+  const eta = Math.sqrt((2.0 * Math.log(K + 1)) / (Exp3IXHorizon * K));
+  const gamma = eta / 2.0;
+
+  const Ls = sortedPvpIDs.map((i) => get(`myCurrentPVPMiniExp3IXWeight_${i}`, 0.0));
+  const Ps = getExp3IXProbabilities(Ls);
+
+  const reward = result ? 1.0 : 0.0;
+
+  set(`myCurrentPVPMiniExp3IXWeight_${miniID}`, Ls[miniID] + (1.0 - reward) / (Ps[miniID] + gamma));
 }

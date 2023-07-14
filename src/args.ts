@@ -24,7 +24,14 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
   strategy: Args.custom<Strategy>(
     {
       default: "bernoulliThompson",
-      options: [["UCB"], ["Exp3"], ["bernoulliThompson"], ["epsilonGreedy"], ["gaussianThompson"]],
+      options: [
+        ["UCB"],
+        ["Exp3"],
+        ["Exp3IX"],
+        ["bernoulliThompson"],
+        ["epsilonGreedy"],
+        ["gaussianThompson"],
+      ],
     },
     (x) => x as Strategy,
     "multi-armed bandit strategy"

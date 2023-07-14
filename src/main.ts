@@ -9,7 +9,6 @@ import {
   printStats,
   printStrategiesEstimates,
   pvpAttack,
-  updateExp3Weights,
   updateSeason,
   updateWinRate,
   useMeteoriteade,
@@ -45,7 +44,6 @@ export function main(argstring = ""): void {
       parseResult(result)
         ? set("todaysPVPWins", (todaysWins += 1))
         : set("todaysPVPLosses", (todaysLosses += 1));
-      updateExp3Weights();
     }
   } else {
     print("Out of PVP fights", "red");
