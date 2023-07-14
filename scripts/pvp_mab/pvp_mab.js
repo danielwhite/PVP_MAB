@@ -47,6 +47,7 @@ var strategies_namespaceObject = {};
 __webpack_require__.r(strategies_namespaceObject);
 __webpack_require__.d(strategies_namespaceObject, {
   "Exp3": () => (Exp3),
+  "Exp3IX": () => (Exp3IX),
   "UCB": () => (UCB),
   "bernoulliThompson": () => (bernoulliThompson),
   "epsilonGreedy": () => (epsilonGreedy),
@@ -7087,7 +7088,7 @@ var args = Args.create("pvp_mab", "A multi-armed bandit script for pvp", {
   }),
   strategy: Args.custom({
     default: "bernoulliThompson",
-    options: [["UCB"], ["Exp3"], ["bernoulliThompson"], ["epsilonGreedy"], ["gaussianThompson"]]
+    options: [["UCB"], ["Exp3"], ["Exp3IX"], ["bernoulliThompson"], ["epsilonGreedy"], ["gaussianThompson"]]
   }, x => x, "multi-armed bandit strategy")
 });
 ;// CONCATENATED MODULE: ./src/distributions.ts
@@ -7214,27 +7215,18 @@ function epsilonGreedy() {
 }
 function Exp3() {
   if (args.debug) (0,external_kolmafia_namespaceObject.print)("Using Exp3 strategy", "blue");
-  var fightRecords = getFightRecords();
-  var carry = 0;
-  var t = Math.max(1, sumNumbers(fightRecords.map(_ref5 => {
-    var _ref6 = strategies_slicedToArray(_ref5, 2),
-        wins = _ref6[0],
-        losses = _ref6[1];
-
-    return wins + losses;
-  })));
-  var gamma = 1 / Math.pow(t, 0.2);
-  var K = activeMinis.length;
-  var weights = pvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
-  var weightSum = sumNumbers(weights);
-  var CDF = pvpIDs.map(i => {
-    var prob = (1 - gamma) * weights[i] / weightSum + gamma / K;
-    carry += prob;
-    if (args.debug) (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(prob.toFixed(3)), "blue");
-    return carry;
-  });
-  var rnd = Math.random() * carry;
-  var idx = CDF.findIndex(cdf => cdf >= rnd);
+  var Ls = sortedPvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
+  var Ps = getExp3Probabilities(Ls);
+  if (args.debug) Ps.forEach((P, i) => (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(P.toFixed(3)), "blue"));
+  var idx = sampleProbabilitiesIdx(Ps);
+  return sortedPvpIDs[idx];
+}
+function Exp3IX() {
+  if (args.debug) (0,external_kolmafia_namespaceObject.print)("Using Exp3IX strategy", "blue");
+  var Ls = sortedPvpIDs.map(i => property_get("myCurrentPVPMiniExp3IXWeight_".concat(i), 0.0));
+  var Ps = getExp3IXProbabilities(Ls);
+  if (args.debug) Ps.forEach((P, i) => (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(P.toFixed(3)), "blue"));
+  var idx = sampleProbabilitiesIdx(Ps);
   return sortedPvpIDs[idx];
 }
 ;// CONCATENATED MODULE: ./src/lib.ts
@@ -7313,6 +7305,7 @@ function updateSeason() {
   });
   pvpIDs.forEach(i => {
     _set("myCurrentPVPMiniExp3Weight_".concat(i), 1.0);
+    _set("myCurrentPVPMiniExp3IXWeight_".concat(i), 0.0);
   }); // The rules page simply sorts the minis by alphabetical order
   // We can always see this (even if we don't have any fites left)
   // Reset our season's wins and losses
@@ -7359,11 +7352,11 @@ function printStrategiesEstimates() {
 
     return wins + losses;
   })));
-  var gamma = 1 / Math.pow(t, 0.2);
-  var K = activeMinis.length;
   var logConst = 2 * Math.log(t);
-  var weights = pvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
-  var weightSum = sumNumbers(weights);
+  var Exp3Ls = pvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
+  var Exp3Ps = getExp3Probabilities(Exp3Ls);
+  var Exp3IXLs = pvpIDs.map(i => property_get("myCurrentPVPMiniExp3IXWeight_".concat(i), 1.0));
+  var Exp3IXPs = getExp3IXProbabilities(Exp3IXLs);
   pvpIDs.forEach(i => {
     var _fightRecords$i = src_lib_slicedToArray(fightRecords[i], 2),
         wins = _fightRecords$i[0],
@@ -7375,38 +7368,57 @@ function printStrategiesEstimates() {
     var gaussianThompsonPayoff = n > 0 ? sampleNormal(wins / n, 1.0 / Math.sqrt(n)) : sampleNormal(0.5, 1e-2);
     var bernoulliThompsonPayoff = sampleBeta(wins, losses);
     var epsilonGreedyPayoff = wins / (wins + losses);
-    var Exp3Payoff = (1 - gamma) * weights[i] / weightSum + gamma / K;
-    var stats = [UCBPayoff, gaussianThompsonPayoff, bernoulliThompsonPayoff, epsilonGreedyPayoff, Exp3Payoff].map(val => val.toFixed(3)).join(" | ");
+    var Exp3Payoff = Exp3Ps[i];
+    var Exp3IXPayoff = Exp3IXPs[i];
+    var stats = [UCBPayoff, gaussianThompsonPayoff, bernoulliThompsonPayoff, epsilonGreedyPayoff, Exp3Payoff, Exp3IXPayoff].map(val => val.toFixed(3)).join(" | ");
     (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(stats), "blue");
   });
   (0,external_kolmafia_namespaceObject.print)();
 }
-function updateExp3Weights() {
-  var fightRecords = getFightRecords();
-  var t = Math.max(1, sumNumbers(fightRecords.map(_ref3 => {
-    var _ref4 = src_lib_slicedToArray(_ref3, 2),
-        wins = _ref4[0],
-        losses = _ref4[1];
-
-    return wins + losses;
-  })));
-  var gamma = 1 / Math.pow(t, 0.2);
-  var K = activeMinis.length;
-  var weights = pvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
-  var weightSum = sumNumbers(weights);
-  var Pr = pvpIDs.map(i => (1 - gamma) * weights[i] / weightSum + gamma / K);
-  (0,external_kolmafia_namespaceObject.print)("Updating Exp3 Weights...");
-  _set("logPreferenceChange", false);
-  pvpIDs.map(i => {
-    var _fightRecords$i2 = src_lib_slicedToArray(fightRecords[i], 2),
-        wins = _fightRecords$i2[0],
-        losses = _fightRecords$i2[1];
-
-    var n = wins + losses;
-    var weightNew = weights[i] * Math.exp(gamma * wins / (n * Pr[i] * K));
-    _set("myCurrentPVPMiniExp3Weight_".concat(i), weightNew);
+function sampleProbabilitiesIdx(Ps) {
+  var carry = 0.0;
+  var PCumSum = Ps.map(P => {
+    carry += P;
+    return carry;
   });
-  _set("logPreferenceChange", true);
+  var rnd = Math.random() * carry;
+  return PCumSum.findIndex(v => v >= rnd);
+}
+var Exp3Gamma = 0.05;
+function getExp3Probabilities(Ls) {
+  var K = activeMinis.length;
+  var LSum = sumNumbers(Ls);
+  return Ls.map(L => (1 - Exp3Gamma) * L / LSum + Exp3Gamma / K);
+}
+var Exp3IXHorizon = 1000;
+function getExp3IXProbabilities(Ls) {
+  var K = activeMinis.length;
+  var eta = Math.sqrt(2.0 * Math.log(K + 1) / (Exp3IXHorizon * K));
+  var Es = Ls.map(L => Math.exp(-eta * L));
+  var ESum = sumNumbers(Es);
+  return Es.map(E => E / ESum);
+}
+function updateExpBandits(miniID, result) {
+  updateExp3Weights(miniID, result);
+  updateExp3IXWeights(miniID, result);
+}
+
+function updateExp3Weights(miniID, result) {
+  var K = activeMinis.length;
+  var Ls = sortedPvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
+  var Ps = getExp3Probabilities(Ls);
+  var reward = result ? 1.0 / Ps[miniID] : 0.0;
+  _set("myCurrentPVPMiniExp3Weight_".concat(miniID), Ls[miniID] * Math.exp(reward * Exp3Gamma / K));
+}
+
+function updateExp3IXWeights(miniID, result) {
+  var K = activeMinis.length;
+  var eta = Math.sqrt(2.0 * Math.log(K + 1) / (Exp3IXHorizon * K));
+  var gamma = eta / 2.0;
+  var Ls = sortedPvpIDs.map(i => property_get("myCurrentPVPMiniExp3IXWeight_".concat(i), 0.0));
+  var Ps = getExp3IXProbabilities(Ls);
+  var reward = result ? 1.0 : 0.0;
+  _set("myCurrentPVPMiniExp3IXWeight_".concat(miniID), Ls[miniID] + (1.0 - reward) / (Ps[miniID] + gamma));
 }
 ;// CONCATENATED MODULE: ./src/parsing.ts
 
@@ -7441,6 +7453,8 @@ function parseCompactMode(result, whoAreWe) {
         if (verbose) (0,external_kolmafia_namespaceObject.print)("We lost the mini: ".concat(mini), "red");
         _set("myCurrentPVPLosses_".concat(miniID), property_get("myCurrentPVPLosses_".concat(miniID), 0) + 1);
       }
+
+      updateExpBandits(miniID, weWon);
     }
     slicedResult = slicedResult.slice(slicedResult.indexOf("</td></tr>") + 9);
   };
@@ -7473,6 +7487,8 @@ function parseNonCompactMode(result, whoAreWe) {
         if (verbose) (0,external_kolmafia_namespaceObject.print)("We lost the mini: ".concat(mini), "red");
         _set("myCurrentPVPLosses_".concat(miniID), property_get("myCurrentPVPLosses_".concat(miniID), 0) + 1);
       }
+
+      updateExpBandits(miniID, weWon);
     }
     slicedResult = slicedResult.slice(splitIdx);
   };
@@ -7499,7 +7515,9 @@ function parseResult(result) {
 
 
   var compactMode = slicedResult.includes("td nowrap");
+  _set("logPreferenceChange", false);
   var wonFight = compactMode ? parseCompactMode(slicedResult, whoAreWe) : parseNonCompactMode(slicedResult, whoAreWe);
+  _set("logPreferenceChange", true);
   if (wonFight) (0,external_kolmafia_namespaceObject.print)("We beat ".concat(whoAreThey, "!"), "green");else (0,external_kolmafia_namespaceObject.print)("".concat(whoAreThey, " beat us!"), "red");
   return wonFight;
 }
@@ -7541,7 +7559,6 @@ function main() {
       }
 
       parseResult(result) ? _set("todaysPVPWins", todaysWins += 1) : _set("todaysPVPLosses", todaysLosses += 1);
-      updateExp3Weights();
     }
   } else {
     (0,external_kolmafia_namespaceObject.print)("Out of PVP fights", "red");
