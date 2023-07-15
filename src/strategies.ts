@@ -72,7 +72,10 @@ export function epsilonGreedy(): number {
 
 export function Exp3(): number {
   if (args.debug) print("Using Exp3 strategy", "blue");
-  const Ls = sortedPvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
+  const Ls = sortedPvpIDs.map((i) => {
+    const L = Number(get(`myCurrentPVPMiniExp3Weight_${i}`));
+    return L === 0.0 ? 1.0 : L;
+  });
   const Ps = getExp3Probabilities(Ls);
   if (args.debug) Ps.forEach((P, i) => print(`${activeMinisSorted[i]}: ${P.toFixed(3)}`, "blue"));
 
@@ -83,7 +86,7 @@ export function Exp3(): number {
 
 export function Exp3IX(): number {
   if (args.debug) print("Using Exp3IX strategy", "blue");
-  const Ls = sortedPvpIDs.map((i) => get(`myCurrentPVPMiniExp3IXWeight_${i}`, 0.0));
+  const Ls = sortedPvpIDs.map((i) => Number(get(`myCurrentPVPMiniExp3IXWeight_${i}`)));
   const Ps = getExp3IXProbabilities(Ls);
   if (args.debug) Ps.forEach((P, i) => print(`${activeMinisSorted[i]}: ${P.toFixed(3)}`, "blue"));
 

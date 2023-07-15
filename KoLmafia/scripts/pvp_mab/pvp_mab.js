@@ -7215,7 +7215,10 @@ function epsilonGreedy() {
 }
 function Exp3() {
   if (args.debug) (0,external_kolmafia_namespaceObject.print)("Using Exp3 strategy", "blue");
-  var Ls = sortedPvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
+  var Ls = sortedPvpIDs.map(i => {
+    var L = Number(property_get("myCurrentPVPMiniExp3Weight_".concat(i)));
+    return L === 0.0 ? 1.0 : L;
+  });
   var Ps = getExp3Probabilities(Ls);
   if (args.debug) Ps.forEach((P, i) => (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(P.toFixed(3)), "blue"));
   var idx = sampleProbabilitiesIdx(Ps);
@@ -7223,7 +7226,7 @@ function Exp3() {
 }
 function Exp3IX() {
   if (args.debug) (0,external_kolmafia_namespaceObject.print)("Using Exp3IX strategy", "blue");
-  var Ls = sortedPvpIDs.map(i => property_get("myCurrentPVPMiniExp3IXWeight_".concat(i), 0.0));
+  var Ls = sortedPvpIDs.map(i => Number(property_get("myCurrentPVPMiniExp3IXWeight_".concat(i))));
   var Ps = getExp3IXProbabilities(Ls);
   if (args.debug) Ps.forEach((P, i) => (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(P.toFixed(3)), "blue"));
   var idx = sampleProbabilitiesIdx(Ps);
@@ -7405,7 +7408,10 @@ function updateExpBandits(miniID, result) {
 
 function updateExp3Weights(miniID, result) {
   var K = activeMinis.length;
-  var Ls = sortedPvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
+  var Ls = sortedPvpIDs.map(i => {
+    var L = Number(property_get("myCurrentPVPMiniExp3Weight_".concat(i)));
+    return L === 0.0 ? 1.0 : L;
+  });
   var Ps = getExp3Probabilities(Ls);
   var reward = result ? 1.0 / Ps[miniID] : 0.0;
   _set("myCurrentPVPMiniExp3Weight_".concat(miniID), Ls[miniID] * Math.exp(reward * Exp3Gamma / K));
@@ -7415,7 +7421,7 @@ function updateExp3IXWeights(miniID, result) {
   var K = activeMinis.length;
   var eta = Math.sqrt(2.0 * Math.log(K + 1) / (Exp3IXHorizon * K));
   var gamma = eta / 2.0;
-  var Ls = sortedPvpIDs.map(i => property_get("myCurrentPVPMiniExp3IXWeight_".concat(i), 0.0));
+  var Ls = sortedPvpIDs.map(i => Number(property_get("myCurrentPVPMiniExp3IXWeight_".concat(i))));
   var Ps = getExp3IXProbabilities(Ls);
   var reward = result ? 1.0 : 0.0;
   _set("myCurrentPVPMiniExp3IXWeight_".concat(miniID), Ls[miniID] + (1.0 - reward) / (Ps[miniID] + gamma));
