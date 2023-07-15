@@ -238,7 +238,7 @@ export function updateExpBandits(miniID: number, result: boolean): void {
 function updateExp3Weights(miniID: number, result: boolean): void {
   const K = activeMinis.length;
 
-  const Ls = sortedPvpIDs.map((i) => {
+  const Ls = pvpIDs.map((i) => {
     const L = Number(get(`myCurrentPVPMiniExp3Weight_${i}`));
     return L === 0.0 ? 1.0 : L;
   });
@@ -254,7 +254,7 @@ function updateExp3IXWeights(miniID: number, result: boolean): void {
   const eta = Math.sqrt((2.0 * Math.log(K + 1)) / (Exp3IXHorizon * K));
   const gamma = eta / 2.0;
 
-  const Ls = sortedPvpIDs.map((i) => Number(get(`myCurrentPVPMiniExp3IXWeight_${i}`)));
+  const Ls = pvpIDs.map((i) => Number(get(`myCurrentPVPMiniExp3IXWeight_${i}`)));
   const Ps = getExp3IXProbabilities(Ls);
 
   const reward = result ? 1.0 : 0.0;
