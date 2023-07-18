@@ -17,6 +17,8 @@ import * as STRATEGIES from "./strategies";
 import { args } from "./args";
 import { sampleBeta, sampleNormal } from "./distributions";
 
+export const prefChangeSettings = get("logPreferenceChange");
+
 // So we have to reorder them to the rules page
 export const activeMinis = xpath(
   visitUrl("peevpee.php?place=fight"),
