@@ -7254,7 +7254,8 @@ function lib_taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.sli
 
 
 
- // So we have to reorder them to the rules page
+
+var prefChangeSettings = property_get("logPreferenceChange"); // So we have to reorder them to the rules page
 
 var activeMinis = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight"), "//select[@name='stance']/option/text()");
 var activeMinisSorted = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules"), "//tr[@class='small']/td[@nowrap]/text()").map(sortedMini => sortedMini in activeMinis ? sortedMini : sortedMini.replace("*", ""));
@@ -7523,7 +7524,7 @@ function parseResult(result) {
   var compactMode = slicedResult.includes("td nowrap");
   _set("logPreferenceChange", false);
   var wonFight = compactMode ? parseCompactMode(slicedResult, whoAreWe) : parseNonCompactMode(slicedResult, whoAreWe);
-  _set("logPreferenceChange", true);
+  _set("logPreferenceChange", prefChangeSettings);
   if (wonFight) (0,external_kolmafia_namespaceObject.print)("We beat ".concat(whoAreThey, "!"), "green");else (0,external_kolmafia_namespaceObject.print)("".concat(whoAreThey, " beat us!"), "red");
   return wonFight;
 }
