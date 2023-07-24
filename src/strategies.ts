@@ -1,13 +1,13 @@
-import { get, maxBy, sumNumbers } from "libram";
+import { maxBy, sumNumbers } from "libram";
 import { sampleBeta, sampleNormal } from "./distributions";
 import {
   activeMinis,
   activeMinisSorted,
-  getExp3IXProbabilities,
-  getExp3Probabilities,
+  // getExp3IXProbabilities,
+  // getExp3Probabilities,
   getFightRecords,
   pvpIDs,
-  sampleProbabilitiesIdx,
+  // sampleProbabilitiesIdx,
   sortedPvpIDs,
 } from "./lib";
 import { print } from "kolmafia";
@@ -70,6 +70,7 @@ export function epsilonGreedy(): number {
   return sortedPvpIDs[idx];
 }
 
+/*
 export function Exp3(): number {
   if (args.debug) print("Using Exp3 strategy", "blue");
   const Ls = pvpIDs.map((i) => {
@@ -94,3 +95,4 @@ export function Exp3IX(): number {
 
   return sortedPvpIDs[idx];
 }
+*/

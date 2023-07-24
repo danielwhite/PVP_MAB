@@ -105,10 +105,12 @@ export function updateSeason(): void {
     set(`myCurrentPVPMini_${i}`, activeMinisSorted[i]);
   });
 
+  /*
   pvpIDs.forEach((i) => {
     set(`myCurrentPVPMiniExp3Weight_${i}`, 1.0);
     set(`myCurrentPVPMiniExp3IXWeight_${i}`, 0.0);
   });
+  */
 
   // The rules page simply sorts the minis by alphabetical order
   // We can always see this (even if we don't have any fites left)
@@ -168,10 +170,10 @@ export function printStrategiesEstimates(): void {
   const fightRecords = getFightRecords();
   const t = Math.max(1, sumNumbers(fightRecords.map(([wins, losses]) => wins + losses)));
   const logConst = 2 * Math.log(t);
-  const Exp3Ls = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
-  const Exp3Ps = getExp3Probabilities(Exp3Ls);
-  const Exp3IXLs = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3IXWeight_${i}`, 1.0));
-  const Exp3IXPs = getExp3IXProbabilities(Exp3IXLs);
+  // const Exp3Ls = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
+  // const Exp3Ps = getExp3Probabilities(Exp3Ls);
+  // const Exp3IXLs = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3IXWeight_${i}`, 1.0));
+  // const Exp3IXPs = getExp3IXProbabilities(Exp3IXLs);
 
   pvpIDs.forEach((i) => {
     const [wins, losses] = fightRecords[i];
@@ -183,16 +185,16 @@ export function printStrategiesEstimates(): void {
       n > 0 ? sampleNormal(wins / n, 1.0 / Math.sqrt(n)) : sampleNormal(0.5, 1e-2);
     const bernoulliThompsonPayoff = sampleBeta(wins, losses);
     const epsilonGreedyPayoff = wins / (wins + losses);
-    const Exp3Payoff = Exp3Ps[i];
-    const Exp3IXPayoff = Exp3IXPs[i];
+    // const Exp3Payoff = Exp3Ps[i];
+    // const Exp3IXPayoff = Exp3IXPs[i];
 
     const stats = [
       UCBPayoff,
       gaussianThompsonPayoff,
       bernoulliThompsonPayoff,
       epsilonGreedyPayoff,
-      Exp3Payoff,
-      Exp3IXPayoff,
+      // Exp3Payoff,
+      // Exp3IXPayoff,
     ]
       .map((val) => val.toFixed(3))
       .join(" | ");
@@ -213,6 +215,7 @@ export function sampleProbabilitiesIdx(Ps: number[]): number {
   return PCumSum.findIndex((v) => v >= rnd);
 }
 
+/*
 const Exp3Gamma = 0.05;
 export function getExp3Probabilities(Ls: number[]): number[] {
   const K = activeMinis.length;
@@ -263,3 +266,4 @@ function updateExp3IXWeights(miniID: number, result: boolean): void {
 
   set(`myCurrentPVPMiniExp3IXWeight_${miniID}`, Ls[miniID] + (1.0 - reward) / (Ps[miniID] + gamma));
 }
+*/

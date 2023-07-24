@@ -26,8 +26,8 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
       default: "bernoulliThompson",
       options: [
         ["UCB"],
-        ["Exp3"],
-        ["Exp3IX"],
+        // ["Exp3"],
+        // ["Exp3IX"],
         ["bernoulliThompson"],
         ["epsilonGreedy"],
         ["gaussianThompson"],

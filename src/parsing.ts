@@ -1,6 +1,6 @@
 import { print } from "kolmafia";
 import { get, set } from "libram";
-import { activeMinisSorted, prefChangeSettings, updateExpBandits, verbose } from "./lib";
+import { activeMinisSorted, prefChangeSettings, verbose } from "./lib";
 
 export function parseCompactMode(result: string, whoAreWe: string[]): boolean {
   let slicedResult = result;
@@ -32,7 +32,7 @@ export function parseCompactMode(result: string, whoAreWe: string[]): boolean {
         if (verbose) print(`We lost the mini: ${mini}`, "red");
         set(`myCurrentPVPLosses_${miniID}`, get(`myCurrentPVPLosses_${miniID}`, 0) + 1);
       }
-      updateExpBandits(miniID, weWon);
+      // updateExpBandits(miniID, weWon);
     }
     slicedResult = slicedResult.slice(slicedResult.indexOf("</td></tr>") + 9);
   }
@@ -66,7 +66,7 @@ export function parseNonCompactMode(result: string, whoAreWe: string[]): boolean
         if (verbose) print(`We lost the mini: ${mini}`, "red");
         set(`myCurrentPVPLosses_${miniID}`, get(`myCurrentPVPLosses_${miniID}`, 0) + 1);
       }
-      updateExpBandits(miniID, weWon);
+      // updateExpBandits(miniID, weWon);
     }
     slicedResult = slicedResult.slice(splitIdx);
   }
