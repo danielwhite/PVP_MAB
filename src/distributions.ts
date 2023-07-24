@@ -12,6 +12,7 @@ export function sampleGamma(a: number): number {
   const d = a - 1.0 / 3;
   const c = 1 / Math.sqrt(9 * d);
 
+  let count = 0;
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const x = sampleNormal();
@@ -19,6 +20,8 @@ export function sampleGamma(a: number): number {
     const U = Math.random();
     if (U < 1 - 0.0331 * Math.pow(x, 4)) return d * v;
     else if (Math.log(U) < 0.5 * Math.pow(x, 2) + d * (1 - v + Math.log(v))) return d * v;
+
+    if (count++ >= 10000) return d * v; // Don't infinite loop
   }
 }
 
