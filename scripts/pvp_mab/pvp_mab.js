@@ -46,8 +46,6 @@ __webpack_require__.d(__webpack_exports__, {
 var strategies_namespaceObject = {};
 __webpack_require__.r(strategies_namespaceObject);
 __webpack_require__.d(strategies_namespaceObject, {
-  "Exp3": () => (Exp3),
-  "Exp3IX": () => (Exp3IX),
   "UCB": () => (UCB),
   "bernoulliThompson": () => (bernoulliThompson),
   "epsilonGreedy": () => (epsilonGreedy),
@@ -7088,7 +7086,9 @@ var args = Args.create("pvp_mab", "A multi-armed bandit script for pvp", {
   }),
   strategy: Args.custom({
     default: "bernoulliThompson",
-    options: [["UCB"], ["Exp3"], ["Exp3IX"], ["bernoulliThompson"], ["epsilonGreedy"], ["gaussianThompson"]]
+    options: [["UCB"], // ["Exp3"],
+    // ["Exp3IX"],
+    ["bernoulliThompson"], ["epsilonGreedy"], ["gaussianThompson"]]
   }, x => x, "multi-armed bandit strategy")
 });
 ;// CONCATENATED MODULE: ./src/distributions.ts
@@ -7106,13 +7106,15 @@ function sampleNormal() {
 function sampleGamma(a) {
   // Adapted from https://dl.acm.org/doi/pdf/10.1145/358407.358414
   var d = a - 1.0 / 3;
-  var c = 1 / Math.sqrt(9 * d); // eslint-disable-next-line no-constant-condition
+  var c = 1 / Math.sqrt(9 * d);
+  var count = 0; // eslint-disable-next-line no-constant-condition
 
   while (true) {
     var x = sampleNormal();
     var v = Math.pow(1 + c * x, 3);
     var U = Math.random();
     if (U < 1 - 0.0331 * Math.pow(x, 4)) return d * v;else if (Math.log(U) < 0.5 * Math.pow(x, 2) + d * (1 - v + Math.log(v))) return d * v;
+    if (count++ >= 10000) return d * v; // Don't infinite loop
   }
 }
 function sampleBeta(a, b) {
@@ -7213,25 +7215,32 @@ function epsilonGreedy() {
   var idx = Math.random() <= 1.0 / Math.sqrt(t) ? Math.floor(Math.random() * activeMinis.length) : maxBy(pvpIDs, i => payoffs[i]);
   return sortedPvpIDs[idx];
 }
-function Exp3() {
-  if (args.debug) (0,external_kolmafia_namespaceObject.print)("Using Exp3 strategy", "blue");
-  var Ls = pvpIDs.map(i => {
-    var L = Number(property_get("myCurrentPVPMiniExp3Weight_".concat(i)));
+/*
+export function Exp3(): number {
+  if (args.debug) print("Using Exp3 strategy", "blue");
+  const Ls = pvpIDs.map((i) => {
+    const L = Number(get(`myCurrentPVPMiniExp3Weight_${i}`));
     return L === 0.0 ? 1.0 : L;
   });
-  var Ps = getExp3Probabilities(Ls);
-  if (args.debug) Ps.forEach((P, i) => (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(P.toFixed(3)), "blue"));
-  var idx = sampleProbabilitiesIdx(Ps);
+  const Ps = getExp3Probabilities(Ls);
+  if (args.debug) Ps.forEach((P, i) => print(`${activeMinisSorted[i]}: ${P.toFixed(3)}`, "blue"));
+
+  const idx = sampleProbabilitiesIdx(Ps);
+
   return sortedPvpIDs[idx];
 }
-function Exp3IX() {
-  if (args.debug) (0,external_kolmafia_namespaceObject.print)("Using Exp3IX strategy", "blue");
-  var Ls = pvpIDs.map(i => Number(property_get("myCurrentPVPMiniExp3IXWeight_".concat(i))));
-  var Ps = getExp3IXProbabilities(Ls);
-  if (args.debug) Ps.forEach((P, i) => (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(P.toFixed(3)), "blue"));
-  var idx = sampleProbabilitiesIdx(Ps);
+
+export function Exp3IX(): number {
+  if (args.debug) print("Using Exp3IX strategy", "blue");
+  const Ls = pvpIDs.map((i) => Number(get(`myCurrentPVPMiniExp3IXWeight_${i}`)));
+  const Ps = getExp3IXProbabilities(Ls);
+  if (args.debug) Ps.forEach((P, i) => print(`${activeMinisSorted[i]}: ${P.toFixed(3)}`, "blue"));
+
+  const idx = sampleProbabilitiesIdx(Ps);
+
   return sortedPvpIDs[idx];
 }
+*/
 ;// CONCATENATED MODULE: ./src/lib.ts
 var lib_templateObject, lib_templateObject2, lib_templateObject3;
 
@@ -7307,10 +7316,13 @@ function updateSeason() {
     _set("myCurrentPVPMini_".concat(i), "");
     _set("myCurrentPVPMini_".concat(i), activeMinisSorted[i]);
   });
-  pvpIDs.forEach(i => {
-    _set("myCurrentPVPMiniExp3Weight_".concat(i), 1.0);
-    _set("myCurrentPVPMiniExp3IXWeight_".concat(i), 0.0);
-  }); // The rules page simply sorts the minis by alphabetical order
+  /*
+  pvpIDs.forEach((i) => {
+    set(`myCurrentPVPMiniExp3Weight_${i}`, 1.0);
+    set(`myCurrentPVPMiniExp3IXWeight_${i}`, 0.0);
+  });
+  */
+  // The rules page simply sorts the minis by alphabetical order
   // We can always see this (even if we don't have any fites left)
   // Reset our season's wins and losses
 
@@ -7356,11 +7368,11 @@ function printStrategiesEstimates() {
 
     return wins + losses;
   })));
-  var logConst = 2 * Math.log(t);
-  var Exp3Ls = pvpIDs.map(i => property_get("myCurrentPVPMiniExp3Weight_".concat(i), 1.0));
-  var Exp3Ps = getExp3Probabilities(Exp3Ls);
-  var Exp3IXLs = pvpIDs.map(i => property_get("myCurrentPVPMiniExp3IXWeight_".concat(i), 1.0));
-  var Exp3IXPs = getExp3IXProbabilities(Exp3IXLs);
+  var logConst = 2 * Math.log(t); // const Exp3Ls = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3Weight_${i}`, 1.0));
+  // const Exp3Ps = getExp3Probabilities(Exp3Ls);
+  // const Exp3IXLs = pvpIDs.map((i) => get(`myCurrentPVPMiniExp3IXWeight_${i}`, 1.0));
+  // const Exp3IXPs = getExp3IXProbabilities(Exp3IXLs);
+
   pvpIDs.forEach(i => {
     var _fightRecords$i = src_lib_slicedToArray(fightRecords[i], 2),
         wins = _fightRecords$i[0],
@@ -7371,10 +7383,12 @@ function printStrategiesEstimates() {
     var UCBPayoff = n > 0 ? wins / n + Math.sqrt(logConst / n) : 10;
     var gaussianThompsonPayoff = n > 0 ? sampleNormal(wins / n, 1.0 / Math.sqrt(n)) : sampleNormal(0.5, 1e-2);
     var bernoulliThompsonPayoff = sampleBeta(wins, losses);
-    var epsilonGreedyPayoff = wins / (wins + losses);
-    var Exp3Payoff = Exp3Ps[i];
-    var Exp3IXPayoff = Exp3IXPs[i];
-    var stats = [UCBPayoff, gaussianThompsonPayoff, bernoulliThompsonPayoff, epsilonGreedyPayoff, Exp3Payoff, Exp3IXPayoff].map(val => val.toFixed(3)).join(" | ");
+    var epsilonGreedyPayoff = wins / (wins + losses); // const Exp3Payoff = Exp3Ps[i];
+    // const Exp3IXPayoff = Exp3IXPs[i];
+
+    var stats = [UCBPayoff, gaussianThompsonPayoff, bernoulliThompsonPayoff, epsilonGreedyPayoff // Exp3Payoff,
+    // Exp3IXPayoff,
+    ].map(val => val.toFixed(3)).join(" | ");
     (0,external_kolmafia_namespaceObject.print)("".concat(activeMinisSorted[i], ": ").concat(stats), "blue");
   });
   (0,external_kolmafia_namespaceObject.print)();
@@ -7388,45 +7402,58 @@ function sampleProbabilitiesIdx(Ps) {
   var rnd = Math.random() * carry;
   return PCumSum.findIndex(v => v >= rnd);
 }
-var Exp3Gamma = 0.05;
-function getExp3Probabilities(Ls) {
-  var K = activeMinis.length;
-  var LSum = sumNumbers(Ls);
-  return Ls.map(L => (1 - Exp3Gamma) * L / LSum + Exp3Gamma / K);
+/*
+const Exp3Gamma = 0.05;
+export function getExp3Probabilities(Ls: number[]): number[] {
+  const K = activeMinis.length;
+
+  const LSum = sumNumbers(Ls);
+  return Ls.map((L) => ((1 - Exp3Gamma) * L) / LSum + Exp3Gamma / K);
 }
-var Exp3IXHorizon = 1000;
-function getExp3IXProbabilities(Ls) {
-  var K = activeMinis.length;
-  var eta = Math.sqrt(2.0 * Math.log(K + 1) / (Exp3IXHorizon * K));
-  var Es = Ls.map(L => Math.exp(-eta * L));
-  var ESum = sumNumbers(Es);
-  return Es.map(E => E / ESum);
+
+const Exp3IXHorizon = 1000;
+export function getExp3IXProbabilities(Ls: number[]): number[] {
+  const K = activeMinis.length;
+
+  const eta = Math.sqrt((2.0 * Math.log(K + 1)) / (Exp3IXHorizon * K));
+
+  const Es = Ls.map((L) => Math.exp(-eta * L));
+  const ESum = sumNumbers(Es);
+  return Es.map((E) => E / ESum);
 }
-function updateExpBandits(miniID, result) {
+
+export function updateExpBandits(miniID: number, result: boolean): void {
   updateExp3Weights(miniID, result);
   updateExp3IXWeights(miniID, result);
 }
 
-function updateExp3Weights(miniID, result) {
-  var K = activeMinis.length;
-  var Ls = pvpIDs.map(i => {
-    var L = Number(property_get("myCurrentPVPMiniExp3Weight_".concat(i)));
+function updateExp3Weights(miniID: number, result: boolean): void {
+  const K = activeMinis.length;
+
+  const Ls = pvpIDs.map((i) => {
+    const L = Number(get(`myCurrentPVPMiniExp3Weight_${i}`));
     return L === 0.0 ? 1.0 : L;
   });
-  var Ps = getExp3Probabilities(Ls);
-  var reward = result ? 1.0 / Ps[miniID] : 0.0;
-  _set("myCurrentPVPMiniExp3Weight_".concat(miniID), Ls[miniID] * Math.exp(reward * Exp3Gamma / K));
+  const Ps = getExp3Probabilities(Ls);
+  const reward = result ? 1.0 / Ps[miniID] : 0.0;
+
+  set(`myCurrentPVPMiniExp3Weight_${miniID}`, Ls[miniID] * Math.exp((reward * Exp3Gamma) / K));
 }
 
-function updateExp3IXWeights(miniID, result) {
-  var K = activeMinis.length;
-  var eta = Math.sqrt(2.0 * Math.log(K + 1) / (Exp3IXHorizon * K));
-  var gamma = eta / 2.0;
-  var Ls = pvpIDs.map(i => Number(property_get("myCurrentPVPMiniExp3IXWeight_".concat(i))));
-  var Ps = getExp3IXProbabilities(Ls);
-  var reward = result ? 1.0 : 0.0;
-  _set("myCurrentPVPMiniExp3IXWeight_".concat(miniID), Ls[miniID] + (1.0 - reward) / (Ps[miniID] + gamma));
+function updateExp3IXWeights(miniID: number, result: boolean): void {
+  const K = activeMinis.length;
+
+  const eta = Math.sqrt((2.0 * Math.log(K + 1)) / (Exp3IXHorizon * K));
+  const gamma = eta / 2.0;
+
+  const Ls = pvpIDs.map((i) => Number(get(`myCurrentPVPMiniExp3IXWeight_${i}`)));
+  const Ps = getExp3IXProbabilities(Ls);
+
+  const reward = result ? 1.0 : 0.0;
+
+  set(`myCurrentPVPMiniExp3IXWeight_${miniID}`, Ls[miniID] + (1.0 - reward) / (Ps[miniID] + gamma));
 }
+*/
 ;// CONCATENATED MODULE: ./src/parsing.ts
 
 
@@ -7459,9 +7486,8 @@ function parseCompactMode(result, whoAreWe) {
       } else {
         if (verbose) (0,external_kolmafia_namespaceObject.print)("We lost the mini: ".concat(mini), "red");
         _set("myCurrentPVPLosses_".concat(miniID), property_get("myCurrentPVPLosses_".concat(miniID), 0) + 1);
-      }
+      } // updateExpBandits(miniID, weWon);
 
-      updateExpBandits(miniID, weWon);
     }
     slicedResult = slicedResult.slice(slicedResult.indexOf("</td></tr>") + 9);
   };
@@ -7493,9 +7519,8 @@ function parseNonCompactMode(result, whoAreWe) {
       } else {
         if (verbose) (0,external_kolmafia_namespaceObject.print)("We lost the mini: ".concat(mini), "red");
         _set("myCurrentPVPLosses_".concat(miniID), property_get("myCurrentPVPLosses_".concat(miniID), 0) + 1);
-      }
+      } // updateExpBandits(miniID, weWon);
 
-      updateExpBandits(miniID, weWon);
     }
     slicedResult = slicedResult.slice(splitIdx);
   };
