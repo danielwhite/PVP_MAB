@@ -80,8 +80,9 @@ export function useMeteoriteade(): void {
 }
 
 export function breakStone(): void {
-  if (!args.breakStone && hippyStoneBroken())
+  if (!args.breakStone && !hippyStoneBroken()) {
     abort("Your stone is unbroken, and you won't let us do it!");
+  }
 
   const buffer = visitUrl("peevpee.php?confirm=on&action=smashstone&pwd");
   if (buffer.includes("Pledge allegiance to"))
