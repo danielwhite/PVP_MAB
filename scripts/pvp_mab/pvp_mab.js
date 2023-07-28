@@ -7300,7 +7300,10 @@ function useMeteoriteade() {
   (0,external_kolmafia_namespaceObject.use)(template_string_$item(lib_templateObject3 || (lib_templateObject3 = lib_taggedTemplateLiteral(["Meteorite-Ade"]))), potionsToUse);
 }
 function breakStone() {
-  if (!args.breakStone && (0,external_kolmafia_namespaceObject.hippyStoneBroken)()) (0,external_kolmafia_namespaceObject.abort)("Your stone is unbroken, and you won't let us do it!");
+  if (!args.breakStone && !(0,external_kolmafia_namespaceObject.hippyStoneBroken)()) {
+    (0,external_kolmafia_namespaceObject.abort)("Your stone is unbroken, and you won't let us do it!");
+  }
+
   var buffer = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?confirm=on&action=smashstone&pwd");
   if (buffer.includes("Pledge allegiance to")) (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?action=pledge&place=fight&pwd");
 }
