@@ -7265,10 +7265,11 @@ function lib_taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.sli
 
 
 var prefChangeSettings = property_get("logPreferenceChange"); // So we have to reorder them to the rules page
+// This will be empty if we haven't broken the stone or have 0 fites left
 
 var activeMinis = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight"), "//select[@name='stance']/option/text()");
-var activeMinisSorted = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules"), "//tr[@class='small']/td[@nowrap]/text()").map(sortedMini => sortedMini in activeMinis ? sortedMini : sortedMini.replace("*", ""));
-var pvpIDs = Array.from(Array(activeMinis.length).keys());
+var activeMinisSorted = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules"), "//tr[@class='small']/td[@nowrap]/text()").map(sortedMini => sortedMini.at(-1) === "*" ? sortedMini.slice(0, -1) : sortedMini);
+var pvpIDs = Array.from(Array(activeMinisSorted.length).keys());
 var sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
 function initializeSortedPvpIDs() {
@@ -7305,13 +7306,16 @@ function breakStone() {
   }
 
   var buffer = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?confirm=on&action=smashstone&pwd");
-  if (buffer.includes("Pledge allegiance to")) (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?action=pledge&place=fight&pwd");
+  if (buffer.includes("Pledge allegiance to")) (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?action=pledge&place=fight&pwd"); // Update activeMinis if we just broke the stone
+
+  activeMinis = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight"), "//select[@name='stance']/option/text()");
 }
 function updateSeason() {
   var _visitUrl$match;
 
   var currentSeason = Array.from((_visitUrl$match = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/<b>Current Season: <\/b>(.*?)( \\(Post-Season\\))?<br \/>/))) !== null && _visitUrl$match !== void 0 ? _visitUrl$match : ["", "0"])[1];
-  if (property_get("myCurrentPVPSeason", "") === currentSeason) return; // Reset wins and losses (pad all at 7 wins 7 losses [prime numbers good])
+  if (property_get("myCurrentPVPSeason", "") === currentSeason) return;
+  if (!(0,external_kolmafia_namespaceObject.hippyStoneBroken)()) throw new Error("We cannot update the season until you've broken your stone!"); // Reset wins and losses (pad all at 7 wins 7 losses [prime numbers good])
 
   pvpIDs.forEach(i => {
     _set("myCurrentPVPWins_".concat(i), 7);
