@@ -20,15 +20,18 @@ import { sampleBeta, sampleNormal } from "./distributions";
 export const prefChangeSettings = get("logPreferenceChange");
 
 // So we have to reorder them to the rules page
-export const activeMinis = xpath(
+// This will be empty if we haven't broken the stone or have 0 fites left
+export let activeMinis = xpath(
   visitUrl("peevpee.php?place=fight"),
   "//select[@name='stance']/option/text()"
 );
+
 export const activeMinisSorted = xpath(
   visitUrl("peevpee.php?place=rules"),
   "//tr[@class='small']/td[@nowrap]/text()"
-).map((sortedMini) => (sortedMini in activeMinis ? sortedMini : sortedMini.replace("*", "")));
-export const pvpIDs = Array.from(Array(activeMinis.length).keys());
+).map((sortedMini) => (sortedMini.at(-1) === "*" ? sortedMini.slice(0, -1) : sortedMini));
+
+export const pvpIDs = Array.from(Array(activeMinisSorted.length).keys());
 export let sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
 export function initializeSortedPvpIDs(): void {
@@ -87,6 +90,12 @@ export function breakStone(): void {
   const buffer = visitUrl("peevpee.php?confirm=on&action=smashstone&pwd");
   if (buffer.includes("Pledge allegiance to"))
     visitUrl("peevpee.php?action=pledge&place=fight&pwd");
+
+  // Update activeMinis if we just broke the stone
+  activeMinis = xpath(
+    visitUrl("peevpee.php?place=fight"),
+    "//select[@name='stance']/option/text()"
+  );
 }
 
 export function updateSeason(): void {
@@ -97,6 +106,8 @@ export function updateSeason(): void {
   )[1];
 
   if (get("myCurrentPVPSeason", "") === currentSeason) return;
+  if (!hippyStoneBroken())
+    throw new Error("We cannot update the season until you've broken your stone!");
 
   // Reset wins and losses (pad all at 7 wins 7 losses [prime numbers good])
   pvpIDs.forEach((i) => {
