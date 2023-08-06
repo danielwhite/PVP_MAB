@@ -7268,7 +7268,7 @@ var prefChangeSettings = property_get("logPreferenceChange"); // So we have to r
 // This will be empty if we haven't broken the stone or have 0 fites left
 
 var activeMinis = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=fight"), "//select[@name='stance']/option/text()");
-var activeMinisSorted = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules"), "//tr[@class='small']/td[@nowrap]/text()").map(sortedMini => sortedMini.at(-1) === "*" ? sortedMini.slice(0, -1) : sortedMini);
+var activeMinisSorted = (0,external_kolmafia_namespaceObject.xpath)((0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules"), "//tr[@class='small']/td[@nowrap]/text()").map(sortedMini => sortedMini.slice(-1) === "*" ? sortedMini.slice(0, -1) : sortedMini);
 var pvpIDs = Array.from(Array(activeMinisSorted.length).keys());
 var sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
