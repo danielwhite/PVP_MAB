@@ -29,7 +29,7 @@ export let activeMinis = xpath(
 export const activeMinisSorted = xpath(
   visitUrl("peevpee.php?place=rules"),
   "//tr[@class='small']/td[@nowrap]/text()"
-).map((sortedMini) => (sortedMini.at(-1) === "*" ? sortedMini.slice(0, -1) : sortedMini));
+).map((sortedMini) => (sortedMini.slice(-1) === "*" ? sortedMini.slice(0, -1) : sortedMini));
 
 export const pvpIDs = Array.from(Array(activeMinisSorted.length).keys());
 export let sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
