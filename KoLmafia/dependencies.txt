@@ -1,1 +1,1 @@
-https://github.com/Loathing-Associates-Scripting-Society/UberPvPOptimizer
+https://github.com/loathers/UberPvPOptimizer
