@@ -7585,21 +7585,21 @@ function main() {
     initializeSortedPvpIDs();
     var attackType = args.target === "loot" ? "lootwhatever" : args.target;
     equipPVPOutfit();
+    _set("logPreferenceChange", false);
 
     while ((0,external_kolmafia_namespaceObject.pvpAttacksLeft)() > 0) {
       if (args.debug) printStrategiesEstimates();
-      _set("logPreferenceChange", false);
       var result = pvpAttack(attackType);
 
       if (result.includes("Sorry, I couldn't find the player")) {
         (0,external_kolmafia_namespaceObject.print)("Could not find anyone to fight!", "red");
-        _set("logPreferenceChange", prefChangeSettings);
         break;
       }
 
       parseResult(result) ? _set("todaysPVPWins", todaysWins += 1) : _set("todaysPVPLosses", todaysLosses += 1);
-      _set("logPreferenceChange", prefChangeSettings);
     }
+
+    _set("logPreferenceChange", prefChangeSettings);
   } else {
     (0,external_kolmafia_namespaceObject.print)("Out of PVP fights", "red");
   }
