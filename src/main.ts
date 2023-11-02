@@ -35,20 +35,19 @@ export function main(argstring = ""): void {
     const attackType = args.target === "loot" ? "lootwhatever" : args.target;
     equipPVPOutfit();
 
+    set("logPreferenceChange", false);
     while (pvpAttacksLeft() > 0) {
       if (args.debug) printStrategiesEstimates();
-      set("logPreferenceChange", false);
       const result = pvpAttack(attackType);
       if (result.includes("Sorry, I couldn't find the player")) {
         print("Could not find anyone to fight!", "red");
-        set("logPreferenceChange", prefChangeSettings);
         break;
       }
       parseResult(result)
         ? set("todaysPVPWins", (todaysWins += 1))
         : set("todaysPVPLosses", (todaysLosses += 1));
-      set("logPreferenceChange", prefChangeSettings);
     }
+    set("logPreferenceChange", prefChangeSettings);
   } else {
     print("Out of PVP fights", "red");
   }
