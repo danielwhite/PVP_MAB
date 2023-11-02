@@ -1,6 +1,6 @@
 import { print } from "kolmafia";
 import { get, set } from "libram";
-import { activeMinisSorted, prefChangeSettings, verbose } from "./lib";
+import { activeMinisSorted, verbose } from "./lib";
 
 export function parseCompactMode(result: string, whoAreWe: string[]): boolean {
   let slicedResult = result;
@@ -96,11 +96,9 @@ export function parseResult(result: string): boolean {
   // Vanilla KoL has a comact mode for PVP, which returns different html results
   const compactMode = slicedResult.includes("td nowrap");
 
-  set("logPreferenceChange", false);
   const wonFight = compactMode
     ? parseCompactMode(slicedResult, whoAreWe)
     : parseNonCompactMode(slicedResult, whoAreWe);
-  set("logPreferenceChange", prefChangeSettings);
 
   if (wonFight) print(`We beat ${whoAreThey}!`, "green");
   else print(`${whoAreThey} beat us!`, "red");

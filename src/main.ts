@@ -6,6 +6,7 @@ import {
   breakStone,
   equipPVPOutfit,
   initializeSortedPvpIDs,
+  prefChangeSettings,
   printStats,
   printStrategiesEstimates,
   pvpAttack,
@@ -36,14 +37,17 @@ export function main(argstring = ""): void {
 
     while (pvpAttacksLeft() > 0) {
       if (args.debug) printStrategiesEstimates();
+      set("logPreferenceChange", false);
       const result = pvpAttack(attackType);
       if (result.includes("Sorry, I couldn't find the player")) {
         print("Could not find anyone to fight!", "red");
+        set("logPreferenceChange", prefChangeSettings);
         break;
       }
       parseResult(result)
         ? set("todaysPVPWins", (todaysWins += 1))
         : set("todaysPVPLosses", (todaysLosses += 1));
+      set("logPreferenceChange", prefChangeSettings);
     }
   } else {
     print("Out of PVP fights", "red");
