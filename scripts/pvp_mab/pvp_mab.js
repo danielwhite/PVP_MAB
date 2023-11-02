@@ -7554,9 +7554,7 @@ function parseResult(result) {
 
 
   var compactMode = slicedResult.includes("td nowrap");
-  _set("logPreferenceChange", false);
   var wonFight = compactMode ? parseCompactMode(slicedResult, whoAreWe) : parseNonCompactMode(slicedResult, whoAreWe);
-  _set("logPreferenceChange", prefChangeSettings);
   if (wonFight) (0,external_kolmafia_namespaceObject.print)("We beat ".concat(whoAreThey, "!"), "green");else (0,external_kolmafia_namespaceObject.print)("".concat(whoAreThey, " beat us!"), "red");
   return wonFight;
 }
@@ -7590,14 +7588,17 @@ function main() {
 
     while ((0,external_kolmafia_namespaceObject.pvpAttacksLeft)() > 0) {
       if (args.debug) printStrategiesEstimates();
+      _set("logPreferenceChange", false);
       var result = pvpAttack(attackType);
 
       if (result.includes("Sorry, I couldn't find the player")) {
         (0,external_kolmafia_namespaceObject.print)("Could not find anyone to fight!", "red");
+        _set("logPreferenceChange", prefChangeSettings);
         break;
       }
 
       parseResult(result) ? _set("todaysPVPWins", todaysWins += 1) : _set("todaysPVPLosses", todaysLosses += 1);
+      _set("logPreferenceChange", prefChangeSettings);
     }
   } else {
     (0,external_kolmafia_namespaceObject.print)("Out of PVP fights", "red");
