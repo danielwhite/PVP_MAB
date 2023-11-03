@@ -55,8 +55,9 @@ export function parseNonCompactMode(result: string, whoAreWe: string[]): boolean
     ])[0];
     const miniID = activeMinisSorted.findIndex((sortedMini) => sortedMini === mini);
 
-    if (curString.includes("A tie-breaker")) print(`We tied the mini: ${mini}`, "blue");
-    else {
+    if (curString.includes("A tie-breaker")) {
+      if (verbose) print(`We tied the mini: ${mini}`, "blue");
+    } else {
       let weWon = false;
       if (curString.includes('<td width="80"></td></tr>')) weWon = true;
       if (weWon) {
