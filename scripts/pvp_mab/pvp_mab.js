@@ -7516,7 +7516,10 @@ function parseNonCompactMode(result, whoAreWe) {
     var curString = slicedResult.slice(0, splitIdx);
     var mini = ((_curString$match$map2 = (_curString$match2 = curString.match(RegExp(/<b class="miniclick">(.*?)<\/b>/))) === null || _curString$match2 === void 0 ? void 0 : _curString$match2.map(s => s.replace('<b class="miniclick">', "").replace("</b>", ""))) !== null && _curString$match$map2 !== void 0 ? _curString$match$map2 : ["unknown mini"])[0];
     var miniID = activeMinisSorted.findIndex(sortedMini => sortedMini === mini);
-    if (curString.includes("A tie-breaker")) (0,external_kolmafia_namespaceObject.print)("We tied the mini: ".concat(mini), "blue");else {
+
+    if (curString.includes("A tie-breaker")) {
+      if (verbose) (0,external_kolmafia_namespaceObject.print)("We tied the mini: ".concat(mini), "blue");
+    } else {
       var weWon = false;
       if (curString.includes('<td width="80"></td></tr>')) weWon = true;
 
@@ -7529,6 +7532,7 @@ function parseNonCompactMode(result, whoAreWe) {
       } // updateExpBandits(miniID, weWon);
 
     }
+
     slicedResult = slicedResult.slice(splitIdx);
   };
 
