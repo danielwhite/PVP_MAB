@@ -153,6 +153,13 @@ export function equipPVPOutfit(): void {
   }
 }
 
+export function executeMood(): void {
+  if (args.mood === "") {
+    return;
+  }
+  cliExecute(`mood ${args.mood}; mood execute`);
+}
+
 export function pvpAttack(attackType: string): string {
   const pvpChoice = getBestMini();
 

@@ -42,6 +42,10 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
       default: 0,
     }
   ),
+  mood: Args.string({
+    help: "If set, mood that pvp_mab will execute before fights. Leave blank to disable",
+    default: "",
+  }),
   outfit: Args.string({
     help: "Set to equip a specific outfit instead of UberPvPOptimizer.",
     default: "",

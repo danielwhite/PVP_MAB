@@ -5,6 +5,7 @@ import { args } from "./args";
 import {
   breakStone,
   equipPVPOutfit,
+  executeMood,
   initializeSortedPvpIDs,
   prefChangeSettings,
   printStats,
@@ -46,6 +47,7 @@ export function main(argstring = ""): void {
 
     set("logPreferenceChange", false);
     while (pvpAttacksLeft() > stopAt) {
+      executeMood();
       if (args.debug) printStrategiesEstimates();
       const result = pvpAttack(attackType);
       if (result.includes("Sorry, I couldn't find the player")) {
