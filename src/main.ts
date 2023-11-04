@@ -36,7 +36,7 @@ export function main(argstring = ""): void {
     if (args.fights >= 0) {
       stopAt = Math.max(0, pvpAttacksLeft() - args.fights);
     } else {
-      stopAt = Math.max(-args.fights, pvpAttacksLeft());
+      stopAt = Math.min(-args.fights, pvpAttacksLeft());
     }
   }
 
