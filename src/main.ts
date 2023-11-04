@@ -30,13 +30,22 @@ export function main(argstring = ""): void {
   let todaysWins = get("todaysPVPWins", 0),
     todaysLosses = get("todaysPVPLosses", 0);
 
-  if (pvpAttacksLeft() > 0) {
+  let stopAt = 0;
+  if (args.fights) {
+    if (args.fights >= 0) {
+      stopAt = Math.max(0, pvpAttacksLeft() - args.fights);
+    } else {
+      stopAt = Math.max(-args.fights, pvpAttacksLeft());
+    }
+  }
+
+  if (pvpAttacksLeft() > stopAt) {
     initializeSortedPvpIDs();
     const attackType = args.target === "loot" ? "lootwhatever" : args.target;
     equipPVPOutfit();
 
     set("logPreferenceChange", false);
-    while (pvpAttacksLeft() > 0) {
+    while (pvpAttacksLeft() > stopAt) {
       if (args.debug) printStrategiesEstimates();
       const result = pvpAttack(attackType);
       if (result.includes("Sorry, I couldn't find the player")) {

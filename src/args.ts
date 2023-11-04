@@ -36,4 +36,10 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
     (x) => x as Strategy,
     "multi-armed bandit strategy"
   ),
+  fights: Args.number(
+    {
+      help: "Terminate after the terminate after the specified number of fights are spent. Negative inputs will cause garbo to terminate when the specified number of turns remain.",
+      default: 0,
+    }
+  ),
 });
