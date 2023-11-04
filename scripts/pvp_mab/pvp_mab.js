@@ -7613,7 +7613,7 @@ function main() {
     if (args.fights >= 0) {
       stopAt = Math.max(0, (0,external_kolmafia_namespaceObject.pvpAttacksLeft)() - args.fights);
     } else {
-      stopAt = Math.max(-args.fights, (0,external_kolmafia_namespaceObject.pvpAttacksLeft)());
+      stopAt = Math.min(-args.fights, (0,external_kolmafia_namespaceObject.pvpAttacksLeft)());
     }
   }
 
