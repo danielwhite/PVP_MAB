@@ -7089,7 +7089,19 @@ var args = Args.create("pvp_mab", "A multi-armed bandit script for pvp", {
     options: [["UCB"], // ["Exp3"],
     // ["Exp3IX"],
     ["bernoulliThompson"], ["epsilonGreedy"], ["gaussianThompson"]]
-  }, x => x, "multi-armed bandit strategy")
+  }, x => x, "multi-armed bandit strategy"),
+  fights: Args.number({
+    help: "Terminate after the terminate after the specified number of fights are spent. Negative inputs will cause garbo to terminate when the specified number of turns remain.",
+    default: 0
+  }),
+  mood: Args.string({
+    help: "If set, mood that pvp_mab will execute before fights. Leave blank to disable",
+    default: ""
+  }),
+  outfit: Args.string({
+    help: "Set to equip a specific outfit instead of UberPvPOptimizer.",
+    default: ""
+  })
 });
 ;// CONCATENATED MODULE: ./src/distributions.ts
 function sampleNormal() {
@@ -7346,9 +7358,20 @@ function updateWinRate() {
   }
 }
 function equipPVPOutfit() {
-  // Can we find a better way to determine if we are already wearing a PVP-optimal outfit?
-  (0,external_kolmafia_namespaceObject.cliExecute)("unequip all");
-  (0,external_kolmafia_namespaceObject.cliExecute)("UberPvPOptimizer");
+  if (args.outfit === "") {
+    // Can we find a better way to determine if we are already wearing a PVP-optimal outfit?
+    (0,external_kolmafia_namespaceObject.cliExecute)("unequip all");
+    (0,external_kolmafia_namespaceObject.cliExecute)("UberPvPOptimizer");
+  } else {
+    (0,external_kolmafia_namespaceObject.cliExecute)("outfit " + args.outfit);
+  }
+}
+function executeMood() {
+  if (args.mood === "") {
+    return;
+  }
+
+  (0,external_kolmafia_namespaceObject.cliExecute)("mood ".concat(args.mood, "; mood execute"));
 }
 function pvpAttack(attackType) {
   var pvpChoice = getBestMini();
@@ -7584,14 +7607,24 @@ function main() {
   updateWinRate();
   var todaysWins = property_get("todaysPVPWins", 0),
       todaysLosses = property_get("todaysPVPLosses", 0);
+  var stopAt = 0;
 
-  if ((0,external_kolmafia_namespaceObject.pvpAttacksLeft)() > 0) {
+  if (args.fights) {
+    if (args.fights >= 0) {
+      stopAt = Math.max(0, (0,external_kolmafia_namespaceObject.pvpAttacksLeft)() - args.fights);
+    } else {
+      stopAt = Math.max(-args.fights, (0,external_kolmafia_namespaceObject.pvpAttacksLeft)());
+    }
+  }
+
+  if ((0,external_kolmafia_namespaceObject.pvpAttacksLeft)() > stopAt) {
     initializeSortedPvpIDs();
     var attackType = args.target === "loot" ? "lootwhatever" : args.target;
     equipPVPOutfit();
     _set("logPreferenceChange", false);
 
-    while ((0,external_kolmafia_namespaceObject.pvpAttacksLeft)() > 0) {
+    while ((0,external_kolmafia_namespaceObject.pvpAttacksLeft)() > stopAt) {
+      executeMood();
       if (args.debug) printStrategiesEstimates();
       var result = pvpAttack(attackType);
 
