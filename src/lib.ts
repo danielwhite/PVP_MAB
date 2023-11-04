@@ -144,9 +144,13 @@ export function updateWinRate(): void {
 }
 
 export function equipPVPOutfit(): void {
-  // Can we find a better way to determine if we are already wearing a PVP-optimal outfit?
-  cliExecute("unequip all");
-  cliExecute("UberPvPOptimizer");
+  if (args.outfit === "") {
+    // Can we find a better way to determine if we are already wearing a PVP-optimal outfit?
+    cliExecute("unequip all");
+    cliExecute("UberPvPOptimizer");
+  } else {
+    cliExecute("outfit " + args.outfit);
+  }
 }
 
 export function pvpAttack(attackType: string): string {

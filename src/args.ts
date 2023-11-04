@@ -42,4 +42,8 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
       default: 0,
     }
   ),
+  outfit: Args.string({
+    help: "Set to equip a specific outfit instead of UberPvPOptimizer.",
+    default: "",
+  }),
 });
