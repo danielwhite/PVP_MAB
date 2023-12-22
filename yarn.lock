@@ -1821,13 +1821,13 @@ eslint-config-prettier@^8.3.0:
   resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-8.3.0.tgz#f7471b20b6fe8a9a9254cc684454202886a2dd7a"
   integrity sha512-BgZuLUSeKzvlL/VUjx/Yb787VQ26RU3gGjA3iiFvdsp/2bMfVIWUVP7tjxtjS0e+HP409cPlPvNkQloz8C91ew==
 
-eslint-plugin-libram@^0.2.31:
-  version "0.2.31"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-libram/-/eslint-plugin-libram-0.2.31.tgz#de1c77ac699a20a3fe0fda137acca39ccd7491c3"
-  integrity sha512-DiYJKqc3cVAl+AOVRupfsSYlJDvgL0o/eQNokIndyAaSj2jSb+Zn832T6u/0ngGPPjtmPtdw70bUuPTJhM7D2Q==
+eslint-plugin-libram@^0.3.5:
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-libram/-/eslint-plugin-libram-0.3.5.tgz#ea620df15ab09907b1deaa9658406925cf9182eb"
+  integrity sha512-s5AwKMVuMcq1SfUbNU0yFMn+5B08teZ69RTXRRq8//Fx4w+14kqIyOv0pm5VO/l33E2MZcNRsuEDqMbcsSS9Ww==
   dependencies:
-    html-entities "^2.3.2"
-    requireindex "~1.1.0"
+    html-entities "^2.4.0"
+    requireindex "~1.2.0"
 
 eslint-scope@5.1.1, eslint-scope@^5.1.1:
   version "5.1.1"
@@ -2283,10 +2283,10 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
-html-entities@^2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/html-entities/-/html-entities-2.3.2.tgz#760b404685cb1d794e4f4b744332e3b00dcfe488"
-  integrity sha512-c3Ab/url5ksaT0WyleslpBEthOzWhrjQbg75y7XUsfSzi3Dgzt0l8w5e7DylRn15MTlMMD58dTfzddNS2kcAjQ==
+html-entities@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/html-entities/-/html-entities-2.4.0.tgz#edd0cee70402584c8c76cc2c0556db09d1f45061"
+  integrity sha512-igBTJcNNNhvZFRtm8uA6xMY6xYleeDwn3PeBCkDz7tHttv4F2hsDI2aPgNERWzvRcNYHNT3ymRaQzllmXj4YsQ==
 
 human-signals@^2.1.0:
   version "2.1.0"
@@ -2584,10 +2584,10 @@ kind-of@^6.0.0, kind-of@^6.0.2:
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-6.0.3.tgz#07c05034a6c349fa06e24fa35aa76db4580ce4dd"
   integrity sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==
 
-kolmafia@^5.27390.0:
-  version "5.27390.0"
-  resolved "https://registry.yarnpkg.com/kolmafia/-/kolmafia-5.27390.0.tgz#75753b37f0e132ba3533a53e8accbb3283423af6"
-  integrity sha512-eHoV9ldju8FIwdXwBhcavD7KZmJv0HSmAoZF/Cs22L8KUgN/Cja5RLYv2f2XBSs1Sb05mMSKsvBDw90ujJxYig==
+kolmafia@^5.27749.0:
+  version "5.27749.0"
+  resolved "https://registry.yarnpkg.com/kolmafia/-/kolmafia-5.27749.0.tgz#3855abf8f0f3d5a0a524a7c70a9caedf3fc90e5e"
+  integrity sha512-WauzjMEXzoTIoPHBiJyzNAfVd+mdxLNFly+W61m694bMWWTJgibEPkHk70KFo5ucUPD7UFzJ8KjQcqpdt2tYtw==
 
 levn@^0.4.1:
   version "0.4.1"
@@ -2597,10 +2597,12 @@ levn@^0.4.1:
     prelude-ls "^1.2.1"
     type-check "~0.4.0"
 
-libram@^0.8.3:
-  version "0.8.3"
-  resolved "https://registry.yarnpkg.com/libram/-/libram-0.8.3.tgz#4cb960a2fc5ef2b4b48a05004b1d2f325f389520"
-  integrity sha512-TL7t/BdlaQdTtfkZCS4e1bOIgqq11O6I02xdzFhVQqNqjo3SvkbaH2vTusdSmyO7aUrCFgn4daL1RpIDjsJThQ==
+libram@^0.8.18:
+  version "0.8.18"
+  resolved "https://registry.yarnpkg.com/libram/-/libram-0.8.18.tgz#c160bef67029433e6f11e0a11c6abde82991c5c5"
+  integrity sha512-X7HN0EvjrS6vnrZrbtW/9GiiMAba2bnEv0y5B++KbWYYymAANZzEDD7uNPFxIUWRoIKwmWk+FTXUVIioFKAOXw==
+  dependencies:
+    html-entities "^2.4.0"
 
 loader-runner@^4.2.0:
   version "4.2.0"
@@ -3115,10 +3117,10 @@ require-from-string@^2.0.2:
   resolved "https://registry.yarnpkg.com/require-from-string/-/require-from-string-2.0.2.tgz#89a7fdd938261267318eafe14f9c32e598c36909"
   integrity sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==
 
-requireindex@~1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/requireindex/-/requireindex-1.1.0.tgz#e5404b81557ef75db6e49c5a72004893fe03e162"
-  integrity sha1-5UBLgVV+91225JxacgBIk/4D4WI=
+requireindex@~1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/requireindex/-/requireindex-1.2.0.tgz#3463cdb22ee151902635aa6c9535d4de9c2ef1ef"
+  integrity sha512-L9jEkOi3ASd9PYit2cwRfyppc9NoABujTP8/5gFcbERmo5jUoAKovIC3fsF17pkTnGsrByysqX+Kxd2OTNI1ww==
 
 resolve-cwd@^3.0.0:
   version "3.0.0"

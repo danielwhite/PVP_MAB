@@ -13,6 +13,7 @@ import {
   updateSeason,
   updateWinRate,
   useMeteoriteade,
+  usePunchingMirror,
 } from "./lib";
 import { parseResult } from "./parsing";
 
@@ -24,6 +25,7 @@ export function main(argstring = ""): void {
   }
   breakStone();
   useMeteoriteade();
+  usePunchingMirror();
   updateSeason();
   updateWinRate();
 
