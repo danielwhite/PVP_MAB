@@ -89,6 +89,11 @@ export function usePunchingMirror(): void {
   use($item`punching mirror`);
 }
 
+export function useDiploma(): void {
+  if (!have($item`School of Hard Knocks Diploma`) || get("_hardKnocksDiplomaUsed")) return;
+  use($item`School of Hard Knocks Diploma`);
+}
+
 export function breakStone(): void {
   if (!args.breakStone && !hippyStoneBroken()) {
     abort("Your stone is unbroken, and you won't let us do it!");
