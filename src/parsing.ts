@@ -1,6 +1,7 @@
 import { print } from "kolmafia";
 import { get, set } from "libram";
 import { activeMinisSorted, verbose } from "./lib";
+import { ratio } from "fuzzball";
 
 export function parseCompactMode(result: string, whoAreWe: string[]): boolean {
   let slicedResult = result;
@@ -14,7 +15,10 @@ export function parseCompactMode(result: string, whoAreWe: string[]): boolean {
       ?.map((s) => s.replace("<td nowrap><b>", "").replace("</b></td>", "")) ?? [
       "unknown mini",
     ])[0];
-    const miniID = activeMinisSorted.findIndex((sortedMini) => sortedMini === mini);
+
+    const miniID = activeMinisSorted.indexOf(
+      activeMinisSorted.reduce((a, b) => (ratio(a, mini) > ratio(b, mini) ? a : b))
+    );
 
     if (curString.includes("A tie-breaker")) print(`We tied the mini: ${mini}`, "blue");
     else {
@@ -53,7 +57,10 @@ export function parseNonCompactMode(result: string, whoAreWe: string[]): boolean
       ?.map((s) => s.replace('<b class="miniclick">', "").replace("</b>", "")) ?? [
       "unknown mini",
     ])[0];
-    const miniID = activeMinisSorted.findIndex((sortedMini) => sortedMini === mini);
+
+    const miniID = activeMinisSorted.indexOf(
+      activeMinisSorted.reduce((a, b) => (ratio(a, mini) > ratio(b, mini) ? a : b))
+    );
 
     if (curString.includes("A tie-breaker")) {
       if (verbose) print(`We tied the mini: ${mini}`, "blue");

@@ -47,8 +47,8 @@ export function initializeSortedPvpIDs(): void {
       (id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i
     )
   ) {
-    sortedPvpIDs.forEach((sortedId, id) =>
-      print(`Mapping ${activeMinis[sortedId]} to ${activeMinisSorted[id]}`)
+    sortedPvpIDs.forEach((sortedID, id) =>
+      print(`Mapping ${activeMinis[sortedID]} to ${activeMinisSorted[id]}`)
     );
     throw new Error(`Error with sortedPvpIDs: ${sortedPvpIDs}!`);
   }
