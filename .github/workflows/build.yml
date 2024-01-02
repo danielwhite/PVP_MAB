@@ -17,7 +17,7 @@ on:
 
 env:
   # Default version of Node.js for jobs
-  node-version: "14"
+  node-version: "18"
 
 jobs:
   build-push:

@@ -12,10 +12,11 @@ import {
   visitUrl,
   xpath,
 } from "kolmafia";
-import { $item, get, set, sumNumbers } from "libram";
+import { $item, get, have, set, sumNumbers } from "libram";
 import * as STRATEGIES from "./strategies";
 import { args } from "./args";
 import { sampleBeta, sampleNormal } from "./distributions";
+import { ratio } from "fuzzball";
 
 export const prefChangeSettings = get("logPreferenceChange");
 
@@ -36,23 +37,30 @@ export let sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be 
 
 export function initializeSortedPvpIDs(): void {
   sortedPvpIDs = activeMinisSorted.map((sortedMini) =>
-    activeMinis.findIndex((mini) => sortedMini.slice(0, mini.length) === mini)
+    activeMinis.indexOf(
+      activeMinis.reduce((a, b) => (ratio(a, sortedMini) > ratio(b, sortedMini) ? a : b))
+    )
   );
 
   if (
     !sortedPvpIDs.every(
       (id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i
     )
-  )
+  ) {
+    sortedPvpIDs.forEach((sortedID, id) =>
+      print(`Mapping ${activeMinis[sortedID]} to ${activeMinisSorted[id]}`)
+    );
     throw new Error(`Error with sortedPvpIDs: ${sortedPvpIDs}!`);
+  }
+
   if (
-    !pvpIDs.every((i) => {
-      const sortedMini = activeMinisSorted[i];
-      const mini = activeMinis[sortedPvpIDs[i]];
-      return sortedMini.slice(0, mini.length) === mini;
-    })
-  )
+    sortedPvpIDs.filter((id, i) => sortedPvpIDs.indexOf(id) === i).length !== sortedPvpIDs.length
+  ) {
+    sortedPvpIDs.forEach((sortedId, id) =>
+      print(`Mapping ${activeMinis[sortedId]} to ${activeMinisSorted[id]}`)
+    );
     throw new Error(`Error with mapping!`);
+  }
 }
 
 export const verbose = !get("PVP_MAB_reduced_verbosity", false);
@@ -80,6 +88,18 @@ export function useMeteoriteade(): void {
   if (potionsToBuy > 0) buy($item`Meteorite-Ade`, potionsToBuy, 10000);
 
   use($item`Meteorite-Ade`, potionsToUse);
+}
+
+export function usePunchingMirror(): void {
+  // eslint-disable-next-line libram/verify-constants
+  if (!have($item`punching mirror`) || get("_punchingMirrorUsed", false)) return;
+  // eslint-disable-next-line libram/verify-constants
+  use($item`punching mirror`);
+}
+
+export function useDiploma(): void {
+  if (!have($item`School of Hard Knocks Diploma`) || get("_hardKnocksDiplomaUsed")) return;
+  use($item`School of Hard Knocks Diploma`);
 }
 
 export function breakStone(): void {

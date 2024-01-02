@@ -13,7 +13,9 @@ import {
   pvpAttack,
   updateSeason,
   updateWinRate,
+  useDiploma,
   useMeteoriteade,
+  usePunchingMirror,
 } from "./lib";
 import { parseResult } from "./parsing";
 
@@ -25,6 +27,8 @@ export function main(argstring = ""): void {
   }
   breakStone();
   useMeteoriteade();
+  useDiploma();
+  usePunchingMirror();
   updateSeason();
   updateWinRate();
 
