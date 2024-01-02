@@ -1195,14 +1195,20 @@ function arrayEquals(left, right) {
   return left.every((element, index) => element === right[index]);
 }
 /**
- * Used to collapse a Delayed<T> object into an entity of type "T" as represented by the object.
+ * Used to collapse a Delayed<T, S> object into an entity of type "T" as represented by the object.
  *
- * @param delayedObject Object of type Delayed<T> that represents either a value of type T or a function returning a value of type T.
+ * @param delayedObject Object of type Delayed<T, S> that represents either a value of type T or a function returning a value of type T.
+ * @param args The arguments to pass to the delay function
  * @returns The return value of the function, if delayedObject is a function. Otherwise, this returns the original element.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 function undelay(delayedObject) {
-  return typeof delayedObject === "function" ? delayedObject() : delayedObject;
+  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
+  }
+
+  return typeof delayedObject === "function" ? delayedObject.apply(void 0, args) : delayedObject;
 }
 /**
  * Makes a byX function, like byStat or byClass
@@ -1395,7 +1401,7 @@ var $coinmasters = createPluralConstant(external_kolmafia_namespaceObject.Coinma
  * @category In-game constant
  */
 
-var $effect = createSingleConstant(external_kolmafia_namespaceObject.Effect);
+var template_string_$effect = createSingleConstant(external_kolmafia_namespaceObject.Effect);
 /**
  * A list of Effects specified by a comma-separated list of names.
  * For a list of all possible Effects, leave the template string blank.
@@ -1464,6 +1470,21 @@ var $location = createSingleConstant(external_kolmafia_namespaceObject.Location)
  */
 
 var $locations = createPluralConstant(external_kolmafia_namespaceObject.Location);
+/**
+ * A Modifier specified by name.
+ *
+ * @category In-game constant
+ */
+
+var $modifier = createSingleConstant(external_kolmafia_namespaceObject.Modifier);
+/**
+ * A list of Modifiers specified by a comma-separated list of names.
+ * For a list of all possible Modifiers, leave the template string blank.
+ *
+ * @category In-game constant
+ */
+
+var $modifiers = createPluralConstant(external_kolmafia_namespaceObject.Modifier);
 /**
  * A Monster specified by name.
  *
@@ -1585,7 +1606,7 @@ var $path = createSingleConstant(external_kolmafia_namespaceObject.Path);
 
 var $paths = createPluralConstant(external_kolmafia_namespaceObject.Path);
 ;// CONCATENATED MODULE: ./node_modules/libram/dist/lib.js
-var _templateObject, _templateObject2, _templateObject3, _templateObject4, _templateObject5, _templateObject6, _templateObject7, _templateObject8, _templateObject9, _templateObject10, _templateObject11, _templateObject12, _templateObject13, _templateObject14, _templateObject15, _templateObject16, _templateObject17, _templateObject18, _templateObject19, _templateObject20, _templateObject21, _templateObject22, _templateObject23, _templateObject24, _templateObject25, _templateObject26, _templateObject27, _templateObject28, _templateObject29, _templateObject30, _templateObject31, _templateObject32, _templateObject33, _templateObject34;
+var _templateObject, _templateObject2, _templateObject3, _templateObject4, _templateObject5, _templateObject6, _templateObject7, _templateObject8, _templateObject9, _templateObject10, _templateObject11, _templateObject12, _templateObject13, _templateObject14, _templateObject15, _templateObject16, _templateObject17, _templateObject18, _templateObject19, _templateObject20, _templateObject21, _templateObject22, _templateObject23, _templateObject24, _templateObject25, _templateObject26, _templateObject27, _templateObject28, _templateObject29, _templateObject30, _templateObject31, _templateObject32, _templateObject33, _templateObject34, _templateObject35, _templateObject36, _templateObject37, _templateObject38, _templateObject39, _templateObject40, _templateObject41, _templateObject42, _templateObject43, _templateObject44, _templateObject45;
 
 function lib_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2427,21 +2448,104 @@ function unequip(thing) {
   if (failedSlots.length) logger.debug("Failed to unequip ".concat(thing, " from slots ").concat(failedSlots.join(", ")));
   return failedSlots.length === 0;
 }
+/**
+ * @returns a Date object corresponding to the current in-game day, at midnight
+ */
+
+function gameDay() {
+  var _todayToString$match;
+
+  var _map = ((_todayToString$match = todayToString().match(/(\d{4})(\d{2})(\d{2})/)) !== null && _todayToString$match !== void 0 ? _todayToString$match : []).map(Number),
+      _map2 = lib_slicedToArray(_map, 4),
+      year = _map2[1],
+      month = _map2[2],
+      day = _map2[3];
+
+  return new Date(year, month - 1, day, 0, 0, 0);
+}
+/**
+ * @param [type="all"] the type of crafting to check for free crafts
+ * @returns the number of free crafts available of that type
+ */
+
+function freeCrafts() {
+  var type = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "all";
+
+  var effectCrafts = effect => Math.floor(haveEffect(effect) / 5);
+
+  var all = (have($skill(_templateObject35 || (_templateObject35 = _taggedTemplateLiteral(["Rapid Prototyping"])))) ? 5 - get("_rapidPrototypingUsed") : 0) + (have($skill(_templateObject36 || (_templateObject36 = _taggedTemplateLiteral(["Expert Corner-Cutter"])))) ? 5 - get("_expertCornerCutterUsed") : 0) + effectCrafts($effect(_templateObject37 || (_templateObject37 = _taggedTemplateLiteral(["Inigo's Incantation of Inspiration"])))) + effectCrafts($effect(_templateObject38 || (_templateObject38 = _taggedTemplateLiteral(["Craft Tea"])))) + // eslint-disable-next-line libram/verify-constants
+  effectCrafts($effect(_templateObject39 || (_templateObject39 = _taggedTemplateLiteral(["Cooking Concentrate"]))));
+  var food = type === "food" ? 5 - get("_cookbookbatCrafting") : 0;
+  var smith = type === "smith" ? 5 - get("_thorsPliersCrafting") : 0;
+  var booze = 0; // currently there is no booze specific free crafting skill
+
+  return all + food + smith + booze;
+}
+var realmTypes = (/* unused pure expression or super */ null && (["spooky", "stench", "hot", "cold", "sleaze", "fantasy", "pirate"]));
+/**
+ * @param identifier which realm to check for
+ * @returns if that realm is available
+ */
+
+function realmAvailable(identifier) {
+  if (identifier === "fantasy") {
+    return get("_frToday") || get("frAlways");
+  } else if (identifier === "pirate") {
+    return get("_prToday") || get("prAlways");
+  }
+
+  return get("_".concat(identifier, "AirportToday")) || get("".concat(identifier, "AirportAlways"));
+}
+/**
+ * Compute the currently available Lucky Gold Ring Currencies
+ * @param realm the realm type to consider
+ * @returns The currency for the given zone
+ */
+
+function realmCurrency(realm) {
+  switch (realm) {
+    case "sleaze":
+      return $item(_templateObject40 || (_templateObject40 = _taggedTemplateLiteral(["Beach Buck"])));
+
+    case "spooky":
+      return $item(_templateObject41 || (_templateObject41 = _taggedTemplateLiteral(["Coinspiracy"])));
+
+    case "stench":
+      return $item(_templateObject42 || (_templateObject42 = _taggedTemplateLiteral(["FunFunds\u2122"])));
+
+    case "cold":
+      return $item(_templateObject43 || (_templateObject43 = _taggedTemplateLiteral(["Wal-Mart gift certificate"])));
+
+    case "hot":
+      return $item(_templateObject44 || (_templateObject44 = _taggedTemplateLiteral(["Volcoino"])));
+
+    case "fantasy":
+      return $item(_templateObject45 || (_templateObject45 = _taggedTemplateLiteral(["Rubee\u2122"])));
+  }
+}
+/**
+ * Compute which Lucky Gold Ring currencies are currently available
+ * @returns a list of currently available currencies
+ */
+
+function lgrCurrencies() {
+  return realmTypes.filter(realm => realmAvailable(realm) && !(realm === "hot" && get("_luckyGoldRingVolcoino"))).map(realmCurrency).filter(i => !!i);
+}
 ;// CONCATENATED MODULE: ./node_modules/libram/dist/overlappingNames.js
 /** THIS FILE IS AUTOMATICALLY GENERATED. See tools/parseItemSkillNames.ts for more information */
 var overlappingItemNames = ["spider web", "really sticky spider web", "dictionary", "NG", "Cloaca-Cola", "yo-yo", "top", "ball", "kite", "yo", "red potion", "blue potion", "bowling ball", "adder", "red button", "pile of sand", "mushroom", "deluxe mushroom"];
 var overlappingSkillNames = ["Shoot", "Thrust-Smack", "Headbutt", "Toss", "Knife in the Dark", "Sing", "Disarm", "LIGHT", "BURN", "Extract", "Meteor Shower", "Snipe", "Cleave", "Boil", "Slice", "Rainbow"];
 ;// CONCATENATED MODULE: ./node_modules/libram/dist/propertyTypes.js
 /** THIS FILE IS AUTOMATICALLY GENERATED. See tools/parseDefaultProperties.ts for more information */
-var booleanProperties = ["abortOnChoiceWhenNotInChoice", "addChatCommandLine", "addCreationQueue", "addStatusBarToFrames", "allowCloseableDesktopTabs", "allowNegativeTally", "allowNonMoodBurning", "allowSummonBurning", "autoHighlightOnFocus", "broadcastEvents", "cacheMallSearches", "chatBeep", "chatLinksUseRelay", "compactChessboard", "copyAsHTML", "customizedTabs", "debugBuy", "debugConsequences", "debugFoxtrotRemoval", "debugPathnames", "gapProtection", "gitInstallDependencies", "gitShowCommitMessages", "gitUpdateOnLogin", "greenScreenProtection", "guiUsesOneWindow", "hideServerDebugText", "logAcquiredItems", "logBattleAction", "logBrowserInteractions", "logChatMessages", "logChatRequests", "logCleanedHTML", "logDecoratedResponses", "logFamiliarActions", "logGainMessages", "logReadableHTML", "logPreferenceChange", "logMonsterHealth", "logReverseOrder", "logStatGains", "logStatusEffects", "logStatusOnLogin", "macroDebug", "macroLens", "mementoListActive", "mergeHobopolisChat", "printStackOnAbort", "proxySet", "relayAddSounds", "relayAddsCustomCombat", "relayAddsDiscoHelper", "relayAddsGraphicalCLI", "relayAddsQuickScripts", "relayAddsRestoreLinks", "relayAddsUpArrowLinks", "relayAddsUseLinks", "relayAddsWikiLinks", "relayAllowRemoteAccess", "relayBrowserOnly", "relayCacheUncacheable", "relayFormatsChatText", "relayHidesJunkMallItems", "relayMaintainsEffects", "relayMaintainsHealth", "relayMaintainsMana", "relayOverridesImages", "relayRunsAfterAdventureScript", "relayRunsBeforeBattleScript", "relayRunsBeforePVPScript", "relayScriptButtonFirst", "relayTextualizesEffects", "relayTrimsZapList", "relayUsesInlineLinks", "relayUsesIntegratedChat", "relayWarnOnRecoverFailure", "removeMalignantEffects", "saveSettingsOnSet", "sharePriceData", "showAllRequests", "showExceptionalRequests", "stealthLogin", "svnInstallDependencies", "svnShowCommitMessages", "svnUpdateOnLogin", "switchEquipmentForBuffs", "syncAfterSvnUpdate", "useChatToolbar", "useContactsFrame", "useDevProxyServer", "useDockIconBadge", "useHugglerChannel", "useImageCache", "useLastUserAgent", "useSystemTrayIcon", "useTabbedChatFrame", "useToolbars", "useCachedVolcanoMaps", "useZoneComboBox", "verboseSpeakeasy", "verboseFloundry", "wrapLongLines", "_gitUpdated", "_svnRepoFileFetched", "_svnUpdated", "antagonisticSnowmanKitAvailable", "arcadeGameHints", "armoryUnlocked", "autoForbidIgnoringStores", "autoCraft", "autoQuest", "autoEntangle", "autoGarish", "autoManaRestore", "autoFillMayoMinder", "autoPinkyRing", "autoPlantHardcore", "autoPlantSoftcore", "autoPotionID", "autoRepairBoxServants", "autoSatisfyWithCloset", "autoSatisfyWithCoinmasters", "autoSatisfyWithMall", "autoSatisfyWithNPCs", "autoSatisfyWithStash", "autoSatisfyWithStorage", "autoSetConditions", "autoSteal", "autoTuxedo", "backupCameraReverserEnabled", "badMoonEncounter01", "badMoonEncounter02", "badMoonEncounter03", "badMoonEncounter04", "badMoonEncounter05", "badMoonEncounter06", "badMoonEncounter07", "badMoonEncounter08", "badMoonEncounter09", "badMoonEncounter10", "badMoonEncounter11", "badMoonEncounter12", "badMoonEncounter13", "badMoonEncounter14", "badMoonEncounter15", "badMoonEncounter16", "badMoonEncounter17", "badMoonEncounter18", "badMoonEncounter19", "badMoonEncounter20", "badMoonEncounter21", "badMoonEncounter22", "badMoonEncounter23", "badMoonEncounter24", "badMoonEncounter25", "badMoonEncounter26", "badMoonEncounter27", "badMoonEncounter28", "badMoonEncounter29", "badMoonEncounter30", "badMoonEncounter31", "badMoonEncounter32", "badMoonEncounter33", "badMoonEncounter34", "badMoonEncounter35", "badMoonEncounter36", "badMoonEncounter37", "badMoonEncounter38", "badMoonEncounter39", "badMoonEncounter40", "badMoonEncounter41", "badMoonEncounter42", "badMoonEncounter43", "badMoonEncounter44", "badMoonEncounter45", "badMoonEncounter46", "badMoonEncounter47", "badMoonEncounter48", "barrelShrineUnlocked", "bigBrotherRescued", "blackBartsBootyAvailable", "bondAdv", "bondBeach", "bondBeat", "bondBooze", "bondBridge", "bondDesert", "bondDR", "bondDrunk1", "bondDrunk2", "bondHoney", "bondHP", "bondInit", "bondItem1", "bondItem2", "bondItem3", "bondJetpack", "bondMartiniDelivery", "bondMartiniPlus", "bondMartiniTurn", "bondMeat", "bondMox1", "bondMox2", "bondMPregen", "bondMus1", "bondMus2", "bondMys1", "bondMys2", "bondSpleen", "bondStat", "bondStat2", "bondStealth", "bondStealth2", "bondSymbols", "bondWar", "bondWeapon2", "bondWpn", "booPeakLit", "bootsCharged", "breakfastCompleted", "burrowgrubHiveUsed", "calzoneOfLegendEaten", "canteenUnlocked", "chaosButterflyThrown", "chatbotScriptExecuted", "chateauAvailable", "chatLiterate", "chatServesUpdates", "checkJackassHardcore", "checkJackassSoftcore", "clanAttacksEnabled", "coldAirportAlways", "considerShadowNoodles", "controlRoomUnlock", "concertVisited", "controlPanel1", "controlPanel2", "controlPanel3", "controlPanel4", "controlPanel5", "controlPanel6", "controlPanel7", "controlPanel8", "controlPanel9", "corralUnlocked", "dailyDungeonDone", "dampOldBootPurchased", "daycareOpen", "deepDishOfLegendEaten", "demonSummoned", "dinseyAudienceEngagement", "dinseyGarbagePirate", "dinseyRapidPassEnabled", "dinseyRollercoasterNext", "dinseySafetyProtocolsLoose", "doghouseBoarded", "dontStopForCounters", "drippingHallUnlocked", "drippyShieldUnlocked", "edUsedLash", "eldritchFissureAvailable", "eldritchHorrorAvailable", "essenceOfAnnoyanceAvailable", "essenceOfBearAvailable", "expressCardUsed", "falloutShelterChronoUsed", "falloutShelterCoolingTankUsed", "fireExtinguisherBatHoleUsed", "fireExtinguisherChasmUsed", "fireExtinguisherCyrptUsed", "fireExtinguisherDesertUsed", "fireExtinguisherHaremUsed", "fistTeachingsHaikuDungeon", "fistTeachingsPokerRoom", "fistTeachingsBarroomBrawl", "fistTeachingsConservatory", "fistTeachingsBatHole", "fistTeachingsFunHouse", "fistTeachingsMenagerie", "fistTeachingsSlums", "fistTeachingsFratHouse", "fistTeachingsRoad", "fistTeachingsNinjaSnowmen", "flickeringPixel1", "flickeringPixel2", "flickeringPixel3", "flickeringPixel4", "flickeringPixel5", "flickeringPixel6", "flickeringPixel7", "flickeringPixel8", "frAlways", "frCemetaryUnlocked", "friarsBlessingReceived", "frMountainsUnlocked", "frSwampUnlocked", "frVillageUnlocked", "frWoodUnlocked", "getawayCampsiteUnlocked", "ghostPencil1", "ghostPencil2", "ghostPencil3", "ghostPencil4", "ghostPencil5", "ghostPencil6", "ghostPencil7", "ghostPencil8", "ghostPencil9", "gingerAdvanceClockUnlocked", "gingerBlackmailAccomplished", "gingerbreadCityAvailable", "gingerExtraAdventures", "gingerNegativesDropped", "gingerSewersUnlocked", "gingerSubwayLineUnlocked", "gingerRetailUnlocked", "glitchItemAvailable", "grabCloversHardcore", "grabCloversSoftcore", "guideToSafariAvailable", "guyMadeOfBeesDefeated", "hallowienerDefiledNook", "hallowienerGuanoJunction", "hallowienerKnollGym", "hallowienerMadnessBakery", "hallowienerMiddleChamber", "hallowienerOvergrownLot", "hallowienerSkeletonStore", "hallowienerSmutOrcs", "hallowienerSonofaBeach", "hallowienerVolcoino", "hardcorePVPWarning", "harvestBatteriesHardcore", "harvestBatteriesSoftcore", "hasAutumnaton", "hasBartender", "hasChef", "hasCocktailKit", "hasCosmicBowlingBall", "hasDetectiveSchool", "hasMaydayContract", "hasOven", "hasRange", "hasShaker", "hasSushiMat", "haveBoxingDaydreamHardcore", "haveBoxingDaydreamSoftcore", "hermitHax0red", "holidayHalsBookAvailable", "horseryAvailable", "hotAirportAlways", "implementGlitchItem", "intenseCurrents", "itemBoughtPerAscension637", "itemBoughtPerAscension8266", "itemBoughtPerAscension10790", "itemBoughtPerAscension10794", "itemBoughtPerAscension10795", "itemBoughtPerCharacter6423", "itemBoughtPerCharacter6428", "itemBoughtPerCharacter6429", "kingLiberated", "lastPirateInsult1", "lastPirateInsult2", "lastPirateInsult3", "lastPirateInsult4", "lastPirateInsult5", "lastPirateInsult6", "lastPirateInsult7", "lastPirateInsult8", "lawOfAveragesAvailable", "leafletCompleted", "libraryCardUsed", "lockPicked", "logBastilleBattalionBattles", "loginRecoveryHardcore", "loginRecoverySoftcore", "lovebugsUnlocked", "loveTunnelAvailable", "lowerChamberUnlock", "madnessBakeryAvailable", "makePocketWishesHardcore", "makePocketWishesSoftcore", "manualOfNumberologyAvailable", "mappingMonsters", "mapToAnemoneMinePurchased", "mapToKokomoAvailable", "mapToMadnessReefPurchased", "mapToTheDiveBarPurchased", "mapToTheMarinaraTrenchPurchased", "mapToTheSkateParkPurchased", "maraisBeaverUnlock", "maraisCorpseUnlock", "maraisDarkUnlock", "maraisVillageUnlock", "maraisWildlifeUnlock", "maraisWizardUnlock", "maximizerAlwaysCurrent", "maximizerCreateOnHand", "maximizerCurrentMallPrices", "maximizerFoldables", "maximizerIncludeAll", "maximizerNoAdventures", "middleChamberUnlock", "milkOfMagnesiumActive", "moonTuned", "neverendingPartyAlways", "noncombatForcerActive", "oasisAvailable", "odeBuffbotCheck", "oilPeakLit", "oscusSodaUsed", "outrageousSombreroUsed", "overgrownLotAvailable", "ownsSpeakeasy", "pathedSummonsHardcore", "pathedSummonsSoftcore", "pizzaOfLegendEaten", "popularTartUnlocked", "potatoAlarmClockUsed", "prAlways", "prayedForGlamour", "prayedForProtection", "prayedForVigor", "primaryLabCheerCoreGrabbed", "pyramidBombUsed", "replicaChateauAvailable", "replicaNeverendingPartyAlways", "replicaWitchessSetAvailable", "ROMOfOptimalityAvailable", "rageGlandVented", "readManualHardcore", "readManualSoftcore", "relayShowSpoilers", "relayShowWarnings", "rememberDesktopSize", "restUsingChateau", "restUsingCampAwayTent", "requireBoxServants", "requireSewerTestItems", "safePickpocket", "schoolOfHardKnocksDiplomaAvailable", "scriptCascadingMenus", "serverAddsCustomCombat", "SHAWARMAInitiativeUnlocked", "showForbiddenStores", "showGainsPerUnit", "showIgnoringStorePrices", "showNoSummonOnly", "showTurnFreeOnly", "skeletonStoreAvailable", "sleazeAirportAlways", "snojoAvailable", "sortByEffect", "sortByRoom", "spacegateAlways", "spacegateVaccine1", "spacegateVaccine2", "spacegateVaccine3", "spaceInvaderDefeated", "spelunkyHints", "spiceMelangeUsed", "spookyAirportAlways", "stenchAirportAlways", "stopForFixedWanderer", "stopForUltraRare", "styxPixieVisited", "superconductorDefeated", "suppressInappropriateNags", "suppressPowerPixellation", "suppressMallPriceCacheMessages", "telegraphOfficeAvailable", "telescopeLookedHigh", "timeTowerAvailable", "trackLightsOut", "uneffectWithHotTub", "universalSeasoningActive", "universalSeasoningAvailable", "useBookOfEverySkillHardcore", "useBookOfEverySkillSoftcore", "useCrimboToysHardcore", "useCrimboToysSoftcore", "verboseMaximizer", "visitLoungeHardcore", "visitLoungeSoftcore", "visitRumpusHardcore", "visitRumpusSoftcore", "voteAlways", "wildfireBarrelCaulked", "wildfireDusted", "wildfireFracked", "wildfirePumpGreased", "wildfireSprinkled", "yearbookCameraPending", "youRobotScavenged", "_affirmationCookieEaten", "_affirmationHateUsed", "_airFryerUsed", "_akgyxothUsed", "_alienAnimalMilkUsed", "_alienPlantPodUsed", "_allYearSucker", "_aprilShower", "_armyToddlerCast", "_authorsInkUsed", "_baconMachineUsed", "_bagOfCandy", "_bagOfCandyUsed", "_bagOTricksUsed", "_ballastTurtleUsed", "_ballInACupUsed", "_ballpit", "_barrelPrayer", "_bastilleLastBattleWon", "_beachCombing", "_bendHellUsed", "_blankoutUsed", "_bonersSummoned", "_bookOfEverySkillUsed", "_borrowedTimeUsed", "_bowleggedSwaggerUsed", "_bowlFullOfJellyUsed", "_boxOfHammersUsed", "_brainPreservationFluidUsed", "_brassDreadFlaskUsed", "_cameraUsed", "_canSeekBirds", "_carboLoaded", "_cargoPocketEmptied", "_ceciHatUsed", "_chateauDeskHarvested", "_chateauMonsterFought", "_chibiChanged", "_chronerCrossUsed", "_chronerTriggerUsed", "_chubbyAndPlumpUsed", "_circleDrumUsed", "_clanFortuneBuffUsed", "_claraBellUsed", "_coalPaperweightUsed", "_cocoaDispenserUsed", "_cocktailShakerUsed", "_coldAirportToday", "_coldOne", "_communismUsed", "_confusingLEDClockUsed", "_controlPanelUsed", "_cookbookbatRecipeDrops", "_corruptedStardustUsed", "_cosmicSixPackConjured", "_crappyCameraUsed", "_creepyVoodooDollUsed", "_crimboTraining", "_crimboTree", "_cursedKegUsed", "_cursedMicrowaveUsed", "_dailyDungeonMalwareUsed", "_darkChocolateHeart", "_daycareFights", "_daycareNap", "_daycareSpa", "_daycareToday", "_defectiveTokenChecked", "_defectiveTokenUsed", "_dinseyGarbageDisposed", "_discoKnife", "_distentionPillUsed", "_dnaHybrid", "_docClocksThymeCocktailDrunk", "_drippingHallDoor1", "_drippingHallDoor2", "_drippingHallDoor3", "_drippingHallDoor4", "_drippyCaviarUsed", "_drippyNuggetUsed", "_drippyPilsnerUsed", "_drippyPlumUsed", "_drippyWineUsed", "_eldritchHorrorEvoked", "_eldritchTentacleFought", "_entauntaunedToday", "_envyfishEggUsed", "_essentialTofuUsed", "_etchedHourglassUsed", "_eternalCarBatteryUsed", "_everfullGlassUsed", "_eyeAndATwistUsed", "_fancyChessSetUsed", "_falloutShelterSpaUsed", "_fancyHotDogEaten", "_farmerItemsCollected", "_favoriteBirdVisited", "_firedJokestersGun", "_fireExtinguisherRefilled", "_fireStartingKitUsed", "_fireworksShop", "_fireworksShopHatBought", "_fireworksShopEquipmentBought", "_fireworkUsed", "_fishyPipeUsed", "_floundryItemCreated", "_floundryItemUsed", "_freePillKeeperUsed", "_frToday", "_fudgeSporkUsed", "_garbageItemChanged", "_gingerBiggerAlligators", "_gingerbreadCityToday", "_gingerbreadClockAdvanced", "_gingerbreadClockVisited", "_gingerbreadColumnDestroyed", "_gingerbreadMobHitUsed", "_glennGoldenDiceUsed", "_glitchItemImplemented", "_gnollEyeUsed", "_governmentPerDiemUsed", "_grimBuff", "_guildManualUsed", "_guzzlrQuestAbandoned", "_hardKnocksDiplomaUsed", "_hippyMeatCollected", "_hobbyHorseUsed", "_holidayFunUsed", "_holoWristCrystal", "_hotAirportToday", "_hungerSauceUsed", "_hyperinflatedSealLungUsed", "_iceHotelRoomsRaided", "_iceSculptureUsed", "_incredibleSelfEsteemCast", "_infernoDiscoVisited", "_internetDailyDungeonMalwareBought", "_internetGallonOfMilkBought", "_internetPlusOneBought", "_internetPrintScreenButtonBought", "_internetViralVideoBought", "_interviewIsabella", "_interviewMasquerade", "_interviewVlad", "_inquisitorsUnidentifiableObjectUsed", "_ironicMoustache", "_jackassPlumberGame", "_jarlsCheeseSummoned", "_jarlsCreamSummoned", "_jarlsDoughSummoned", "_jarlsEggsSummoned", "_jarlsFruitSummoned", "_jarlsMeatSummoned", "_jarlsPotatoSummoned", "_jarlsVeggiesSummoned", "_jingleBellUsed", "_jukebox", "_kgbFlywheelCharged", "_kgbLeftDrawerUsed", "_kgbOpened", "_kgbRightDrawerUsed", "_kolConSixPackUsed", "_kolhsCutButNotDried", "_kolhsIsskayLikeAnAshtray", "_kolhsPoeticallyLicenced", "_kolhsSchoolSpirited", "_kudzuSaladEaten", "_lastCombatWon", "_latteBanishUsed", "_latteCopyUsed", "_latteDrinkUsed", "_legendaryBeat", "_licenseToChillUsed", "_lodestoneUsed", "_lookingGlass", "_loveTunnelToday", "_loveTunnelUsed", "_luckyGoldRingVolcoino", "_lunchBreak", "_lupineHormonesUsed", "_lyleFavored", "_madLiquorDrunk", "_madTeaParty", "_mafiaMiddleFingerRingUsed", "_managerialManipulationUsed", "_mansquitoSerumUsed", "_maydayDropped", "_mayoDeviceRented", "_mayoTankSoaked", "_meatballMachineUsed", "_meatifyMatterUsed", "_milkOfMagnesiumUsed", "_mimeArmyShotglassUsed", "_missGravesVermouthDrunk", "_missileLauncherUsed", "_molehillMountainUsed", "_momFoodReceived", "_mrBurnsgerEaten", "_muffinOrderedToday", "_mushroomGardenVisited", "_neverendingPartyToday", "_newYouQuestCompleted", "_olympicSwimmingPool", "_olympicSwimmingPoolItemFound", "_overflowingGiftBasketUsed", "_partyHard", "_pastaAdditive", "_perfectFreezeUsed", "_perfectlyFairCoinUsed", "_petePartyThrown", "_peteRiotIncited", "_photocopyUsed", "_pickyTweezersUsed", "_pingPongGame", "_pirateBellowUsed", "_pirateForkUsed", "_pixelOrbUsed", "_plumbersMushroomStewEaten", "_pneumaticityPotionUsed", "_portableSteamUnitUsed", "_pottedTeaTreeUsed", "_prToday", "_psychoJarFilled", "_psychoJarUsed", "_psychokineticHugUsed", "_rainStickUsed", "_redwoodRainStickUsed", "_replicaSnowconeTomeUsed", "_replicaResolutionLibramUsed", "_replicaSmithsTomeUsed", "_requestSandwichSucceeded", "_rhinestonesAcquired", "_seaJellyHarvested", "_setOfJacksUsed", "_sewingKitUsed", "_sexChanged", "_shadowAffinityToday", "_shadowForestLooted", "_shrubDecorated", "_silverDreadFlaskUsed", "_sitCourseCompleted", "_skateBuff1", "_skateBuff2", "_skateBuff3", "_skateBuff4", "_skateBuff5", "_sleazeAirportToday", "_sobrieTeaUsed", "_softwareGlitchTurnReceived", "_spacegateMurderbot", "_spacegateRuins", "_spacegateSpant", "_spacegateToday", "_spacegateVaccine", "_spaghettiBreakfast", "_spaghettiBreakfastEaten", "_spinmasterLatheVisited", "_spinningWheel", "_spookyAirportToday", "_stabonicScrollUsed", "_steelyEyedSquintUsed", "_stenchAirportToday", "_stinkyCheeseBanisherUsed", "_strangeStalagmiteUsed", "_streamsCrossed", "_stuffedPocketwatchUsed", "_styxSprayUsed", "_summonAnnoyanceUsed", "_summonCarrotUsed", "_summonResortPassUsed", "_sweetToothUsed", "_syntheticDogHairPillUsed", "_tacoFlierUsed", "_telegraphOfficeToday", "_templeHiddenPower", "_tempuraAirUsed", "_thesisDelivered", "_timeSpinnerReplicatorUsed", "_toastSummoned", "_tonicDjinn", "_treasuryEliteMeatCollected", "_treasuryHaremMeatCollected", "_trivialAvocationsGame", "_tryptophanDartUsed", "_turtlePowerCast", "_twelveNightEnergyUsed", "_ultraMegaSourBallUsed", "_victorSpoilsUsed", "_villainLairCanLidUsed", "_villainLairColorChoiceUsed", "_villainLairDoorChoiceUsed", "_villainLairFirecrackerUsed", "_villainLairSymbologyChoiceUsed", "_villainLairWebUsed", "_vmaskBanisherUsed", "_voraciTeaUsed", "_volcanoItemRedeemed", "_volcanoSuperduperheatedMetal", "_voteToday", "_VYKEACafeteriaRaided", "_VYKEALoungeRaided", "_walfordQuestStartedToday", "_warbearBankUsed", "_warbearBreakfastMachineUsed", "_warbearGyrocopterUsed", "_warbearSodaMachineUsed", "_wildfireBarrelHarvested", "_witchessBuff", "_workshedItemUsed", "_zombieClover", "_preventScurvy", "lockedItem4637", "lockedItem4638", "lockedItem4639", "lockedItem4646", "lockedItem4647", "unknownRecipe3542", "unknownRecipe3543", "unknownRecipe3544", "unknownRecipe3545", "unknownRecipe3546", "unknownRecipe3547", "unknownRecipe3548", "unknownRecipe3749", "unknownRecipe3751", "unknownRecipe4172", "unknownRecipe4173", "unknownRecipe4174", "unknownRecipe5060", "unknownRecipe5061", "unknownRecipe5062", "unknownRecipe5063", "unknownRecipe5064", "unknownRecipe5066", "unknownRecipe5067", "unknownRecipe5069", "unknownRecipe5070", "unknownRecipe5072", "unknownRecipe5073", "unknownRecipe5670", "unknownRecipe5671", "unknownRecipe6501", "unknownRecipe6564", "unknownRecipe6565", "unknownRecipe6566", "unknownRecipe6567", "unknownRecipe6568", "unknownRecipe6569", "unknownRecipe6570", "unknownRecipe6571", "unknownRecipe6572", "unknownRecipe6573", "unknownRecipe6574", "unknownRecipe6575", "unknownRecipe6576", "unknownRecipe6577", "unknownRecipe6578", "unknownRecipe7752", "unknownRecipe7753", "unknownRecipe7754", "unknownRecipe7755", "unknownRecipe7756", "unknownRecipe7757", "unknownRecipe7758", "unknownRecipe10970", "unknownRecipe10971", "unknownRecipe10972", "unknownRecipe10973", "unknownRecipe10974", "unknownRecipe10975", "unknownRecipe10976", "unknownRecipe10977", "unknownRecipe10978", "unknownRecipe10988", "unknownRecipe10989", "unknownRecipe10990", "unknownRecipe10991", "unknownRecipe10992", "unknownRecipe11000"];
-var numericProperties = ["coinMasterIndex", "dailyDeedsVersion", "defaultDropdown1", "defaultDropdown2", "defaultDropdownSplit", "defaultLimit", "fixedThreadPoolSize", "itemManagerIndex", "lastBuffRequestType", "lastGlobalCounterDay", "lastImageCacheClear", "previousUpdateRevision", "relayDelayForSVN", "relaySkillButtonCount", "scriptButtonPosition", "statusDropdown", "svnThreadPoolSize", "toolbarPosition", "_g9Effect", "8BitBonusTurns", "8BitScore", "addingScrolls", "affirmationCookiesEaten", "aminoAcidsUsed", "antagonisticSnowmanKitCost", "ascensionsToday", "asolDeferredPoints", "asolPointsPigSkinner", "asolPointsCheeseWizard", "asolPointsJazzAgent", "autoAbortThreshold", "autoAntidote", "autoBuyPriceLimit", "autumnatonQuestTurn", "availableCandyCredits", "availableDimes", "availableFunPoints", "availableQuarters", "availableStoreCredits", "availableSwagger", "averageSwagger", "awolMedicine", "awolPointsBeanslinger", "awolPointsCowpuncher", "awolPointsSnakeoiler", "awolDeferredPointsBeanslinger", "awolDeferredPointsCowpuncher", "awolDeferredPointsSnakeoiler", "awolVenom", "bagOTricksCharges", "ballpitBonus", "bankedKarma", "bartenderTurnsUsed", "basementMallPrices", "basementSafetyMargin", "batmanFundsAvailable", "batmanBonusInitialFunds", "batmanTimeLeft", "bearSwagger", "beeCounter", "beGregariousCharges", "beGregariousFightsLeft", "birdformCold", "birdformHot", "birdformRoc", "birdformSleaze", "birdformSpooky", "birdformStench", "blackBartsBootyCost", "blackPuddingsDefeated", "blackForestProgress", "blankOutUsed", "bloodweiserDrunk", "bondPoints", "bondVillainsDefeated", "boneAbacusVictories", "booPeakProgress", "borisPoints", "breakableHandling", "breakableHandling1964", "breakableHandling9691", "breakableHandling9692", "breakableHandling9699", "breathitinCharges", "brodenBacteria", "brodenSprinkles", "buffBotMessageDisposal", "buffBotPhilanthropyType", "buffJimmyIngredients", "burnoutsDefeated", "burrowgrubSummonsRemaining", "camelSpit", "camerasUsed", "campAwayDecoration", "candyWitchTurnsUsed", "candyWitchCandyTotal", "carboLoading", "catBurglarBankHeists", "cellarLayout", "charitableDonations", "chasmBridgeProgress", "chefTurnsUsed", "chessboardsCleared", "chibiAlignment", "chibiBirthday", "chibiFitness", "chibiIntelligence", "chibiLastVisit", "chibiSocialization", "chilledToTheBone", "cinchoSaltAndLime", "cinderellaMinutesToMidnight", "cinderellaScore", "cocktailSummons", "commerceGhostCombats", "controlPanelOmega", "cornucopiasOpened", "cosmicBowlingBallReturnCombats", "cozyCounter6332", "cozyCounter6333", "cozyCounter6334", "craftingClay", "craftingLeather", "craftingStraw", "crimbo16BeardChakraCleanliness", "crimbo16BootsChakraCleanliness", "crimbo16BungChakraCleanliness", "crimbo16CrimboHatChakraCleanliness", "crimbo16GutsChakraCleanliness", "crimbo16HatChakraCleanliness", "crimbo16JellyChakraCleanliness", "crimbo16LiverChakraCleanliness", "crimbo16NippleChakraCleanliness", "crimbo16NoseChakraCleanliness", "crimbo16ReindeerChakraCleanliness", "crimbo16SackChakraCleanliness", "crimboTrainingSkill", "crimboTreeDays", "cubelingProgress", "currentExtremity", "currentHedgeMazeRoom", "currentMojoFilters", "currentNunneryMeat", "currentPortalEnergy", "cursedMagnifyingGlassCount", "cyrptAlcoveEvilness", "cyrptCrannyEvilness", "cyrptNicheEvilness", "cyrptNookEvilness", "cyrptTotalEvilness", "darkGyfftePoints", "daycareEquipment", "daycareInstructors", "daycareLastScavenge", "daycareToddlers", "dbNemesisSkill1", "dbNemesisSkill2", "dbNemesisSkill3", "desertExploration", "desktopHeight", "desktopWidth", "dinseyFilthLevel", "dinseyFunProgress", "dinseyNastyBearsDefeated", "dinseySocialJusticeIProgress", "dinseySocialJusticeIIProgress", "dinseyTouristsFed", "dinseyToxicMultiplier", "doctorBagQuestLights", "doctorBagUpgrades", "dreadScroll1", "dreadScroll2", "dreadScroll3", "dreadScroll4", "dreadScroll5", "dreadScroll6", "dreadScroll7", "dreadScroll8", "dripAdventuresSinceAscension", "drippingHallAdventuresSinceAscension", "drippingTreesAdventuresSinceAscension", "drippyBatsUnlocked", "drippyJuice", "drippyOrbsClaimed", "drunkenSwagger", "edDefeatAbort", "edPoints", "eldritchTentaclesFought", "electricKoolAidEaten", "elfGratitude", "encountersUntilDMTChoice", "encountersUntilNEPChoice", "encountersUntilSRChoice", "ensorceleeLevel", "entauntaunedColdRes", "essenceOfAnnoyanceCost", "essenceOfBearCost", "extraRolloverAdventures", "falloutShelterLevel", "familiarSweat", "fingernailsClipped", "fistSkillsKnown", "flyeredML", "fossilB", "fossilD", "fossilN", "fossilP", "fossilS", "fossilW", "fratboysDefeated", "frenchGuardTurtlesFreed", "funGuyMansionKills", "garbageChampagneCharge", "garbageFireProgress", "garbageShirtCharge", "garbageTreeCharge", "garlandUpgrades", "getsYouDrunkTurnsLeft", "ghostPepperTurnsLeft", "gingerDigCount", "gingerLawChoice", "gingerMuscleChoice", "gingerTrainScheduleStudies", "gladiatorBallMovesKnown", "gladiatorBladeMovesKnown", "gladiatorNetMovesKnown", "glitchItemCost", "glitchItemImplementationCount", "glitchItemImplementationLevel", "glitchSwagger", "gloverPoints", "gnasirProgress", "goldenMrAccessories", "gongPath", "gooseDronesRemaining", "goreCollected", "gourdItemCount", "greyYouPoints", "grimoire1Summons", "grimoire2Summons", "grimoire3Summons", "grimstoneCharge", "guardTurtlesFreed", "guideToSafariCost", "guyMadeOfBeesCount", "guzzlrBronzeDeliveries", "guzzlrDeliveryProgress", "guzzlrGoldDeliveries", "guzzlrPlatinumDeliveries", "haciendaLayout", "hallowiener8BitRealm", "hallowienerCoinspiracy", "hareMillisecondsSaved", "hareTurnsUsed", "heavyRainsStartingThunder", "heavyRainsStartingRain", "heavyRainsStartingLightning", "heroDonationBoris", "heroDonationJarlsberg", "heroDonationSneakyPete", "hiddenApartmentProgress", "hiddenBowlingAlleyProgress", "hiddenHospitalProgress", "hiddenOfficeProgress", "hiddenTavernUnlock", "highTopPumped", "hippiesDefeated", "holidayHalsBookCost", "holidaySwagger", "homemadeRobotUpgrades", "homebodylCharges", "hpAutoRecovery", "hpAutoRecoveryTarget", "iceSwagger", "jarlsbergPoints", "jungCharge", "junglePuns", "knownAscensions", "kolhsTotalSchoolSpirited", "lastAnticheeseDay", "lastArcadeAscension", "lastBadMoonReset", "lastBangPotionReset", "lastBattlefieldReset", "lastBeardBuff", "lastBreakfast", "lastCartographyBooPeak", "lastCartographyCastleTop", "lastCartographyDarkNeck", "lastCartographyDefiledNook", "lastCartographyFratHouse", "lastCartographyFratHouseVerge", "lastCartographyGuanoJunction", "lastCartographyHauntedBilliards", "lastCartographyHippyCampVerge", "lastCartographyZeppelinProtesters", "lastCastleGroundUnlock", "lastCastleTopUnlock", "lastCellarReset", "lastChanceThreshold", "lastChasmReset", "lastColosseumRoundWon", "lastCouncilVisit", "lastCounterDay", "lastDesertUnlock", "lastDispensaryOpen", "lastDMTDuplication", "lastDwarfFactoryReset", "lastEVHelmetValue", "lastEVHelmetReset", "lastEmptiedStorage", "lastFilthClearance", "lastGoofballBuy", "lastGuildStoreOpen", "lastGuyMadeOfBeesReset", "lastFratboyCall", "lastFriarCeremonyAscension", "lastFriarElbowNC", "lastFriarHeartNC", "lastFriarNeckNC", "lastHippyCall", "lastIslandUnlock", "lastKeyotronUse", "lastKingLiberation", "lastLightsOutTurn", "lastMushroomPlot", "lastMiningReset", "lastNemesisReset", "lastPaperStripReset", "lastPirateEphemeraReset", "lastPirateInsultReset", "lastPlusSignUnlock", "lastQuartetAscension", "lastQuartetRequest", "lastSecondFloorUnlock", "lastShadowForgeUnlockAdventure", "lastSkateParkReset", "lastStillBeatingSpleen", "lastTavernAscension", "lastTavernSquare", "lastTelescopeReset", "lastTempleAdventures", "lastTempleButtonsUnlock", "lastTempleUnlock", "lastThingWithNoNameDefeated", "lastTowelAscension", "lastTr4pz0rQuest", "lastTrainsetConfiguration", "lastVioletFogMap", "lastVoteMonsterTurn", "lastWartDinseyDefeated", "lastWuTangDefeated", "lastYearbookCameraAscension", "lastZapperWand", "lastZapperWandExplosionDay", "lawOfAveragesCost", "legacyPoints", "libramSummons", "lightsOutAutomation", "louvreDesiredGoal", "louvreGoal", "lovebugsAridDesert", "lovebugsBeachBuck", "lovebugsBooze", "lovebugsChroner", "lovebugsCoinspiracy", "lovebugsCyrpt", "lovebugsFreddy", "lovebugsFunFunds", "lovebugsHoboNickel", "lovebugsItemDrop", "lovebugsMeat", "lovebugsMeatDrop", "lovebugsMoxie", "lovebugsMuscle", "lovebugsMysticality", "lovebugsOilPeak", "lovebugsOrcChasm", "lovebugsPowder", "lovebugsWalmart", "lttQuestDifficulty", "lttQuestStageCount", "manaBurnSummonThreshold", "manaBurningThreshold", "manaBurningTrigger", "manorDrawerCount", "manualOfNumberologyCost", "mapToKokomoCost", "masksUnlocked", "maximizerMRUSize", "maximizerCombinationLimit", "maximizerEquipmentLevel", "maximizerEquipmentScope", "maximizerMaxPrice", "maximizerPriceLevel", "maxManaBurn", "mayflyExperience", "mayoLevel", "meansuckerPrice", "merkinVocabularyMastery", "miniAdvClass", "miniMartinisDrunk", "moleTunnelLevel", "mothershipProgress", "mpAutoRecovery", "mpAutoRecoveryTarget", "munchiesPillsUsed", "mushroomGardenCropLevel", "nextParanormalActivity", "nextQuantumFamiliarOwnerId", "nextQuantumFamiliarTurn", "noobPoints", "noobDeferredPoints", "noodleSummons", "nsContestants1", "nsContestants2", "nsContestants3", "nuclearAutumnPoints", "numericSwagger", "nunsVisits", "oilPeakProgress", "optimalSwagger", "optimisticCandleProgress", "palindomeDudesDefeated", "parasolUsed", "pendingMapReflections", "pingpongSkill", "pirateSwagger", "plantingDay", "plumberBadgeCost", "plumberCostumeCost", "plumberPoints", "poolSharkCount", "poolSkill", "primaryLabGooIntensity", "prismaticSummons", "procrastinatorLanguageFluency", "promptAboutCrafting", "puzzleChampBonus", "pyramidPosition", "rockinRobinProgress", "ROMOfOptimalityCost", "quantumPoints", "reagentSummons", "reanimatorArms", "reanimatorLegs", "reanimatorSkulls", "reanimatorWeirdParts", "reanimatorWings", "recentLocations", "redSnapperProgress", "relayPort", "relocatePygmyJanitor", "relocatePygmyLawyer", "rumpelstiltskinTurnsUsed", "rumpelstiltskinKidsRescued", "safariSwagger", "sausageGrinderUnits", "schoolOfHardKnocksDiplomaCost", "schoolSwagger", "scrapbookCharges", "scriptMRULength", "seaodesFound", "SeasoningSwagger", "sexChanges", "shenInitiationDay", "shockingLickCharges", "singleFamiliarRun", "skillBurn3", "skillBurn90", "skillBurn153", "skillBurn154", "skillBurn155", "skillBurn1019", "skillBurn5017", "skillBurn6014", "skillBurn6015", "skillBurn6016", "skillBurn6020", "skillBurn6021", "skillBurn6022", "skillBurn6023", "skillBurn6024", "skillBurn6026", "skillBurn6028", "skillBurn7323", "skillBurn14008", "skillBurn14028", "skillBurn14038", "skillBurn15011", "skillBurn15028", "skillBurn17005", "skillBurn22034", "skillBurn22035", "skillBurn23301", "skillBurn23302", "skillBurn23303", "skillBurn23304", "skillBurn23305", "skillBurn23306", "skillLevel46", "skillLevel47", "skillLevel48", "skillLevel117", "skillLevel118", "skillLevel121", "skillLevel128", "skillLevel134", "skillLevel144", "skillLevel180", "skillLevel188", "skillLevel7254", "slimelingFullness", "slimelingStacksDropped", "slimelingStacksDue", "smoresEaten", "smutOrcNoncombatProgress", "sneakyPetePoints", "snojoMoxieWins", "snojoMuscleWins", "snojoMysticalityWins", "sourceAgentsDefeated", "sourceEnlightenment", "sourceInterval", "sourcePoints", "sourceTerminalGram", "sourceTerminalPram", "sourceTerminalSpam", "spaceBabyLanguageFluency", "spacePirateLanguageFluency", "spelunkyNextNoncombat", "spelunkySacrifices", "spelunkyWinCount", "spookyPuttyCopiesMade", "statbotUses", "sugarCounter4178", "sugarCounter4179", "sugarCounter4180", "sugarCounter4181", "sugarCounter4182", "sugarCounter4183", "sugarCounter4191", "summonAnnoyanceCost", "sweat", "tacoDanCocktailSauce", "tacoDanFishMeat", "tavernLayout", "telescopeUpgrades", "tempuraSummons", "timeSpinnerMedals", "timesRested", "tomeSummons", "totalCharitableDonations", "trainsetPosition", "turtleBlessingTurns", "twinPeakProgress", "twoCRSPoints", "unicornHornInflation", "universalSeasoningCost", "usable1HWeapons", "usable1xAccs", "usable2HWeapons", "usable3HWeapons", "usableAccessories", "usableHats", "usableOffhands", "usableOther", "usablePants", "usableShirts", "valueOfAdventure", "valueOfInventory", "valueOfStill", "valueOfTome", "vintnerCharge", "vintnerWineLevel", "violetFogGoal", "walfordBucketProgress", "warehouseProgress", "welcomeBackAdv", "whetstonesUsed", "wolfPigsEvicted", "wolfTurnsUsed", "writingDesksDefeated", "xoSkeleltonXProgress", "xoSkeleltonOProgress", "yearbookCameraAscensions", "yearbookCameraUpgrades", "youRobotBody", "youRobotBottom", "youRobotLeft", "youRobotPoints", "youRobotRight", "youRobotTop", "zeppelinProtestors", "zigguratLianas", "zombiePoints", "_absintheDrops", "_abstractionDropsCrown", "_aguaDrops", "_xenomorphCharge", "_ancestralRecallCasts", "_antihangoverBonus", "_astralDrops", "_autumnatonQuests", "_backUpUses", "_badlyRomanticArrows", "_badgerCharge", "_balefulHowlUses", "_banderRunaways", "_bastilleCheese", "_bastilleGames", "_bastilleGameTurn", "_bastilleLastCheese", "_beanCannonUses", "_bearHugs", "_beerLensDrops", "_bellydancerPickpockets", "_benettonsCasts", "_birdsSoughtToday", "_boomBoxFights", "_boomBoxSongsLeft", "_bootStomps", "_boxingGloveArrows", "_brickoEyeSummons", "_brickoFights", "_campAwayCloudBuffs", "_campAwaySmileBuffs", "_candySummons", "_captainHagnkUsed", "_carnieCandyDrops", "_carrotNoseDrops", "_catBurglarCharge", "_catBurglarHeistsComplete", "_cheerleaderSteam", "_chestXRayUsed", "_chibiAdventures", "_chipBags", "_chocolateCigarsUsed", "_chocolateCoveredPingPongBallsUsed", "_chocolateSculpturesUsed", "_chocolatesUsed", "_chronolithActivations", "_chronolithNextCost", "_cinchUsed", "_cinchoRests", "_clanFortuneConsultUses", "_clipartSummons", "_cloversPurchased", "_coldMedicineConsults", "_coldMedicineEquipmentTaken", "_companionshipCasts", "_cookbookbatCrafting", "_cosmicBowlingSkillsUsed", "_crimbo21ColdResistance", "_dailySpecialPrice", "_daycareGymScavenges", "_daycareRecruits", "_deckCardsDrawn", "_deluxeKlawSummons", "_demandSandwich", "_detectiveCasesCompleted", "_disavowed", "_dnaPotionsMade", "_donhosCasts", "_dreamJarDrops", "_drunkPygmyBanishes", "_edDefeats", "_edLashCount", "_elronsCasts", "_enamorangs", "_energyCollected", "_expertCornerCutterUsed", "_favorRareSummons", "_feastUsed", "_feelinTheRhythm", "_feelPrideUsed", "_feelExcitementUsed", "_feelHatredUsed", "_feelLonelyUsed", "_feelNervousUsed", "_feelEnvyUsed", "_feelDisappointedUsed", "_feelSuperiorUsed", "_feelLostUsed", "_feelNostalgicUsed", "_feelPeacefulUsed", "_fingertrapArrows", "_fireExtinguisherCharge", "_fragrantHerbsUsed", "_freeBeachWalksUsed", "_frButtonsPressed", "_fudgeWaspFights", "_gapBuffs", "_garbageFireDrops", "_garbageFireDropsCrown", "_genieFightsUsed", "_genieWishesUsed", "_gibbererAdv", "_gibbererCharge", "_gingerbreadCityTurns", "_glarkCableUses", "_glitchMonsterFights", "_gnomeAdv", "_godLobsterFights", "_goldenMoneyCharge", "_gongDrops", "_gothKidCharge", "_gothKidFights", "_greyYouAdventures", "_grimBrotherCharge", "_grimFairyTaleDrops", "_grimFairyTaleDropsCrown", "_grimoireConfiscatorSummons", "_grimoireGeekySummons", "_grimstoneMaskDrops", "_grimstoneMaskDropsCrown", "_grooseCharge", "_grooseDrops", "_grubbyWoolDrops", "_guzzlrDeliveries", "_guzzlrGoldDeliveries", "_guzzlrPlatinumDeliveries", "_hareAdv", "_hareCharge", "_highTopPumps", "_hipsterAdv", "_hoardedCandyDropsCrown", "_hoboUnderlingSummons", "_holoWristDrops", "_holoWristProgress", "_hotAshesDrops", "_hotJellyUses", "_hotTubSoaks", "_humanMuskUses", "_iceballUses", "_inigosCasts", "_jerksHealthMagazinesUsed", "_jiggleCheese", "_jiggleCream", "_jiggleLife", "_jiggleSteak", "_jitbCharge", "_juneCleaverFightsLeft", "_juneCleaverEncounters", "_juneCleaverStench", "_juneCleaverSpooky", "_juneCleaverSleaze", "_juneCleaverHot", "_juneCleaverCold", "_juneCleaverSkips", "_jungDrops", "_kgbClicksUsed", "_kgbDispenserUses", "_kgbTranquilizerDartUses", "_klawSummons", "_kloopCharge", "_kloopDrops", "_kolhsAdventures", "_kolhsSavedByTheBell", "_lastDailyDungeonRoom", "_lastSausageMonsterTurn", "_lastZomboEye", "_latteRefillsUsed", "_leafblowerML", "_legionJackhammerCrafting", "_llamaCharge", "_longConUsed", "_lovebugsBeachBuck", "_lovebugsChroner", "_lovebugsCoinspiracy", "_lovebugsFreddy", "_lovebugsFunFunds", "_lovebugsHoboNickel", "_lovebugsWalmart", "_loveChocolatesUsed", "_lynyrdSnareUses", "_machineTunnelsAdv", "_macrometeoriteUses", "_mafiaThumbRingAdvs", "_mayflowerDrops", "_mayflySummons", "_mediumSiphons", "_meteoriteAdesUsed", "_meteorShowerUses", "_micrometeoriteUses", "_miniMartiniDrops", "_monkeyPawWishesUsed", "_monstersMapped", "_mushroomGardenFights", "_nanorhinoCharge", "_navelRunaways", "_neverendingPartyFreeTurns", "_newYouQuestSharpensDone", "_newYouQuestSharpensToDo", "_nextColdMedicineConsult", "_nextQuantumAlignment", "_nightmareFuelCharges", "_noobSkillCount", "_nuclearStockpileUsed", "_oilExtracted", "_olfactionsUsed", "_optimisticCandleDropsCrown", "_oreDropsCrown", "_otoscopeUsed", "_oysterEggsFound", "_pantsgivingBanish", "_pantsgivingCount", "_pantsgivingCrumbs", "_pantsgivingFullness", "_pasteDrops", "_peteJukeboxFixed", "_peteJumpedShark", "_petePeeledOut", "_pieDrops", "_piePartsCount", "_pixieCharge", "_pocketProfessorLectures", "_poisonArrows", "_pokeGrowFertilizerDrops", "_poolGames", "_powderedGoldDrops", "_powderedMadnessUses", "_powerfulGloveBatteryPowerUsed", "_powerPillDrops", "_powerPillUses", "_precisionCasts", "_radlibSummons", "_raindohCopiesMade", "_rapidPrototypingUsed", "_raveStealCount", "_reflexHammerUsed", "_resolutionAdv", "_resolutionRareSummons", "_riftletAdv", "_robinEggDrops", "_roboDrops", "_rogueProgramCharge", "_romanticFightsLeft", "_saberForceMonsterCount", "_saberForceUses", "_saberMod", "_saltGrainsConsumed", "_sandwormCharge", "_saplingsPlanted", "_sausageFights", "_sausagesEaten", "_sausagesMade", "_sealFigurineUses", "_sealScreeches", "_sealsSummoned", "_shadowBricksUsed", "_shadowRiftCombats", "_shatteringPunchUsed", "_shortOrderCookCharge", "_shrubCharge", "_sloppyDinerBeachBucks", "_smilesOfMrA", "_smithsnessSummons", "_snojoFreeFights", "_snojoParts", "_snokebombUsed", "_snowconeSummons", "_snowglobeDrops", "_snowSuitCount", "_sourceTerminalDigitizeMonsterCount", "_sourceTerminalDigitizeUses", "_sourceTerminalDuplicateUses", "_sourceTerminalEnhanceUses", "_sourceTerminalExtrudes", "_sourceTerminalPortscanUses", "_spaceFurDropsCrown", "_spacegatePlanetIndex", "_spacegateTurnsLeft", "_spaceJellyfishDrops", "_speakeasyDrinksDrunk", "_speakeasyFreeFights", "_spelunkerCharges", "_spelunkingTalesDrops", "_spikolodonSpikeUses", "_spookyJellyUses", "_stackLumpsUses", "_steamCardDrops", "_stickerSummons", "_stinkyCheeseCount", "_stressBallSqueezes", "_sugarSummons", "_sweatOutSomeBoozeUsed", "_taffyRareSummons", "_taffyYellowSummons", "_thanksgettingFoodsEaten", "_thingfinderCasts", "_thinknerdPackageDrops", "_thorsPliersCrafting", "_timeHelmetAdv", "_timeSpinnerMinutesUsed", "_tokenDrops", "_transponderDrops", "_turkeyBlastersUsed", "_turkeyBooze", "_turkeyMuscle", "_turkeyMyst", "_turkeyMoxie", "_unaccompaniedMinerUsed", "_unconsciousCollectiveCharge", "_universalSeasoningsUsed", "_universeCalculated", "_universeImploded", "_usedReplicaBatoomerang", "_vampyreCloakeFormUses", "_villainLairProgress", "_vitachocCapsulesUsed", "_vmaskAdv", "_voidFreeFights", "_volcanoItem1", "_volcanoItem2", "_volcanoItem3", "_volcanoItemCount1", "_volcanoItemCount2", "_volcanoItemCount3", "_voteFreeFights", "_VYKEACompanionLevel", "_warbearAutoAnvilCrafting", "_waxGlobDrops", "_whiteRiceDrops", "_witchessFights", "_xoHugsUsed", "_yellowPixelDropsCrown", "_zapCount", "_zombieSmashPocketsUsed"];
-var monsterProperties = ["beGregariousMonster", "cameraMonster", "chateauMonster", "clumsinessGroveBoss", "crappyCameraMonster", "crudeMonster", "enamorangMonster", "envyfishMonster", "glacierOfJerksBoss", "iceSculptureMonster", "lastCopyableMonster", "longConMonster", "maelstromOfLoversBoss", "makeFriendsMonster", "merkinLockkeyMonster", "monkeyPointMonster", "motifMonster", "nosyNoseMonster", "olfactedMonster", "photocopyMonster", "rainDohMonster", "romanticTarget", "rufusDesiredEntity", "screencappedMonster", "spookyPuttyMonster", "stenchCursedMonster", "superficiallyInterestedMonster", "waxMonster", "yearbookCameraTarget", "_gallapagosMonster", "_jiggleCreamedMonster", "_latteMonster", "_nanorhinoBanishedMonster", "_newYouQuestMonster", "_relativityMonster", "_saberForceMonster", "_sourceTerminalDigitizeMonster", "_voteMonster"];
-var locationProperties = ["autumnatonQuestLocation", "currentJunkyardLocation", "doctorBagQuestLocation", "ghostLocation", "guzzlrQuestLocation", "nextSpookyravenElizabethRoom", "nextSpookyravenStephenRoom", "sourceOracleTarget", "_floundryBassLocation", "_floundryCarpLocation", "_floundryCodLocation", "_floundryHatchetfishLocation", "_floundryTroutLocation", "_floundryTunaLocation", "_sotParcelLocation"];
-var stringProperties = ["autoLogin", "browserBookmarks", "chatFontSize", "combatHotkey0", "combatHotkey1", "combatHotkey2", "combatHotkey3", "combatHotkey4", "combatHotkey5", "combatHotkey6", "combatHotkey7", "combatHotkey8", "combatHotkey9", "commandLineNamespace", "dailyDeedsOptions", "defaultBorderColor", "displayName", "externalEditor", "getBreakfast", "headerStates", "highlightList", "http.proxyHost", "http.proxyPassword", "http.proxyPort", "http.proxyUser", "https.proxyHost", "https.proxyPassword", "https.proxyPort", "https.proxyUser", "initialDesktop", "initialFrames", "lastRelayUpdate", "lastUserAgent", "lastUsername", "logPreferenceChangeFilter", "loginScript", "loginServerName", "loginWindowLogo", "logoutScript", "previousNotifyList", "previousUpdateVersion", "saveState", "saveStateActive", "scriptList", "swingLookAndFeel", "userAgent", "8BitColor", "afterAdventureScript", "autoOlfact", "autoPutty", "autumnatonUpgrades", "backupCameraMode", "banishedMonsters", "banishingShoutMonsters", "batmanStats", "batmanZone", "batmanUpgrades", "battleAction", "beachHeadsUnlocked", "beforePVPScript", "betweenBattleScript", "boomBoxSong", "breakfastAlways", "breakfastHardcore", "breakfastSoftcore", "buffBotCasting", "buyScript", "cargoPocketsEmptied", "cargoPocketScraps", "chatbotScript", "chatPlayerScript", "chibiName", "choiceAdventureScript", "chosenTrip", "clanFortuneReply1", "clanFortuneReply2", "clanFortuneReply3", "clanFortuneWord1", "clanFortuneWord2", "clanFortuneWord3", "commerceGhostItem", "counterScript", "copperheadClubHazard", "crimbotChassis", "crimbotArm", "crimbotPropulsion", "crystalBallPredictions", "csServicesPerformed", "currentAstralTrip", "currentDistillateMods", "currentEasyBountyItem", "currentHardBountyItem", "currentHippyStore", "currentJunkyardTool", "currentLlamaForm", "currentMood", "currentPVPSeason", "currentPvpVictories", "currentSpecialBountyItem", "currentSITSkill", "customCombatScript", "cyrusAdjectives", "defaultFlowerLossMessage", "defaultFlowerWinMessage", "demonName1", "demonName2", "demonName3", "demonName4", "demonName5", "demonName6", "demonName7", "demonName8", "demonName9", "demonName10", "demonName11", "demonName12", "demonName13", "dinseyGatorStenchDamage", "dinseyRollercoasterStats", "doctorBagQuestItem", "dolphinItem", "duckAreasCleared", "duckAreasSelected", "edPiece", "enamorangMonsterTurn", "ensorcelee", "EVEDirections", "extraCosmeticModifiers", "familiarScript", "forbiddenStores", "gameProBossSpecialPower", "gooseReprocessed", "grimoireSkillsHardcore", "grimoireSkillsSoftcore", "grimstoneMaskPath", "guzzlrQuestClient", "guzzlrQuestBooze", "guzzlrQuestTier", "harvestGardenHardcore", "harvestGardenSoftcore", "hpAutoRecoveryItems", "invalidBuffMessage", "jickSwordModifier", "juneCleaverQueue", "kingLiberatedScript", "lassoTraining", "lastAdventure", "lastBangPotion819", "lastBangPotion820", "lastBangPotion821", "lastBangPotion822", "lastBangPotion823", "lastBangPotion824", "lastBangPotion825", "lastBangPotion826", "lastBangPotion827", "lastChanceBurn", "lastChessboard", "lastCombatEnvironments", "lastDwarfDiceRolls", "lastDwarfDigitRunes", "lastDwarfEquipmentRunes", "lastDwarfFactoryItem118", "lastDwarfFactoryItem119", "lastDwarfFactoryItem120", "lastDwarfFactoryItem360", "lastDwarfFactoryItem361", "lastDwarfFactoryItem362", "lastDwarfFactoryItem363", "lastDwarfFactoryItem364", "lastDwarfFactoryItem365", "lastDwarfFactoryItem910", "lastDwarfFactoryItem3199", "lastDwarfOfficeItem3208", "lastDwarfOfficeItem3209", "lastDwarfOfficeItem3210", "lastDwarfOfficeItem3211", "lastDwarfOfficeItem3212", "lastDwarfOfficeItem3213", "lastDwarfOfficeItem3214", "lastDwarfOreRunes", "lastDwarfHopper1", "lastDwarfHopper2", "lastDwarfHopper3", "lastDwarfHopper4", "lastEncounter", "lastMacroError", "lastMessageId", "lastPaperStrip3144", "lastPaperStrip4138", "lastPaperStrip4139", "lastPaperStrip4140", "lastPaperStrip4141", "lastPaperStrip4142", "lastPaperStrip4143", "lastPaperStrip4144", "lastPirateEphemera", "lastPorkoBoard", "lastPorkoPayouts", "lastPorkoExpected", "lastSlimeVial3885", "lastSlimeVial3886", "lastSlimeVial3887", "lastSlimeVial3888", "lastSlimeVial3889", "lastSlimeVial3890", "lastSlimeVial3891", "lastSlimeVial3892", "lastSlimeVial3893", "lastSlimeVial3894", "lastSlimeVial3895", "lastSlimeVial3896", "latteIngredients", "latteModifier", "latteUnlocks", "libramSkillsHardcore", "libramSkillsSoftcore", "louvreOverride", "lovePotion", "lttQuestName", "maximizerList", "maximizerMRUList", "mayoInMouth", "mayoMinderSetting", "merkinQuestPath", "mineLayout1", "mineLayout2", "mineLayout3", "mineLayout4", "mineLayout5", "mineLayout6", "mpAutoRecoveryItems", "muffinOnOrder", "nextAdventure", "nextDistillateMods", "nextQuantumFamiliarName", "nextQuantumFamiliarOwner", "nsChallenge2", "nsChallenge3", "nsChallenge4", "nsChallenge5", "nsTowerDoorKeysUsed", "oceanAction", "oceanDestination", "parkaMode", "pastaThrall1", "pastaThrall2", "pastaThrall3", "pastaThrall4", "pastaThrall5", "pastaThrall6", "pastaThrall7", "pastaThrall8", "peteMotorbikeTires", "peteMotorbikeGasTank", "peteMotorbikeHeadlight", "peteMotorbikeCowling", "peteMotorbikeMuffler", "peteMotorbikeSeat", "pieStuffing", "plantingDate", "plantingLength", "plantingScript", "plumberCostumeWorn", "pokefamBoosts", "postAscensionScript", "preAscensionScript", "retroCapeSuperhero", "retroCapeWashingInstructions", "questClumsinessGrove", "questDoctorBag", "questECoBucket", "questESlAudit", "questESlBacteria", "questESlCheeseburger", "questESlCocktail", "questESlDebt", "questESlFish", "questESlMushStash", "questESlSalt", "questESlSprinkles", "questESpEVE", "questESpJunglePun", "questESpGore", "questESpClipper", "questESpFakeMedium", "questESpSerum", "questESpSmokes", "questESpOutOfOrder", "questEStFishTrash", "questEStGiveMeFuel", "questEStNastyBears", "questEStSocialJusticeI", "questEStSocialJusticeII", "questEStSuperLuber", "questEStWorkWithFood", "questEStZippityDooDah", "questEUNewYou", "questF01Primordial", "questF02Hyboria", "questF03Future", "questF04Elves", "questF05Clancy", "questG01Meatcar", "questG02Whitecastle", "questG03Ego", "questG04Nemesis", "questG05Dark", "questG06Delivery", "questG07Myst", "questG08Moxie", "questG09Muscle", "questGlacierOfJerks", "questGuzzlr", "questI01Scapegoat", "questI02Beat", "questL02Larva", "questL03Rat", "questL04Bat", "questL05Goblin", "questL06Friar", "questL07Cyrptic", "questL08Trapper", "questL09Topping", "questL10Garbage", "questL11MacGuffin", "questL11Black", "questL11Business", "questL11Curses", "questL11Desert", "questL11Doctor", "questL11Manor", "questL11Palindome", "questL11Pyramid", "questL11Ron", "questL11Shen", "questL11Spare", "questL11Worship", "questL12War", "questL12HippyFrat", "questL13Final", "questL13Warehouse", "questLTTQuestByWire", "questM01Untinker", "questM02Artist", "questM03Bugbear", "questM05Toot", "questM06Gourd", "questM07Hammer", "questM08Baker", "questM09Rocks", "questM10Azazel", "questM11Postal", "questM12Pirate", "questM13Escape", "questM14Bounty", "questM15Lol", "questM16Temple", "questM17Babies", "questM18Swamp", "questM19Hippy", "questM20Necklace", "questM21Dance", "questM22Shirt", "questM23Meatsmith", "questM24Doc", "questM25Armorer", "questM26Oracle", "questMaelstromOfLovers", "questPAGhost", "questRufus", "questS01OldGuy", "questS02Monkees", "raveCombo1", "raveCombo2", "raveCombo3", "raveCombo4", "raveCombo5", "raveCombo6", "recoveryScript", "relayCounters", "royalty", "rufusDesiredArtifact", "rufusDesiredItems", "rufusQuestTarget", "rufusQuestType", "scriptMRUList", "seahorseName", "shadowLabyrinthGoal", "shadowRiftIngress", "shenQuestItem", "shrubGarland", "shrubGifts", "shrubLights", "shrubTopper", "sideDefeated", "sidequestArenaCompleted", "sidequestFarmCompleted", "sidequestJunkyardCompleted", "sidequestLighthouseCompleted", "sidequestNunsCompleted", "sidequestOrchardCompleted", "skateParkStatus", "snowsuit", "sourceTerminalChips", "sourceTerminalEducate1", "sourceTerminalEducate2", "sourceTerminalEnquiry", "sourceTerminalEducateKnown", "sourceTerminalEnhanceKnown", "sourceTerminalEnquiryKnown", "sourceTerminalExtrudeKnown", "spadingData", "spadingScript", "speakeasyName", "spelunkyStatus", "spelunkyUpgrades", "spookyravenRecipeUsed", "stationaryButton1", "stationaryButton2", "stationaryButton3", "stationaryButton4", "stationaryButton5", "streamCrossDefaultTarget", "sweetSynthesisBlacklist", "telescope1", "telescope2", "telescope3", "telescope4", "telescope5", "testudinalTeachings", "textColors", "thanksMessage", "tomeSkillsHardcore", "tomeSkillsSoftcore", "trackVoteMonster", "trainsetConfiguration", "trapperOre", "umbrellaState", "umdLastObtained", "vintnerWineEffect", "vintnerWineName", "vintnerWineType", "violetFogLayout", "volcanoMaze1", "volcanoMaze2", "volcanoMaze3", "volcanoMaze4", "volcanoMaze5", "walfordBucketItem", "warProgress", "watchedPreferences", "workteaClue", "yourFavoriteBird", "yourFavoriteBirdMods", "youRobotCPUUpgrades", "_bastilleBoosts", "_bastilleChoice1", "_bastilleChoice2", "_bastilleChoice3", "_bastilleCurrentStyles", "_bastilleEnemyCastle", "_bastilleEnemyName", "_bastilleLastBattleResults", "_bastilleLastEncounter", "_bastilleStats", "_beachHeadsUsed", "_beachLayout", "_beachMinutes", "_birdOfTheDay", "_birdOfTheDayMods", "_bittycar", "_campAwaySmileBuffSign", "_cloudTalkMessage", "_cloudTalkSmoker", "_coatOfPaintModifier", "_dailySpecial", "_deckCardsSeen", "_feastedFamiliars", "_floristPlantsUsed", "_frAreasUnlocked", "_frHoursLeft", "_frMonstersKilled", "_horsery", "_horseryCrazyMox", "_horseryCrazyMus", "_horseryCrazyMys", "_horseryCrazyName", "_horseryCurrentName", "_horseryDarkName", "_horseryNormalName", "_horseryPaleName", "_jickJarAvailable", "_jiggleCheesedMonsters", "_lastCombatStarted", "_lastPirateRealmIsland", "_locketMonstersFought", "_mummeryMods", "_mummeryUses", "_newYouQuestSkill", "_noHatModifier", "_pantogramModifier", "_pottedPowerPlant", "_questESp", "_questPartyFair", "_questPartyFairProgress", "_questPartyFairQuest", "_roboDrinks", "_roninStoragePulls", "_sotParcelReturned  false", "_spacegateAnimalLife", "_spacegateCoordinates", "_spacegateGear", "_spacegateHazards", "_spacegateIntelligentLife", "_spacegatePlanetName", "_spacegatePlantLife", "_stolenAccordions", "_tempRelayCounters", "_timeSpinnerFoodAvailable", "_unknownEasyBountyItem", "_unknownHardBountyItem", "_unknownSpecialBountyItem", "_untakenEasyBountyItem", "_untakenHardBountyItem", "_untakenSpecialBountyItem", "_userMods", "_villainLairColor", "_villainLairKey", "_voteLocal1", "_voteLocal2", "_voteLocal3", "_voteLocal4", "_voteMonster1", "_voteMonster2", "_voteModifier", "_VYKEACompanionType", "_VYKEACompanionRune", "_VYKEACompanionName"];
-var numericOrStringProperties = ["statusEngineering", "statusGalley", "statusMedbay", "statusMorgue", "statusNavigation", "statusScienceLab", "statusSonar", "statusSpecialOps", "statusWasteProcessing", "choiceAdventure2", "choiceAdventure3", "choiceAdventure4", "choiceAdventure5", "choiceAdventure6", "choiceAdventure7", "choiceAdventure8", "choiceAdventure9", "choiceAdventure10", "choiceAdventure11", "choiceAdventure12", "choiceAdventure14", "choiceAdventure15", "choiceAdventure16", "choiceAdventure17", "choiceAdventure18", "choiceAdventure19", "choiceAdventure20", "choiceAdventure21", "choiceAdventure22", "choiceAdventure23", "choiceAdventure24", "choiceAdventure25", "choiceAdventure26", "choiceAdventure27", "choiceAdventure28", "choiceAdventure29", "choiceAdventure40", "choiceAdventure41", "choiceAdventure42", "choiceAdventure45", "choiceAdventure46", "choiceAdventure47", "choiceAdventure71", "choiceAdventure72", "choiceAdventure73", "choiceAdventure74", "choiceAdventure75", "choiceAdventure76", "choiceAdventure77", "choiceAdventure86", "choiceAdventure87", "choiceAdventure88", "choiceAdventure89", "choiceAdventure90", "choiceAdventure91", "choiceAdventure105", "choiceAdventure106", "choiceAdventure107", "choiceAdventure108", "choiceAdventure109", "choiceAdventure110", "choiceAdventure111", "choiceAdventure112", "choiceAdventure113", "choiceAdventure114", "choiceAdventure115", "choiceAdventure116", "choiceAdventure117", "choiceAdventure118", "choiceAdventure120", "choiceAdventure123", "choiceAdventure125", "choiceAdventure126", "choiceAdventure127", "choiceAdventure129", "choiceAdventure131", "choiceAdventure132", "choiceAdventure135", "choiceAdventure136", "choiceAdventure137", "choiceAdventure138", "choiceAdventure139", "choiceAdventure140", "choiceAdventure141", "choiceAdventure142", "choiceAdventure143", "choiceAdventure144", "choiceAdventure145", "choiceAdventure146", "choiceAdventure147", "choiceAdventure148", "choiceAdventure149", "choiceAdventure151", "choiceAdventure152", "choiceAdventure153", "choiceAdventure154", "choiceAdventure155", "choiceAdventure156", "choiceAdventure157", "choiceAdventure158", "choiceAdventure159", "choiceAdventure160", "choiceAdventure161", "choiceAdventure162", "choiceAdventure163", "choiceAdventure164", "choiceAdventure165", "choiceAdventure166", "choiceAdventure167", "choiceAdventure168", "choiceAdventure169", "choiceAdventure170", "choiceAdventure171", "choiceAdventure172", "choiceAdventure177", "choiceAdventure178", "choiceAdventure180", "choiceAdventure181", "choiceAdventure182", "choiceAdventure184", "choiceAdventure185", "choiceAdventure186", "choiceAdventure187", "choiceAdventure188", "choiceAdventure189", "choiceAdventure191", "choiceAdventure197", "choiceAdventure198", "choiceAdventure199", "choiceAdventure200", "choiceAdventure201", "choiceAdventure202", "choiceAdventure203", "choiceAdventure204", "choiceAdventure205", "choiceAdventure206", "choiceAdventure207", "choiceAdventure208", "choiceAdventure211", "choiceAdventure212", "choiceAdventure213", "choiceAdventure214", "choiceAdventure215", "choiceAdventure216", "choiceAdventure217", "choiceAdventure218", "choiceAdventure219", "choiceAdventure220", "choiceAdventure221", "choiceAdventure222", "choiceAdventure223", "choiceAdventure224", "choiceAdventure225", "choiceAdventure230", "choiceAdventure272", "choiceAdventure273", "choiceAdventure276", "choiceAdventure277", "choiceAdventure278", "choiceAdventure279", "choiceAdventure280", "choiceAdventure281", "choiceAdventure282", "choiceAdventure283", "choiceAdventure284", "choiceAdventure285", "choiceAdventure286", "choiceAdventure287", "choiceAdventure288", "choiceAdventure289", "choiceAdventure290", "choiceAdventure291", "choiceAdventure292", "choiceAdventure293", "choiceAdventure294", "choiceAdventure295", "choiceAdventure296", "choiceAdventure297", "choiceAdventure298", "choiceAdventure299", "choiceAdventure302", "choiceAdventure303", "choiceAdventure304", "choiceAdventure305", "choiceAdventure306", "choiceAdventure307", "choiceAdventure308", "choiceAdventure309", "choiceAdventure310", "choiceAdventure311", "choiceAdventure317", "choiceAdventure318", "choiceAdventure319", "choiceAdventure320", "choiceAdventure321", "choiceAdventure322", "choiceAdventure326", "choiceAdventure327", "choiceAdventure328", "choiceAdventure329", "choiceAdventure330", "choiceAdventure331", "choiceAdventure332", "choiceAdventure333", "choiceAdventure334", "choiceAdventure335", "choiceAdventure336", "choiceAdventure337", "choiceAdventure338", "choiceAdventure339", "choiceAdventure340", "choiceAdventure341", "choiceAdventure342", "choiceAdventure343", "choiceAdventure344", "choiceAdventure345", "choiceAdventure346", "choiceAdventure347", "choiceAdventure348", "choiceAdventure349", "choiceAdventure350", "choiceAdventure351", "choiceAdventure352", "choiceAdventure353", "choiceAdventure354", "choiceAdventure355", "choiceAdventure356", "choiceAdventure357", "choiceAdventure358", "choiceAdventure360", "choiceAdventure361", "choiceAdventure362", "choiceAdventure363", "choiceAdventure364", "choiceAdventure365", "choiceAdventure366", "choiceAdventure367", "choiceAdventure372", "choiceAdventure376", "choiceAdventure387", "choiceAdventure388", "choiceAdventure389", "choiceAdventure390", "choiceAdventure391", "choiceAdventure392", "choiceAdventure393", "choiceAdventure395", "choiceAdventure396", "choiceAdventure397", "choiceAdventure398", "choiceAdventure399", "choiceAdventure400", "choiceAdventure401", "choiceAdventure402", "choiceAdventure403", "choiceAdventure423", "choiceAdventure424", "choiceAdventure425", "choiceAdventure426", "choiceAdventure427", "choiceAdventure428", "choiceAdventure429", "choiceAdventure430", "choiceAdventure431", "choiceAdventure432", "choiceAdventure433", "choiceAdventure435", "choiceAdventure438", "choiceAdventure439", "choiceAdventure442", "choiceAdventure444", "choiceAdventure445", "choiceAdventure446", "choiceAdventure447", "choiceAdventure448", "choiceAdventure449", "choiceAdventure451", "choiceAdventure452", "choiceAdventure453", "choiceAdventure454", "choiceAdventure455", "choiceAdventure456", "choiceAdventure457", "choiceAdventure458", "choiceAdventure460", "choiceAdventure461", "choiceAdventure462", "choiceAdventure463", "choiceAdventure464", "choiceAdventure465", "choiceAdventure467", "choiceAdventure468", "choiceAdventure469", "choiceAdventure470", "choiceAdventure471", "choiceAdventure472", "choiceAdventure473", "choiceAdventure474", "choiceAdventure475", "choiceAdventure477", "choiceAdventure478", "choiceAdventure480", "choiceAdventure483", "choiceAdventure484", "choiceAdventure485", "choiceAdventure486", "choiceAdventure488", "choiceAdventure489", "choiceAdventure490", "choiceAdventure491", "choiceAdventure496", "choiceAdventure497", "choiceAdventure502", "choiceAdventure503", "choiceAdventure504", "choiceAdventure505", "choiceAdventure506", "choiceAdventure507", "choiceAdventure509", "choiceAdventure510", "choiceAdventure511", "choiceAdventure512", "choiceAdventure513", "choiceAdventure514", "choiceAdventure515", "choiceAdventure517", "choiceAdventure518", "choiceAdventure519", "choiceAdventure521", "choiceAdventure522", "choiceAdventure523", "choiceAdventure527", "choiceAdventure528", "choiceAdventure529", "choiceAdventure530", "choiceAdventure531", "choiceAdventure532", "choiceAdventure533", "choiceAdventure534", "choiceAdventure535", "choiceAdventure536", "choiceAdventure538", "choiceAdventure539", "choiceAdventure542", "choiceAdventure543", "choiceAdventure544", "choiceAdventure546", "choiceAdventure548", "choiceAdventure549", "choiceAdventure550", "choiceAdventure551", "choiceAdventure552", "choiceAdventure553", "choiceAdventure554", "choiceAdventure556", "choiceAdventure557", "choiceAdventure558", "choiceAdventure559", "choiceAdventure560", "choiceAdventure561", "choiceAdventure562", "choiceAdventure563", "choiceAdventure564", "choiceAdventure565", "choiceAdventure566", "choiceAdventure567", "choiceAdventure568", "choiceAdventure569", "choiceAdventure571", "choiceAdventure572", "choiceAdventure573", "choiceAdventure574", "choiceAdventure575", "choiceAdventure576", "choiceAdventure577", "choiceAdventure578", "choiceAdventure579", "choiceAdventure581", "choiceAdventure582", "choiceAdventure583", "choiceAdventure584", "choiceAdventure594", "choiceAdventure595", "choiceAdventure596", "choiceAdventure597", "choiceAdventure598", "choiceAdventure599", "choiceAdventure600", "choiceAdventure603", "choiceAdventure604", "choiceAdventure616", "choiceAdventure634", "choiceAdventure640", "choiceAdventure654", "choiceAdventure655", "choiceAdventure656", "choiceAdventure657", "choiceAdventure658", "choiceAdventure664", "choiceAdventure669", "choiceAdventure670", "choiceAdventure671", "choiceAdventure672", "choiceAdventure673", "choiceAdventure674", "choiceAdventure675", "choiceAdventure676", "choiceAdventure677", "choiceAdventure678", "choiceAdventure679", "choiceAdventure681", "choiceAdventure683", "choiceAdventure684", "choiceAdventure685", "choiceAdventure686", "choiceAdventure687", "choiceAdventure688", "choiceAdventure689", "choiceAdventure690", "choiceAdventure691", "choiceAdventure692", "choiceAdventure693", "choiceAdventure694", "choiceAdventure695", "choiceAdventure696", "choiceAdventure697", "choiceAdventure698", "choiceAdventure700", "choiceAdventure701", "choiceAdventure705", "choiceAdventure706", "choiceAdventure707", "choiceAdventure708", "choiceAdventure709", "choiceAdventure710", "choiceAdventure711", "choiceAdventure712", "choiceAdventure713", "choiceAdventure714", "choiceAdventure715", "choiceAdventure716", "choiceAdventure717", "choiceAdventure721", "choiceAdventure725", "choiceAdventure729", "choiceAdventure733", "choiceAdventure737", "choiceAdventure741", "choiceAdventure745", "choiceAdventure749", "choiceAdventure753", "choiceAdventure771", "choiceAdventure778", "choiceAdventure780", "choiceAdventure781", "choiceAdventure783", "choiceAdventure784", "choiceAdventure785", "choiceAdventure786", "choiceAdventure787", "choiceAdventure788", "choiceAdventure789", "choiceAdventure791", "choiceAdventure793", "choiceAdventure794", "choiceAdventure795", "choiceAdventure796", "choiceAdventure797", "choiceAdventure803", "choiceAdventure805", "choiceAdventure808", "choiceAdventure809", "choiceAdventure813", "choiceAdventure815", "choiceAdventure830", "choiceAdventure832", "choiceAdventure833", "choiceAdventure834", "choiceAdventure835", "choiceAdventure837", "choiceAdventure838", "choiceAdventure839", "choiceAdventure840", "choiceAdventure841", "choiceAdventure842", "choiceAdventure851", "choiceAdventure852", "choiceAdventure853", "choiceAdventure854", "choiceAdventure855", "choiceAdventure856", "choiceAdventure857", "choiceAdventure858", "choiceAdventure866", "choiceAdventure873", "choiceAdventure875", "choiceAdventure876", "choiceAdventure877", "choiceAdventure878", "choiceAdventure879", "choiceAdventure880", "choiceAdventure881", "choiceAdventure882", "choiceAdventure888", "choiceAdventure889", "choiceAdventure918", "choiceAdventure919", "choiceAdventure920", "choiceAdventure921", "choiceAdventure923", "choiceAdventure924", "choiceAdventure925", "choiceAdventure926", "choiceAdventure927", "choiceAdventure928", "choiceAdventure929", "choiceAdventure930", "choiceAdventure931", "choiceAdventure932", "choiceAdventure940", "choiceAdventure941", "choiceAdventure942", "choiceAdventure943", "choiceAdventure944", "choiceAdventure945", "choiceAdventure946", "choiceAdventure950", "choiceAdventure955", "choiceAdventure957", "choiceAdventure958", "choiceAdventure959", "choiceAdventure960", "choiceAdventure961", "choiceAdventure962", "choiceAdventure963", "choiceAdventure964", "choiceAdventure965", "choiceAdventure966", "choiceAdventure970", "choiceAdventure973", "choiceAdventure974", "choiceAdventure975", "choiceAdventure976", "choiceAdventure977", "choiceAdventure979", "choiceAdventure980", "choiceAdventure981", "choiceAdventure982", "choiceAdventure983", "choiceAdventure988", "choiceAdventure989", "choiceAdventure993", "choiceAdventure998", "choiceAdventure1000", "choiceAdventure1003", "choiceAdventure1005", "choiceAdventure1006", "choiceAdventure1007", "choiceAdventure1008", "choiceAdventure1009", "choiceAdventure1010", "choiceAdventure1011", "choiceAdventure1012", "choiceAdventure1013", "choiceAdventure1015", "choiceAdventure1016", "choiceAdventure1017", "choiceAdventure1018", "choiceAdventure1019", "choiceAdventure1020", "choiceAdventure1021", "choiceAdventure1022", "choiceAdventure1023", "choiceAdventure1026", "choiceAdventure1027", "choiceAdventure1028", "choiceAdventure1029", "choiceAdventure1030", "choiceAdventure1031", "choiceAdventure1032", "choiceAdventure1033", "choiceAdventure1034", "choiceAdventure1035", "choiceAdventure1036", "choiceAdventure1037", "choiceAdventure1038", "choiceAdventure1039", "choiceAdventure1040", "choiceAdventure1041", "choiceAdventure1042", "choiceAdventure1044", "choiceAdventure1045", "choiceAdventure1046", "choiceAdventure1048", "choiceAdventure1051", "choiceAdventure1052", "choiceAdventure1053", "choiceAdventure1054", "choiceAdventure1055", "choiceAdventure1056", "choiceAdventure1057", "choiceAdventure1059", "choiceAdventure1060", "choiceAdventure1061", "choiceAdventure1062", "choiceAdventure1065", "choiceAdventure1067", "choiceAdventure1068", "choiceAdventure1069", "choiceAdventure1070", "choiceAdventure1071", "choiceAdventure1073", "choiceAdventure1077", "choiceAdventure1080", "choiceAdventure1081", "choiceAdventure1082", "choiceAdventure1083", "choiceAdventure1084", "choiceAdventure1085", "choiceAdventure1091", "choiceAdventure1094", "choiceAdventure1095", "choiceAdventure1096", "choiceAdventure1097", "choiceAdventure1102", "choiceAdventure1106", "choiceAdventure1107", "choiceAdventure1108", "choiceAdventure1110", "choiceAdventure1114", "choiceAdventure1115", "choiceAdventure1116", "choiceAdventure1118", "choiceAdventure1119", "choiceAdventure1120", "choiceAdventure1121", "choiceAdventure1122", "choiceAdventure1123", "choiceAdventure1171", "choiceAdventure1172", "choiceAdventure1173", "choiceAdventure1174", "choiceAdventure1175", "choiceAdventure1193", "choiceAdventure1195", "choiceAdventure1196", "choiceAdventure1197", "choiceAdventure1198", "choiceAdventure1199", "choiceAdventure1202", "choiceAdventure1203", "choiceAdventure1204", "choiceAdventure1205", "choiceAdventure1206", "choiceAdventure1207", "choiceAdventure1208", "choiceAdventure1209", "choiceAdventure1210", "choiceAdventure1211", "choiceAdventure1212", "choiceAdventure1213", "choiceAdventure1214", "choiceAdventure1215", "choiceAdventure1219", "choiceAdventure1222", "choiceAdventure1223", "choiceAdventure1224", "choiceAdventure1225", "choiceAdventure1226", "choiceAdventure1227", "choiceAdventure1228", "choiceAdventure1229", "choiceAdventure1236", "choiceAdventure1237", "choiceAdventure1238", "choiceAdventure1239", "choiceAdventure1240", "choiceAdventure1241", "choiceAdventure1242", "choiceAdventure1243", "choiceAdventure1244", "choiceAdventure1245", "choiceAdventure1246", "choiceAdventure1247", "choiceAdventure1248", "choiceAdventure1249", "choiceAdventure1250", "choiceAdventure1251", "choiceAdventure1252", "choiceAdventure1253", "choiceAdventure1254", "choiceAdventure1255", "choiceAdventure1256", "choiceAdventure1266", "choiceAdventure1280", "choiceAdventure1281", "choiceAdventure1282", "choiceAdventure1283", "choiceAdventure1284", "choiceAdventure1285", "choiceAdventure1286", "choiceAdventure1287", "choiceAdventure1288", "choiceAdventure1289", "choiceAdventure1290", "choiceAdventure1291", "choiceAdventure1292", "choiceAdventure1293", "choiceAdventure1294", "choiceAdventure1295", "choiceAdventure1296", "choiceAdventure1297", "choiceAdventure1298", "choiceAdventure1299", "choiceAdventure1300", "choiceAdventure1301", "choiceAdventure1302", "choiceAdventure1303", "choiceAdventure1304", "choiceAdventure1305", "choiceAdventure1307", "choiceAdventure1310", "choiceAdventure1312", "choiceAdventure1313", "choiceAdventure1314", "choiceAdventure1315", "choiceAdventure1316", "choiceAdventure1317", "choiceAdventure1318", "choiceAdventure1319", "choiceAdventure1321", "choiceAdventure1322", "choiceAdventure1323", "choiceAdventure1324", "choiceAdventure1325", "choiceAdventure1326", "choiceAdventure1327", "choiceAdventure1328", "choiceAdventure1332", "choiceAdventure1333", "choiceAdventure1335", "choiceAdventure1340", "choiceAdventure1341", "choiceAdventure1345", "choiceAdventure1389", "choiceAdventure1392", "choiceAdventure1397", "choiceAdventure1399", "choiceAdventure1405", "choiceAdventure1411", "choiceAdventure1415", "choiceAdventure1427", "choiceAdventure1428", "choiceAdventure1429", "choiceAdventure1430", "choiceAdventure1431", "choiceAdventure1432", "choiceAdventure1433", "choiceAdventure1434", "choiceAdventure1436", "choiceAdventure1460", "choiceAdventure1461", "choiceAdventure1467", "choiceAdventure1468", "choiceAdventure1469", "choiceAdventure1470", "choiceAdventure1471", "choiceAdventure1472", "choiceAdventure1473", "choiceAdventure1474", "choiceAdventure1475", "choiceAdventure1486", "choiceAdventure1487", "choiceAdventure1488", "choiceAdventure1489", "choiceAdventure1491", "choiceAdventure1494"];
+var booleanProperties = ["abortOnChoiceWhenNotInChoice", "addChatCommandLine", "addCreationQueue", "addStatusBarToFrames", "allowCloseableDesktopTabs", "allowNegativeTally", "allowNonMoodBurning", "allowSummonBurning", "autoHighlightOnFocus", "broadcastEvents", "cacheMallSearches", "chatBeep", "chatLinksUseRelay", "compactChessboard", "copyAsHTML", "customizedTabs", "debugBuy", "debugConsequences", "debugFoxtrotRemoval", "debugPathnames", "debugTopMenuStyle", "gapProtection", "gitInstallDependencies", "gitShowCommitMessages", "gitUpdateOnLogin", "greenScreenProtection", "guiUsesOneWindow", "hideServerDebugText", "logAcquiredItems", "logBattleAction", "logBrowserInteractions", "logChatMessages", "logChatRequests", "logCleanedHTML", "logDecoratedResponses", "logFamiliarActions", "logGainMessages", "logReadableHTML", "logPreferenceChange", "logMonsterHealth", "logReverseOrder", "logStatGains", "logStatusEffects", "logStatusOnLogin", "macroDebug", "macroLens", "mementoListActive", "mergeHobopolisChat", "pingLogin", "pingStealthyTimein", "printStackOnAbort", "proxySet", "relayAddSounds", "relayAddsCustomCombat", "relayAddsDiscoHelper", "relayAddsGraphicalCLI", "relayAddsQuickScripts", "relayAddsRestoreLinks", "relayAddsUpArrowLinks", "relayAddsUseLinks", "relayAddsWikiLinks", "relayAllowRemoteAccess", "relayBrowserOnly", "relayCacheUncacheable", "relayFormatsChatText", "relayHidesJunkMallItems", "relayMaintainsEffects", "relayMaintainsHealth", "relayMaintainsMana", "relayOverridesImages", "relayRunsAfterAdventureScript", "relayRunsBeforeBattleScript", "relayRunsBeforePVPScript", "relayScriptButtonFirst", "relayTextualizesEffects", "relayTrimsZapList", "relayUsesInlineLinks", "relayUsesIntegratedChat", "relayWarnOnRecoverFailure", "removeMalignantEffects", "saveSettingsOnSet", "sharePriceData", "showAllRequests", "showExceptionalRequests", "stealthLogin", "svnAlwaysAdd", "svnAlwaysOverwrite", "svnInstallDependencies", "svnShowCommitMessages", "svnUpdateOnLogin", "switchEquipmentForBuffs", "syncAfterSvnUpdate", "useChatToolbar", "useContactsFrame", "useDevServer", "useDockIconBadge", "useHugglerChannel", "useImageCache", "useLastUserAgent", "useSystemTrayIcon", "useTabbedChatFrame", "useToolbars", "useCachedVolcanoMaps", "useZoneComboBox", "verboseSpeakeasy", "verboseFloundry", "wrapLongLines", "_gitUpdated", "_svnRepoFileFetched", "_svnUpdated", "antagonisticSnowmanKitAvailable", "arcadeGameHints", "armoryUnlocked", "autoForbidIgnoringStores", "autoCraft", "autoQuest", "autoEntangle", "autoGarish", "autoManaRestore", "autoFillMayoMinder", "autoPinkyRing", "autoPlantHardcore", "autoPlantSoftcore", "autoPotionID", "autoRepairBoxServants", "autoSatisfyWithCloset", "autoSatisfyWithCoinmasters", "autoSatisfyWithMall", "autoSatisfyWithNPCs", "autoSatisfyWithStash", "autoSatisfyWithStorage", "autoSetConditions", "autoSteal", "autoTuxedo", "backupCameraReverserEnabled", "badMoonEncounter01", "badMoonEncounter02", "badMoonEncounter03", "badMoonEncounter04", "badMoonEncounter05", "badMoonEncounter06", "badMoonEncounter07", "badMoonEncounter08", "badMoonEncounter09", "badMoonEncounter10", "badMoonEncounter11", "badMoonEncounter12", "badMoonEncounter13", "badMoonEncounter14", "badMoonEncounter15", "badMoonEncounter16", "badMoonEncounter17", "badMoonEncounter18", "badMoonEncounter19", "badMoonEncounter20", "badMoonEncounter21", "badMoonEncounter22", "badMoonEncounter23", "badMoonEncounter24", "badMoonEncounter25", "badMoonEncounter26", "badMoonEncounter27", "badMoonEncounter28", "badMoonEncounter29", "badMoonEncounter30", "badMoonEncounter31", "badMoonEncounter32", "badMoonEncounter33", "badMoonEncounter34", "badMoonEncounter35", "badMoonEncounter36", "badMoonEncounter37", "badMoonEncounter38", "badMoonEncounter39", "badMoonEncounter40", "badMoonEncounter41", "badMoonEncounter42", "badMoonEncounter43", "badMoonEncounter44", "badMoonEncounter45", "badMoonEncounter46", "badMoonEncounter47", "badMoonEncounter48", "barrelShrineUnlocked", "bigBrotherRescued", "blackBartsBootyAvailable", "bondAdv", "bondBeach", "bondBeat", "bondBooze", "bondBridge", "bondDesert", "bondDR", "bondDrunk1", "bondDrunk2", "bondHoney", "bondHP", "bondInit", "bondItem1", "bondItem2", "bondItem3", "bondJetpack", "bondMartiniDelivery", "bondMartiniPlus", "bondMartiniTurn", "bondMeat", "bondMox1", "bondMox2", "bondMPregen", "bondMus1", "bondMus2", "bondMys1", "bondMys2", "bondSpleen", "bondStat", "bondStat2", "bondStealth", "bondStealth2", "bondSymbols", "bondWar", "bondWeapon2", "bondWpn", "booPeakLit", "bootsCharged", "breakfastCompleted", "burrowgrubHiveUsed", "calzoneOfLegendEaten", "canteenUnlocked", "chaosButterflyThrown", "chatbotScriptExecuted", "chateauAvailable", "chatLiterate", "chatServesUpdates", "checkJackassHardcore", "checkJackassSoftcore", "clanAttacksEnabled", "coldAirportAlways", "considerShadowNoodles", "controlRoomUnlock", "concertVisited", "controlPanel1", "controlPanel2", "controlPanel3", "controlPanel4", "controlPanel5", "controlPanel6", "controlPanel7", "controlPanel8", "controlPanel9", "corralUnlocked", "dailyDungeonDone", "dampOldBootPurchased", "daycareOpen", "deepDishOfLegendEaten", "demonSummoned", "dinseyAudienceEngagement", "dinseyGarbagePirate", "dinseyRapidPassEnabled", "dinseyRollercoasterNext", "dinseySafetyProtocolsLoose", "doghouseBoarded", "dontStopForCounters", "drippingHallUnlocked", "drippyShieldUnlocked", "edUsedLash", "eldritchFissureAvailable", "eldritchHorrorAvailable", "errorOnAmbiguousFold", "essenceOfAnnoyanceAvailable", "essenceOfBearAvailable", "expressCardUsed", "falloutShelterChronoUsed", "falloutShelterCoolingTankUsed", "fireExtinguisherBatHoleUsed", "fireExtinguisherChasmUsed", "fireExtinguisherCyrptUsed", "fireExtinguisherDesertUsed", "fireExtinguisherHaremUsed", "fistTeachingsHaikuDungeon", "fistTeachingsPokerRoom", "fistTeachingsBarroomBrawl", "fistTeachingsConservatory", "fistTeachingsBatHole", "fistTeachingsFunHouse", "fistTeachingsMenagerie", "fistTeachingsSlums", "fistTeachingsFratHouse", "fistTeachingsRoad", "fistTeachingsNinjaSnowmen", "flickeringPixel1", "flickeringPixel2", "flickeringPixel3", "flickeringPixel4", "flickeringPixel5", "flickeringPixel6", "flickeringPixel7", "flickeringPixel8", "floristFriarAvailable", "floristFriarChecked", "frAlways", "frCemetaryUnlocked", "friarsBlessingReceived", "frMountainsUnlocked", "frSwampUnlocked", "frVillageUnlocked", "frWoodUnlocked", "getawayCampsiteUnlocked", "ghostPencil1", "ghostPencil2", "ghostPencil3", "ghostPencil4", "ghostPencil5", "ghostPencil6", "ghostPencil7", "ghostPencil8", "ghostPencil9", "gingerAdvanceClockUnlocked", "gingerBlackmailAccomplished", "gingerbreadCityAvailable", "gingerExtraAdventures", "gingerNegativesDropped", "gingerSewersUnlocked", "gingerSubwayLineUnlocked", "gingerRetailUnlocked", "glitchItemAvailable", "grabCloversHardcore", "grabCloversSoftcore", "guideToSafariAvailable", "guyMadeOfBeesDefeated", "hallowienerDefiledNook", "hallowienerGuanoJunction", "hallowienerKnollGym", "hallowienerMadnessBakery", "hallowienerMiddleChamber", "hallowienerOvergrownLot", "hallowienerSkeletonStore", "hallowienerSmutOrcs", "hallowienerSonofaBeach", "hallowienerVolcoino", "hardcorePVPWarning", "harvestBatteriesHardcore", "harvestBatteriesSoftcore", "hasAutumnaton", "hasBartender", "hasChef", "hasCocktailKit", "hasCosmicBowlingBall", "hasDetectiveSchool", "hasMaydayContract", "hasOven", "hasRange", "hasShaker", "hasSushiMat", "hasTwinkleVision", "haveBoxingDaydreamHardcore", "haveBoxingDaydreamSoftcore", "hermitHax0red", "holidayHalsBookAvailable", "horseryAvailable", "hotAirportAlways", "implementGlitchItem", "intenseCurrents", "itemBoughtPerAscension637", "itemBoughtPerAscension8266", "itemBoughtPerAscension10790", "itemBoughtPerAscension10794", "itemBoughtPerAscension10795", "itemBoughtPerCharacter6423", "itemBoughtPerCharacter6428", "itemBoughtPerCharacter6429", "kingLiberated", "lastPirateInsult1", "lastPirateInsult2", "lastPirateInsult3", "lastPirateInsult4", "lastPirateInsult5", "lastPirateInsult6", "lastPirateInsult7", "lastPirateInsult8", "lawOfAveragesAvailable", "leafletCompleted", "ledCandleDropped", "libraryCardUsed", "lockPicked", "logBastilleBattalionBattles", "loginRecoveryHardcore", "loginRecoverySoftcore", "lovebugsUnlocked", "loveTunnelAvailable", "lowerChamberUnlock", "madnessBakeryAvailable", "makePocketWishesHardcore", "makePocketWishesSoftcore", "manualOfNumberologyAvailable", "mappingMonsters", "mapToAnemoneMinePurchased", "mapToKokomoAvailable", "mapToMadnessReefPurchased", "mapToTheDiveBarPurchased", "mapToTheMarinaraTrenchPurchased", "mapToTheSkateParkPurchased", "maraisBeaverUnlock", "maraisCorpseUnlock", "maraisDarkUnlock", "maraisVillageUnlock", "maraisWildlifeUnlock", "maraisWizardUnlock", "maximizerAlwaysCurrent", "maximizerCreateOnHand", "maximizerCurrentMallPrices", "maximizerFoldables", "maximizerIncludeAll", "maximizerNoAdventures", "middleChamberUnlock", "milkOfMagnesiumActive", "moonTuned", "neverendingPartyAlways", "noncombatForcerActive", "oasisAvailable", "odeBuffbotCheck", "oilPeakLit", "oscusSodaUsed", "outrageousSombreroUsed", "overgrownLotAvailable", "ownsFloristFriar", "ownsSpeakeasy", "pathedSummonsHardcore", "pathedSummonsSoftcore", "pizzaOfLegendEaten", "popularTartUnlocked", "potatoAlarmClockUsed", "prAlways", "prayedForGlamour", "prayedForProtection", "prayedForVigor", "primaryLabCheerCoreGrabbed", "pyramidBombUsed", "rageGlandVented", "readManualHardcore", "readManualSoftcore", "relayShowSpoilers", "relayShowWarnings", "rememberDesktopSize", "replicaChateauAvailable", "replicaNeverendingPartyAlways", "replicaWitchessSetAvailable", "requireBoxServants", "requireSewerTestItems", "restUsingCampAwayTent", "restUsingChateau", "ROMOfOptimalityAvailable", "safePickpocket", "schoolOfHardKnocksDiplomaAvailable", "scriptCascadingMenus", "serverAddsCustomCombat", "SHAWARMAInitiativeUnlocked", "showForbiddenStores", "showGainsPerUnit", "showIgnoringStorePrices", "showNoSummonOnly", "showTurnFreeOnly", "skeletonStoreAvailable", "sleazeAirportAlways", "snojoAvailable", "sortByEffect", "sortByRoom", "spacegateAlways", "spacegateVaccine1", "spacegateVaccine2", "spacegateVaccine3", "spaceInvaderDefeated", "spelunkyHints", "spiceMelangeUsed", "spookyAirportAlways", "stenchAirportAlways", "stopForFixedWanderer", "stopForUltraRare", "styxPixieVisited", "superconductorDefeated", "suppressInappropriateNags", "suppressPowerPixellation", "suppressMallPriceCacheMessages", "telegraphOfficeAvailable", "telescopeLookedHigh", "timeTowerAvailable", "trackLightsOut", "uneffectWithHotTub", "universalSeasoningActive", "universalSeasoningAvailable", "useBookOfEverySkillHardcore", "useBookOfEverySkillSoftcore", "useCrimboToysHardcore", "useCrimboToysSoftcore", "verboseMaximizer", "visitLoungeHardcore", "visitLoungeSoftcore", "visitRumpusHardcore", "visitRumpusSoftcore", "voteAlways", "wildfireBarrelCaulked", "wildfireDusted", "wildfireFracked", "wildfirePumpGreased", "wildfireSprinkled", "yearbookCameraPending", "youRobotScavenged", "_2002MrStoreCreditsCollected", "_affirmationCookieEaten", "_affirmationHateUsed", "_airFryerUsed", "_akgyxothUsed", "_alienAnimalMilkUsed", "_alienPlantPodUsed", "_allYearSucker", "_aprilShower", "_armyToddlerCast", "_aug1Cast", "_aug2Cast", "_aug3Cast", "_aug4Cast", "_aug5Cast", "_aug6Cast", "_aug7Cast", "_aug8Cast", "_aug9Cast", "_aug10Cast", "_aug11Cast", "_aug12Cast", "_aug13Cast", "_aug14Cast", "_aug15Cast", "_aug16Cast", "_aug17Cast", "_aug18Cast", "_aug19Cast", "_aug20Cast", "_aug21Cast", "_aug22Cast", "_aug23Cast", "_aug24Cast", "_aug25Cast", "_aug26Cast", "_aug27Cast", "_aug28Cast", "_aug29Cast", "_aug30Cast", "_aug31Cast", "_augTodayCast", "_authorsInkUsed", "_baconMachineUsed", "_bagOfCandy", "_bagOfCandyUsed", "_bagOTricksUsed", "_ballastTurtleUsed", "_ballInACupUsed", "_ballpit", "_barrelPrayer", "_bastilleLastBattleWon", "_beachCombing", "_bendHellUsed", "_blackMonolithUsed", "_blankoutUsed", "_bonersSummoned", "_bookOfEverySkillUsed", "_borrowedTimeUsed", "_bowleggedSwaggerUsed", "_bowlFullOfJellyUsed", "_boxOfHammersUsed", "_brainPreservationFluidUsed", "_brassDreadFlaskUsed", "_cameraUsed", "_canSeekBirds", "_carboLoaded", "_cargoPocketEmptied", "_ceciHatUsed", "_chateauDeskHarvested", "_chateauMonsterFought", "_chibiChanged", "_chronerCrossUsed", "_chronerTriggerUsed", "_chubbyAndPlumpUsed", "_circadianRhythmsRecalled", "_circleDrumUsed", "_clanFortuneBuffUsed", "_claraBellUsed", "_coalPaperweightUsed", "_cocoaDispenserUsed", "_cocktailShakerUsed", "_coldAirportToday", "_coldOne", "_communismUsed", "_confusingLEDClockUsed", "_controlPanelUsed", "_cookbookbatRecipeDrops", "_corruptedStardustUsed", "_cosmicSixPackConjured", "_crappyCameraUsed", "_creepyVoodooDollUsed", "_crimboTraining", "_crimboTree", "_cursedKegUsed", "_cursedMicrowaveUsed", "_dailyDungeonMalwareUsed", "_darkChocolateHeart", "_daycareFights", "_daycareNap", "_daycareSpa", "_daycareToday", "_defectiveTokenChecked", "_defectiveTokenUsed", "_dinseyGarbageDisposed", "_discoKnife", "_distentionPillUsed", "_dnaHybrid", "_docClocksThymeCocktailDrunk", "_drippingHallDoor1", "_drippingHallDoor2", "_drippingHallDoor3", "_drippingHallDoor4", "_drippyCaviarUsed", "_drippyNuggetUsed", "_drippyPilsnerUsed", "_drippyPlumUsed", "_drippyWineUsed", "_eldritchHorrorEvoked", "_eldritchTentacleFought", "_entauntaunedToday", "_envyfishEggUsed", "_epicMcTwistUsed", "_essentialTofuUsed", "_etchedHourglassUsed", "_eternalCarBatteryUsed", "_everfullGlassUsed", "_eyeAndATwistUsed", "_fancyChessSetUsed", "_falloutShelterSpaUsed", "_fancyHotDogEaten", "_farmerItemsCollected", "_favoriteBirdVisited", "_firedJokestersGun", "_fireExtinguisherRefilled", "_fireStartingKitUsed", "_fireworksShop", "_fireworksShopHatBought", "_fireworksShopEquipmentBought", "_fireworkUsed", "_fishyPipeUsed", "_floundryItemCreated", "_floundryItemUsed", "_freePillKeeperUsed", "_frToday", "_fudgeSporkUsed", "_garbageItemChanged", "_gingerBiggerAlligators", "_gingerbreadCityToday", "_gingerbreadClockAdvanced", "_gingerbreadClockVisited", "_gingerbreadColumnDestroyed", "_gingerbreadMobHitUsed", "_glennGoldenDiceUsed", "_glitchItemImplemented", "_gnollEyeUsed", "_governmentPerDiemUsed", "_grimBuff", "_guildManualUsed", "_guzzlrQuestAbandoned", "_hardKnocksDiplomaUsed", "_hippyMeatCollected", "_hobbyHorseUsed", "_holidayFunUsed", "_holoWristCrystal", "_hotAirportToday", "_hungerSauceUsed", "_hyperinflatedSealLungUsed", "_iceHotelRoomsRaided", "_iceSculptureUsed", "_incredibleSelfEsteemCast", "_infernoDiscoVisited", "_internetDailyDungeonMalwareBought", "_internetGallonOfMilkBought", "_internetPlusOneBought", "_internetPrintScreenButtonBought", "_internetViralVideoBought", "_interviewIsabella", "_interviewMasquerade", "_interviewVlad", "_inquisitorsUnidentifiableObjectUsed", "_ironicMoustache", "_jackassPlumberGame", "_jarlsCheeseSummoned", "_jarlsCreamSummoned", "_jarlsDoughSummoned", "_jarlsEggsSummoned", "_jarlsFruitSummoned", "_jarlsMeatSummoned", "_jarlsPotatoSummoned", "_jarlsVeggiesSummoned", "_jingleBellUsed", "_jukebox", "_kgbFlywheelCharged", "_kgbLeftDrawerUsed", "_kgbOpened", "_kgbRightDrawerUsed", "_kolConSixPackUsed", "_kolhsCutButNotDried", "_kolhsIsskayLikeAnAshtray", "_kolhsPoeticallyLicenced", "_kolhsSchoolSpirited", "_kudzuSaladEaten", "_lastCombatLost", "_lastCombatWon", "_latteBanishUsed", "_latteCopyUsed", "_latteDrinkUsed", "_leafAntEggCrafted", "_leafDayShortenerCrafted", "_leafTattooCrafted", "_leavesJumped", "_legendaryBeat", "_licenseToChillUsed", "_lodestoneUsed", "_lookingGlass", "_loveTunnelToday", "_loveTunnelUsed", "_luckyGoldRingVolcoino", "_lunchBreak", "_lupineHormonesUsed", "_lyleFavored", "_madLiquorDrunk", "_madTeaParty", "_mafiaMiddleFingerRingUsed", "_managerialManipulationUsed", "_mansquitoSerumUsed", "_mapToACandyRichBlockUsed", "_maydayDropped", "_mayoDeviceRented", "_mayoTankSoaked", "_meatballMachineUsed", "_meatifyMatterUsed", "_milkOfMagnesiumUsed", "_mimeArmyShotglassUsed", "_missGravesVermouthDrunk", "_missileLauncherUsed", "_molehillMountainUsed", "_momFoodReceived", "_mrBurnsgerEaten", "_muffinOrderedToday", "_mushroomGardenVisited", "_neverendingPartyToday", "_newYouQuestCompleted", "_olympicSwimmingPool", "_olympicSwimmingPoolItemFound", "_overflowingGiftBasketUsed", "_partyHard", "_pastaAdditive", "_perfectFreezeUsed", "_perfectlyFairCoinUsed", "_petePartyThrown", "_peteRiotIncited", "_photocopyUsed", "_pickyTweezersUsed", "_pingPongGame", "_pirateBellowUsed", "_pirateForkUsed", "_pixelOrbUsed", "_plumbersMushroomStewEaten", "_pneumaticityPotionUsed", "_portableSteamUnitUsed", "_pottedTeaTreeUsed", "_prToday", "_psychoJarFilled", "_psychoJarUsed", "_psychokineticHugUsed", "_rainStickUsed", "_redwoodRainStickUsed", "_replicaSnowconeTomeUsed", "_replicaResolutionLibramUsed", "_replicaSmithsTomeUsed", "_requestSandwichSucceeded", "_rhinestonesAcquired", "_seaJellyHarvested", "_setOfJacksUsed", "_sewingKitUsed", "_sexChanged", "_shadowAffinityToday", "_shadowForestLooted", "_shrubDecorated", "_silverDreadFlaskUsed", "_sitCourseCompleted", "_skateBuff1", "_skateBuff2", "_skateBuff3", "_skateBuff4", "_skateBuff5", "_sleazeAirportToday", "_sobrieTeaUsed", "_softwareGlitchTurnReceived", "_sotParcelReturned", "_spacegateMurderbot", "_spacegateRuins", "_spacegateSpant", "_spacegateToday", "_spacegateVaccine", "_spaghettiBreakfast", "_spaghettiBreakfastEaten", "_spinmasterLatheVisited", "_spinningWheel", "_spookyAirportToday", "_stabonicScrollUsed", "_steelyEyedSquintUsed", "_stenchAirportToday", "_stinkyCheeseBanisherUsed", "_strangeStalagmiteUsed", "_streamsCrossed", "_stuffedPocketwatchUsed", "_styxSprayUsed", "_summonAnnoyanceUsed", "_summonCarrotUsed", "_summonResortPassUsed", "_sweetToothUsed", "_syntheticDogHairPillUsed", "_tacoFlierUsed", "_telegraphOfficeToday", "_templeHiddenPower", "_tempuraAirUsed", "_thesisDelivered", "_tiedUpFlamingLeafletFought", "_tiedUpFlamingMonsteraFought", "_tiedUpLeaviathanFought", "_timeSpinnerReplicatorUsed", "_toastSummoned", "_tonicDjinn", "_treasuryEliteMeatCollected", "_treasuryHaremMeatCollected", "_trivialAvocationsGame", "_tryptophanDartUsed", "_turtlePowerCast", "_twelveNightEnergyUsed", "_ultraMegaSourBallUsed", "_victorSpoilsUsed", "_villainLairCanLidUsed", "_villainLairColorChoiceUsed", "_villainLairDoorChoiceUsed", "_villainLairFirecrackerUsed", "_villainLairSymbologyChoiceUsed", "_villainLairWebUsed", "_vmaskBanisherUsed", "_voraciTeaUsed", "_volcanoItemRedeemed", "_volcanoSuperduperheatedMetal", "_voteToday", "_VYKEACafeteriaRaided", "_VYKEALoungeRaided", "_walfordQuestStartedToday", "_warbearBankUsed", "_warbearBreakfastMachineUsed", "_warbearGyrocopterUsed", "_warbearSodaMachineUsed", "_wildfireBarrelHarvested", "_witchessBuff", "_workshedItemUsed", "_zombieClover", "_preventScurvy", "lockedItem4637", "lockedItem4638", "lockedItem4639", "lockedItem4646", "lockedItem4647", "unknownRecipe3542", "unknownRecipe3543", "unknownRecipe3544", "unknownRecipe3545", "unknownRecipe3546", "unknownRecipe3547", "unknownRecipe3548", "unknownRecipe3749", "unknownRecipe3751", "unknownRecipe4172", "unknownRecipe4173", "unknownRecipe4174", "unknownRecipe5060", "unknownRecipe5061", "unknownRecipe5062", "unknownRecipe5063", "unknownRecipe5064", "unknownRecipe5066", "unknownRecipe5067", "unknownRecipe5069", "unknownRecipe5070", "unknownRecipe5072", "unknownRecipe5073", "unknownRecipe5670", "unknownRecipe5671", "unknownRecipe6501", "unknownRecipe6564", "unknownRecipe6565", "unknownRecipe6566", "unknownRecipe6567", "unknownRecipe6568", "unknownRecipe6569", "unknownRecipe6570", "unknownRecipe6571", "unknownRecipe6572", "unknownRecipe6573", "unknownRecipe6574", "unknownRecipe6575", "unknownRecipe6576", "unknownRecipe6577", "unknownRecipe6578", "unknownRecipe7752", "unknownRecipe7753", "unknownRecipe7754", "unknownRecipe7755", "unknownRecipe7756", "unknownRecipe7757", "unknownRecipe7758", "unknownRecipe10970", "unknownRecipe10971", "unknownRecipe10972", "unknownRecipe10973", "unknownRecipe10974", "unknownRecipe10975", "unknownRecipe10976", "unknownRecipe10977", "unknownRecipe10978", "unknownRecipe10988", "unknownRecipe10989", "unknownRecipe10990", "unknownRecipe10991", "unknownRecipe10992", "unknownRecipe11000"];
+var numericProperties = ["coinMasterIndex", "dailyDeedsVersion", "defaultDropdown1", "defaultDropdown2", "defaultDropdownSplit", "defaultLimit", "fixedThreadPoolSize", "itemManagerIndex", "lastBuffRequestType", "lastGlobalCounterDay", "lastImageCacheClear", "pingDefaultTestPings", "pingLoginCount", "pingLoginGoal", "pingLoginThreshold", "pingTestPings", "previousUpdateRevision", "relayDelayForSVN", "relaySkillButtonCount", "scriptButtonPosition", "statusDropdown", "svnThreadPoolSize", "toolbarPosition", "_beachTides", "_g9Effect", "8BitBonusTurns", "8BitScore", "addingScrolls", "affirmationCookiesEaten", "aminoAcidsUsed", "antagonisticSnowmanKitCost", "ascensionsToday", "asolDeferredPoints", "asolPointsPigSkinner", "asolPointsCheeseWizard", "asolPointsJazzAgent", "autoAbortThreshold", "autoAntidote", "autoBuyPriceLimit", "autumnatonQuestTurn", "availableCandyCredits", "availableDimes", "availableFunPoints", "availableMrStore2002Credits", "availableQuarters", "availableStoreCredits", "availableSwagger", "averageSwagger", "awolMedicine", "awolPointsBeanslinger", "awolPointsCowpuncher", "awolPointsSnakeoiler", "awolDeferredPointsBeanslinger", "awolDeferredPointsCowpuncher", "awolDeferredPointsSnakeoiler", "awolVenom", "bagOTricksCharges", "ballpitBonus", "bankedKarma", "bartenderTurnsUsed", "basementMallPrices", "basementSafetyMargin", "batmanFundsAvailable", "batmanBonusInitialFunds", "batmanTimeLeft", "bearSwagger", "beeCounter", "beGregariousCharges", "beGregariousFightsLeft", "birdformCold", "birdformHot", "birdformRoc", "birdformSleaze", "birdformSpooky", "birdformStench", "blackBartsBootyCost", "blackPuddingsDefeated", "blackForestProgress", "blankOutUsed", "bloodweiserDrunk", "bondPoints", "bondVillainsDefeated", "boneAbacusVictories", "bookOfFactsGummi", "bookOfFactsPinata", "booPeakProgress", "borisPoints", "breakableHandling", "breakableHandling1964", "breakableHandling9691", "breakableHandling9692", "breakableHandling9699", "breathitinCharges", "brodenBacteria", "brodenSprinkles", "buffBotMessageDisposal", "buffBotPhilanthropyType", "buffJimmyIngredients", "burnoutsDefeated", "burrowgrubSummonsRemaining", "camelSpit", "camerasUsed", "campAwayDecoration", "candyWitchTurnsUsed", "candyWitchCandyTotal", "carboLoading", "catBurglarBankHeists", "cellarLayout", "charitableDonations", "chasmBridgeProgress", "chefTurnsUsed", "chessboardsCleared", "chibiAlignment", "chibiBirthday", "chibiFitness", "chibiIntelligence", "chibiLastVisit", "chibiSocialization", "chilledToTheBone", "cinchoSaltAndLime", "cinderellaMinutesToMidnight", "cinderellaScore", "cocktailSummons", "commerceGhostCombats", "controlPanelOmega", "cornucopiasOpened", "cosmicBowlingBallReturnCombats", "cozyCounter6332", "cozyCounter6333", "cozyCounter6334", "craftingClay", "craftingLeather", "craftingStraw", "crimbo16BeardChakraCleanliness", "crimbo16BootsChakraCleanliness", "crimbo16BungChakraCleanliness", "crimbo16CrimboHatChakraCleanliness", "crimbo16GutsChakraCleanliness", "crimbo16HatChakraCleanliness", "crimbo16JellyChakraCleanliness", "crimbo16LiverChakraCleanliness", "crimbo16NippleChakraCleanliness", "crimbo16NoseChakraCleanliness", "crimbo16ReindeerChakraCleanliness", "crimbo16SackChakraCleanliness", "crimboTrainingSkill", "crimboTreeDays", "cubelingProgress", "currentExtremity", "currentHedgeMazeRoom", "currentMojoFilters", "currentNunneryMeat", "currentPortalEnergy", "currentReplicaStoreYear", "cursedMagnifyingGlassCount", "cyrptAlcoveEvilness", "cyrptCrannyEvilness", "cyrptNicheEvilness", "cyrptNookEvilness", "cyrptTotalEvilness", "darkGyfftePoints", "daycareEquipment", "daycareInstructors", "daycareLastScavenge", "daycareToddlers", "dbNemesisSkill1", "dbNemesisSkill2", "dbNemesisSkill3", "desertExploration", "desktopHeight", "desktopWidth", "dinseyFilthLevel", "dinseyFunProgress", "dinseyNastyBearsDefeated", "dinseySocialJusticeIProgress", "dinseySocialJusticeIIProgress", "dinseyTouristsFed", "dinseyToxicMultiplier", "doctorBagQuestLights", "doctorBagUpgrades", "dreadScroll1", "dreadScroll2", "dreadScroll3", "dreadScroll4", "dreadScroll5", "dreadScroll6", "dreadScroll7", "dreadScroll8", "dripAdventuresSinceAscension", "drippingHallAdventuresSinceAscension", "drippingTreesAdventuresSinceAscension", "drippyBatsUnlocked", "drippyJuice", "drippyOrbsClaimed", "drunkenSwagger", "edDefeatAbort", "edPoints", "eldritchTentaclesFought", "electricKoolAidEaten", "elfGratitude", "encountersUntilDMTChoice", "encountersUntilYachtzeeChoice", "encountersUntilNEPChoice", "encountersUntilSRChoice", "ensorceleeLevel", "entauntaunedColdRes", "essenceOfAnnoyanceCost", "essenceOfBearCost", "extraRolloverAdventures", "falloutShelterLevel", "familiarSweat", "fingernailsClipped", "fistSkillsKnown", "flyeredML", "fossilB", "fossilD", "fossilN", "fossilP", "fossilS", "fossilW", "fratboysDefeated", "frenchGuardTurtlesFreed", "funGuyMansionKills", "garbageChampagneCharge", "garbageFireProgress", "garbageShirtCharge", "garbageTreeCharge", "garlandUpgrades", "getsYouDrunkTurnsLeft", "ghostPepperTurnsLeft", "gingerDigCount", "gingerLawChoice", "gingerMuscleChoice", "gingerTrainScheduleStudies", "gladiatorBallMovesKnown", "gladiatorBladeMovesKnown", "gladiatorNetMovesKnown", "glitchItemCost", "glitchItemImplementationCount", "glitchItemImplementationLevel", "glitchSwagger", "gloverPoints", "gnasirProgress", "goldenMrAccessories", "gongPath", "gooseDronesRemaining", "goreCollected", "gourdItemCount", "greyYouPoints", "grimoire1Summons", "grimoire2Summons", "grimoire3Summons", "grimstoneCharge", "guardTurtlesFreed", "guideToSafariCost", "guyMadeOfBeesCount", "guzzlrBronzeDeliveries", "guzzlrDeliveryProgress", "guzzlrGoldDeliveries", "guzzlrPlatinumDeliveries", "haciendaLayout", "hallowiener8BitRealm", "hallowienerCoinspiracy", "hareMillisecondsSaved", "hareTurnsUsed", "heavyRainsStartingThunder", "heavyRainsStartingRain", "heavyRainsStartingLightning", "heroDonationBoris", "heroDonationJarlsberg", "heroDonationSneakyPete", "hiddenApartmentProgress", "hiddenBowlingAlleyProgress", "hiddenHospitalProgress", "hiddenOfficeProgress", "hiddenTavernUnlock", "highTopPumped", "hippiesDefeated", "holidayHalsBookCost", "holidaySwagger", "homemadeRobotUpgrades", "homebodylCharges", "hpAutoRecovery", "hpAutoRecoveryTarget", "iceSwagger", "jarlsbergPoints", "jungCharge", "junglePuns", "knownAscensions", "kolhsTotalSchoolSpirited", "lastAnticheeseDay", "lastArcadeAscension", "lastBadMoonReset", "lastBangPotionReset", "lastBattlefieldReset", "lastBeardBuff", "lastBreakfast", "lastCartographyBooPeak", "lastCartographyCastleTop", "lastCartographyDarkNeck", "lastCartographyDefiledNook", "lastCartographyFratHouse", "lastCartographyFratHouseVerge", "lastCartographyGuanoJunction", "lastCartographyHauntedBilliards", "lastCartographyHippyCampVerge", "lastCartographyZeppelinProtesters", "lastCastleGroundUnlock", "lastCastleTopUnlock", "lastCellarReset", "lastChanceThreshold", "lastChasmReset", "lastColosseumRoundWon", "lastCouncilVisit", "lastCounterDay", "lastDesertUnlock", "lastDispensaryOpen", "lastDMTDuplication", "lastDwarfFactoryReset", "lastEVHelmetValue", "lastEVHelmetReset", "lastEmptiedStorage", "lastFilthClearance", "lastGoofballBuy", "lastGuildStoreOpen", "lastGuyMadeOfBeesReset", "lastFratboyCall", "lastFriarCeremonyAscension", "lastFriarsElbowNC", "lastFriarsHeartNC", "lastFriarsNeckNC", "lastHippyCall", "lastIslandUnlock", "lastKeyotronUse", "lastKingLiberation", "lastLightsOutTurn", "lastMushroomPlot", "lastMiningReset", "lastNemesisReset", "lastPaperStripReset", "lastPirateEphemeraReset", "lastPirateInsultReset", "lastPlusSignUnlock", "lastQuartetAscension", "lastQuartetRequest", "lastSecondFloorUnlock", "lastShadowForgeUnlockAdventure", "lastSkateParkReset", "lastStillBeatingSpleen", "lastTavernAscension", "lastTavernSquare", "lastTelescopeReset", "lastTempleAdventures", "lastTempleButtonsUnlock", "lastTempleUnlock", "lastThingWithNoNameDefeated", "lastTowelAscension", "lastTr4pz0rQuest", "lastTrainsetConfiguration", "lastVioletFogMap", "lastVoteMonsterTurn", "lastWartDinseyDefeated", "lastWuTangDefeated", "lastYearbookCameraAscension", "lastZapperWand", "lastZapperWandExplosionDay", "lawOfAveragesCost", "legacyPoints", "libramSummons", "lightsOutAutomation", "louvreDesiredGoal", "louvreGoal", "lovebugsAridDesert", "lovebugsBeachBuck", "lovebugsBooze", "lovebugsChroner", "lovebugsCoinspiracy", "lovebugsCyrpt", "lovebugsFreddy", "lovebugsFunFunds", "lovebugsHoboNickel", "lovebugsItemDrop", "lovebugsMeat", "lovebugsMeatDrop", "lovebugsMoxie", "lovebugsMuscle", "lovebugsMysticality", "lovebugsOilPeak", "lovebugsOrcChasm", "lovebugsPowder", "lovebugsWalmart", "lttQuestDifficulty", "lttQuestStageCount", "manaBurnSummonThreshold", "manaBurningThreshold", "manaBurningTrigger", "manorDrawerCount", "manualOfNumberologyCost", "mapToKokomoCost", "masksUnlocked", "maximizerMRUSize", "maximizerCombinationLimit", "maximizerEquipmentLevel", "maximizerEquipmentScope", "maximizerMaxPrice", "maximizerPriceLevel", "maxManaBurn", "mayflyExperience", "mayoLevel", "meansuckerPrice", "merkinVocabularyMastery", "miniAdvClass", "miniMartinisDrunk", "moleTunnelLevel", "mothershipProgress", "mpAutoRecovery", "mpAutoRecoveryTarget", "munchiesPillsUsed", "mushroomGardenCropLevel", "nextParanormalActivity", "nextQuantumFamiliarOwnerId", "nextQuantumFamiliarTurn", "noobPoints", "noobDeferredPoints", "noodleSummons", "nsContestants1", "nsContestants2", "nsContestants3", "nuclearAutumnPoints", "numericSwagger", "nunsVisits", "oilPeakProgress", "optimalSwagger", "optimisticCandleProgress", "palindomeDudesDefeated", "parasolUsed", "pendingMapReflections", "pingpongSkill", "pirateSwagger", "plantingDay", "plumberBadgeCost", "plumberCostumeCost", "plumberPoints", "poolSharkCount", "poolSkill", "primaryLabGooIntensity", "prismaticSummons", "procrastinatorLanguageFluency", "promptAboutCrafting", "puzzleChampBonus", "pyramidPosition", "quantumPoints", "reagentSummons", "reanimatorArms", "reanimatorLegs", "reanimatorSkulls", "reanimatorWeirdParts", "reanimatorWings", "recentLocations", "redSnapperProgress", "relayPort", "relocatePygmyJanitor", "relocatePygmyLawyer", "rockinRobinProgress", "ROMOfOptimalityCost", "rumpelstiltskinKidsRescued", "rumpelstiltskinTurnsUsed", "rwbMonsterCount", "safariSwagger", "sausageGrinderUnits", "schoolOfHardKnocksDiplomaCost", "schoolSwagger", "scrapbookCharges", "screechCombats", "scriptMRULength", "seaodesFound", "SeasoningSwagger", "sexChanges", "shenInitiationDay", "shockingLickCharges", "singleFamiliarRun", "skillBurn3", "skillBurn90", "skillBurn153", "skillBurn154", "skillBurn155", "skillBurn1019", "skillBurn5017", "skillBurn6014", "skillBurn6015", "skillBurn6016", "skillBurn6020", "skillBurn6021", "skillBurn6022", "skillBurn6023", "skillBurn6024", "skillBurn6026", "skillBurn6028", "skillBurn7323", "skillBurn14008", "skillBurn14028", "skillBurn14038", "skillBurn15011", "skillBurn15028", "skillBurn17005", "skillBurn22034", "skillBurn22035", "skillBurn23301", "skillBurn23302", "skillBurn23303", "skillBurn23304", "skillBurn23305", "skillBurn23306", "skillLevel46", "skillLevel47", "skillLevel48", "skillLevel117", "skillLevel118", "skillLevel121", "skillLevel128", "skillLevel134", "skillLevel144", "skillLevel180", "skillLevel188", "skillLevel227", "skillLevel7254", "slimelingFullness", "slimelingStacksDropped", "slimelingStacksDue", "smoresEaten", "smutOrcNoncombatProgress", "sneakyPetePoints", "snojoMoxieWins", "snojoMuscleWins", "snojoMysticalityWins", "sourceAgentsDefeated", "sourceEnlightenment", "sourceInterval", "sourcePoints", "sourceTerminalGram", "sourceTerminalPram", "sourceTerminalSpam", "spaceBabyLanguageFluency", "spacePirateLanguageFluency", "spelunkyNextNoncombat", "spelunkySacrifices", "spelunkyWinCount", "spookyPuttyCopiesMade", "spookyVHSTapeMonsterTurn", "statbotUses", "sugarCounter4178", "sugarCounter4179", "sugarCounter4180", "sugarCounter4181", "sugarCounter4182", "sugarCounter4183", "sugarCounter4191", "summonAnnoyanceCost", "sweat", "tacoDanCocktailSauce", "tacoDanFishMeat", "tavernLayout", "telescopeUpgrades", "tempuraSummons", "timeSpinnerMedals", "timesRested", "tomeSummons", "totalCharitableDonations", "trainsetPosition", "turtleBlessingTurns", "twinPeakProgress", "twoCRSPoints", "unicornHornInflation", "universalSeasoningCost", "usable1HWeapons", "usable1xAccs", "usable2HWeapons", "usable3HWeapons", "usableAccessories", "usableHats", "usableOffhands", "usableOther", "usablePants", "usableShirts", "valueOfAdventure", "valueOfInventory", "valueOfStill", "valueOfTome", "vintnerCharge", "vintnerWineLevel", "violetFogGoal", "walfordBucketProgress", "warehouseProgress", "welcomeBackAdv", "whetstonesUsed", "wolfPigsEvicted", "wolfTurnsUsed", "writingDesksDefeated", "xoSkeleltonXProgress", "xoSkeleltonOProgress", "yearbookCameraAscensions", "yearbookCameraUpgrades", "youRobotBody", "youRobotBottom", "youRobotLeft", "youRobotPoints", "youRobotRight", "youRobotTop", "zeppelinProtestors", "zigguratLianas", "zombiePoints", "_absintheDrops", "_abstractionDropsCrown", "_aguaDrops", "_xenomorphCharge", "_ancestralRecallCasts", "_antihangoverBonus", "_astralDrops", "_augSkillsCast", "_automatedFutureManufactures", "_autumnatonQuests", "_backUpUses", "_badlyRomanticArrows", "_badgerCharge", "_balefulHowlUses", "_banderRunaways", "_bastilleCheese", "_bastilleGames", "_bastilleGameTurn", "_bastilleLastCheese", "_beanCannonUses", "_bearHugs", "_beerLensDrops", "_bellydancerPickpockets", "_benettonsCasts", "_birdsSoughtToday", "_bookOfFactsWishes", "_bookOfFactsTatters", "_boomBoxFights", "_boomBoxSongsLeft", "_bootStomps", "_boxingGloveArrows", "_brickoEyeSummons", "_brickoFights", "_campAwayCloudBuffs", "_campAwaySmileBuffs", "_candySummons", "_captainHagnkUsed", "_carnieCandyDrops", "_carrotNoseDrops", "_catBurglarCharge", "_catBurglarHeistsComplete", "_cheerleaderSteam", "_chestXRayUsed", "_chibiAdventures", "_chipBags", "_chocolateCigarsUsed", "_chocolateCoveredPingPongBallsUsed", "_chocolateSculpturesUsed", "_chocolatesUsed", "_chronolithActivations", "_chronolithNextCost", "_cinchUsed", "_cinchoRests", "_circadianRhythmsAdventures", "_clanFortuneConsultUses", "_clipartSummons", "_cloversPurchased", "_coldMedicineConsults", "_coldMedicineEquipmentTaken", "_companionshipCasts", "_cookbookbatCrafting", "_cosmicBowlingSkillsUsed", "_crimbo21ColdResistance", "_dailySpecialPrice", "_daycareGymScavenges", "_daycareRecruits", "_deckCardsDrawn", "_deluxeKlawSummons", "_demandSandwich", "_detectiveCasesCompleted", "_disavowed", "_dnaPotionsMade", "_donhosCasts", "_douseFoeUses", "_dreamJarDrops", "_drunkPygmyBanishes", "_edDefeats", "_edLashCount", "_elronsCasts", "_enamorangs", "_energyCollected", "_expertCornerCutterUsed", "_extraTimeUsed", "_favorRareSummons", "_feastUsed", "_feelinTheRhythm", "_feelPrideUsed", "_feelExcitementUsed", "_feelHatredUsed", "_feelLonelyUsed", "_feelNervousUsed", "_feelEnvyUsed", "_feelDisappointedUsed", "_feelSuperiorUsed", "_feelLostUsed", "_feelNostalgicUsed", "_feelPeacefulUsed", "_fingertrapArrows", "_fireExtinguisherCharge", "_fragrantHerbsUsed", "_freeBeachWalksUsed", "_frButtonsPressed", "_fudgeWaspFights", "_gapBuffs", "_garbageFireDrops", "_garbageFireDropsCrown", "_genieFightsUsed", "_genieWishesUsed", "_gibbererAdv", "_gibbererCharge", "_gingerbreadCityTurns", "_glarkCableUses", "_glitchMonsterFights", "_gnomeAdv", "_godLobsterFights", "_goldenMoneyCharge", "_gongDrops", "_gothKidCharge", "_gothKidFights", "_greyYouAdventures", "_grimBrotherCharge", "_grimFairyTaleDrops", "_grimFairyTaleDropsCrown", "_grimoireConfiscatorSummons", "_grimoireGeekySummons", "_grimstoneMaskDrops", "_grimstoneMaskDropsCrown", "_grooseCharge", "_grooseDrops", "_grubbyWoolDrops", "_guzzlrDeliveries", "_guzzlrGoldDeliveries", "_guzzlrPlatinumDeliveries", "_hareAdv", "_hareCharge", "_highTopPumps", "_hipsterAdv", "_hoardedCandyDropsCrown", "_hoboUnderlingSummons", "_holoWristDrops", "_holoWristProgress", "_hotAshesDrops", "_hotJellyUses", "_hotTubSoaks", "_humanMuskUses", "_iceballUses", "_inigosCasts", "_jerksHealthMagazinesUsed", "_jiggleCheese", "_jiggleCream", "_jiggleLife", "_jiggleSteak", "_jitbCharge", "_juneCleaverFightsLeft", "_juneCleaverEncounters", "_juneCleaverStench", "_juneCleaverSpooky", "_juneCleaverSleaze", "_juneCleaverHot", "_juneCleaverCold", "_juneCleaverSkips", "_jungDrops", "_kgbClicksUsed", "_kgbDispenserUses", "_kgbTranquilizerDartUses", "_klawSummons", "_kloopCharge", "_kloopDrops", "_kolhsAdventures", "_kolhsSavedByTheBell", "_lastDailyDungeonRoom", "_lastSausageMonsterTurn", "_lastZomboEye", "_latteRefillsUsed", "_leafblowerML", "_leafLassosCrafted", "_leafMonstersFought", "_leavesBurned", "_legionJackhammerCrafting", "_llamaCharge", "_longConUsed", "_lovebugsBeachBuck", "_lovebugsChroner", "_lovebugsCoinspiracy", "_lovebugsFreddy", "_lovebugsFunFunds", "_lovebugsHoboNickel", "_lovebugsWalmart", "_loveChocolatesUsed", "_lynyrdSnareUses", "_machineTunnelsAdv", "_macrometeoriteUses", "_mafiaThumbRingAdvs", "_mapToACandyRichBlockDrops", "_mayflowerDrops", "_mayflySummons", "_mediumSiphons", "_meteoriteAdesUsed", "_meteorShowerUses", "_micrometeoriteUses", "_mildEvilPerpetrated", "_miniMartiniDrops", "_monkeyPawWishesUsed", "_monsterHabitatsFightsLeft", "_monsterHabitatsRecalled", "_monstersMapped", "_mushroomGardenFights", "_nanorhinoCharge", "_navelRunaways", "_neverendingPartyFreeTurns", "_newYouQuestSharpensDone", "_newYouQuestSharpensToDo", "_nextColdMedicineConsult", "_nextQuantumAlignment", "_nightmareFuelCharges", "_noobSkillCount", "_nuclearStockpileUsed", "_oilExtracted", "_olfactionsUsed", "_optimisticCandleDropsCrown", "_oreDropsCrown", "_otoscopeUsed", "_oysterEggsFound", "_pantsgivingBanish", "_pantsgivingCount", "_pantsgivingCrumbs", "_pantsgivingFullness", "_pasteDrops", "_peteJukeboxFixed", "_peteJumpedShark", "_petePeeledOut", "_pieDrops", "_piePartsCount", "_pixieCharge", "_pocketProfessorLectures", "_poisonArrows", "_pokeGrowFertilizerDrops", "_poolGames", "_powderedGoldDrops", "_powderedMadnessUses", "_powerfulGloveBatteryPowerUsed", "_powerPillDrops", "_powerPillUses", "_precisionCasts", "_questPartyFairItemsOpened", "_radlibSummons", "_raindohCopiesMade", "_rapidPrototypingUsed", "_raveStealCount", "_reflexHammerUsed", "_resolutionAdv", "_resolutionRareSummons", "_riftletAdv", "_robinEggDrops", "_roboDrops", "_rogueProgramCharge", "_romanticFightsLeft", "_saberForceMonsterCount", "_saberForceUses", "_saberMod", "_saltGrainsConsumed", "_sandwormCharge", "_saplingsPlanted", "_sausageFights", "_sausagesEaten", "_sausagesMade", "_sealFigurineUses", "_sealScreeches", "_sealsSummoned", "_shadowBricksUsed", "_shadowRiftCombats", "_shatteringPunchUsed", "_shortOrderCookCharge", "_shrubCharge", "_sloppyDinerBeachBucks", "_smilesOfMrA", "_smithsnessSummons", "_snojoFreeFights", "_snojoParts", "_snokebombUsed", "_snowconeSummons", "_snowglobeDrops", "_snowSuitCount", "_sourceTerminalDigitizeMonsterCount", "_sourceTerminalDigitizeUses", "_sourceTerminalDuplicateUses", "_sourceTerminalEnhanceUses", "_sourceTerminalExtrudes", "_sourceTerminalPortscanUses", "_spaceFurDropsCrown", "_spacegatePlanetIndex", "_spacegateTurnsLeft", "_spaceJellyfishDrops", "_speakeasyDrinksDrunk", "_speakeasyFreeFights", "_spelunkerCharges", "_spelunkingTalesDrops", "_spikolodonSpikeUses", "_spookyJellyUses", "_stackLumpsUses", "_steamCardDrops", "_stickerSummons", "_stinkyCheeseCount", "_stressBallSqueezes", "_sugarSummons", "_sweatOutSomeBoozeUsed", "_taffyRareSummons", "_taffyYellowSummons", "_thanksgettingFoodsEaten", "_thingfinderCasts", "_thinknerdPackageDrops", "_thorsPliersCrafting", "_timeHelmetAdv", "_timeSpinnerMinutesUsed", "_tokenDrops", "_transponderDrops", "_turkeyBlastersUsed", "_turkeyBooze", "_turkeyMuscle", "_turkeyMyst", "_turkeyMoxie", "_unaccompaniedMinerUsed", "_unconsciousCollectiveCharge", "_universalSeasoningsUsed", "_universeCalculated", "_universeImploded", "_usedReplicaBatoomerang", "_vampyreCloakeFormUses", "_villainLairProgress", "_vitachocCapsulesUsed", "_vmaskAdv", "_voidFreeFights", "_volcanoItem1", "_volcanoItem2", "_volcanoItem3", "_volcanoItemCount1", "_volcanoItemCount2", "_volcanoItemCount3", "_voteFreeFights", "_VYKEACompanionLevel", "_warbearAutoAnvilCrafting", "_waxGlobDrops", "_whiteRiceDrops", "_witchessFights", "_xoHugsUsed", "_yellowPixelDropsCrown", "_zapCount", "_zombieSmashPocketsUsed"];
+var monsterProperties = ["beGregariousMonster", "cameraMonster", "chateauMonster", "clumsinessGroveBoss", "crappyCameraMonster", "crudeMonster", "enamorangMonster", "envyfishMonster", "glacierOfJerksBoss", "holdHandsMonster", "iceSculptureMonster", "lastCopyableMonster", "longConMonster", "maelstromOfLoversBoss", "makeFriendsMonster", "merkinLockkeyMonster", "monkeyPointMonster", "motifMonster", "nosyNoseMonster", "olfactedMonster", "photocopyMonster", "rainDohMonster", "romanticTarget", "rufusDesiredEntity", "rwbMonster", "screencappedMonster", "spookyPuttyMonster", "spookyVHSTapeMonster", "stenchCursedMonster", "superficiallyInterestedMonster", "waxMonster", "yearbookCameraTarget", "_gallapagosMonster", "_jiggleCreamedMonster", "_latteMonster", "_monsterHabitatsMonster", "_nanorhinoBanishedMonster", "_newYouQuestMonster", "_relativityMonster", "_saberForceMonster", "_sourceTerminalDigitizeMonster", "_voteMonster"];
+var locationProperties = ["autumnatonQuestLocation", "currentJunkyardLocation", "doctorBagQuestLocation", "ghostLocation", "guzzlrQuestLocation", "lastAdventure", "nextAdventure", "nextSpookyravenElizabethRoom", "nextSpookyravenStephenRoom", "rwbLocation", "sourceOracleTarget", "_floundryBassLocation", "_floundryCarpLocation", "_floundryCodLocation", "_floundryHatchetfishLocation", "_floundryTroutLocation", "_floundryTunaLocation", "_sotParcelLocation"];
+var stringProperties = ["autoLogin", "browserBookmarks", "chatFontSize", "combatHotkey0", "combatHotkey1", "combatHotkey2", "combatHotkey3", "combatHotkey4", "combatHotkey5", "combatHotkey6", "combatHotkey7", "combatHotkey8", "combatHotkey9", "commandBufferGCLI", "commandBufferTabbedChat", "commandLineNamespace", "dailyDeedsOptions", "defaultBorderColor", "displayName", "externalEditor", "getBreakfast", "headerStates", "highlightList", "http.proxyHost", "http.proxyPassword", "http.proxyPort", "http.proxyUser", "https.proxyHost", "https.proxyPassword", "https.proxyPort", "https.proxyUser", "initialDesktop", "initialFrames", "lastRelayUpdate", "lastUserAgent", "lastUsername", "logPreferenceChangeFilter", "loginScript", "loginServerName", "loginWindowLogo", "logoutScript", "pingDefaultTestPage", "pingLatest", "pingLoginAbort", "pingLoginCheck", "pingLoginFail", "pingLongest", "pingShortest", "pingTestPage", "previousNotifyList", "previousUpdateVersion", "saveState", "saveStateActive", "scriptList", "swingLookAndFeel", "userAgent", "8BitColor", "afterAdventureScript", "autoOlfact", "autoPutty", "autumnatonUpgrades", "backupCameraMode", "banishedMonsters", "banishedPhyla", "banishingShoutMonsters", "batmanStats", "batmanZone", "batmanUpgrades", "battleAction", "beachHeadsUnlocked", "beforePVPScript", "betweenBattleScript", "boomBoxSong", "breakfastAlways", "breakfastHardcore", "breakfastSoftcore", "buffBotCasting", "buyScript", "cargoPocketsEmptied", "cargoPocketScraps", "chatbotScript", "chatPlayerScript", "chibiName", "choiceAdventureScript", "chosenTrip", "clanFortuneReply1", "clanFortuneReply2", "clanFortuneReply3", "clanFortuneWord1", "clanFortuneWord2", "clanFortuneWord3", "commerceGhostItem", "counterScript", "copperheadClubHazard", "crimbotChassis", "crimbotArm", "crimbotPropulsion", "crystalBallPredictions", "csServicesPerformed", "currentAstralTrip", "currentDistillateMods", "currentEasyBountyItem", "currentHardBountyItem", "currentHippyStore", "currentJunkyardTool", "currentLlamaForm", "currentMood", "currentPVPSeason", "currentPvpVictories", "currentSpecialBountyItem", "currentSITSkill", "customCombatScript", "cyrusAdjectives", "defaultFlowerLossMessage", "defaultFlowerWinMessage", "demonName1", "demonName2", "demonName3", "demonName4", "demonName5", "demonName6", "demonName7", "demonName8", "demonName9", "demonName10", "demonName11", "demonName12", "demonName13", "dinseyGatorStenchDamage", "dinseyRollercoasterStats", "doctorBagQuestItem", "dolphinItem", "duckAreasCleared", "duckAreasSelected", "edPiece", "enamorangMonsterTurn", "ensorcelee", "EVEDirections", "extraCosmeticModifiers", "familiarScript", "forbiddenStores", "gameProBossSpecialPower", "gooseReprocessed", "grimoireSkillsHardcore", "grimoireSkillsSoftcore", "grimstoneMaskPath", "guzzlrQuestClient", "guzzlrQuestBooze", "guzzlrQuestTier", "harvestGardenHardcore", "harvestGardenSoftcore", "hpAutoRecoveryItems", "invalidBuffMessage", "jickSwordModifier", "juneCleaverQueue", "kingLiberatedScript", "lassoTraining", "lastBangPotion819", "lastBangPotion820", "lastBangPotion821", "lastBangPotion822", "lastBangPotion823", "lastBangPotion824", "lastBangPotion825", "lastBangPotion826", "lastBangPotion827", "lastChanceBurn", "lastChessboard", "lastCombatEnvironments", "lastDwarfDiceRolls", "lastDwarfDigitRunes", "lastDwarfEquipmentRunes", "lastDwarfFactoryItem118", "lastDwarfFactoryItem119", "lastDwarfFactoryItem120", "lastDwarfFactoryItem360", "lastDwarfFactoryItem361", "lastDwarfFactoryItem362", "lastDwarfFactoryItem363", "lastDwarfFactoryItem364", "lastDwarfFactoryItem365", "lastDwarfFactoryItem910", "lastDwarfFactoryItem3199", "lastDwarfOfficeItem3208", "lastDwarfOfficeItem3209", "lastDwarfOfficeItem3210", "lastDwarfOfficeItem3211", "lastDwarfOfficeItem3212", "lastDwarfOfficeItem3213", "lastDwarfOfficeItem3214", "lastDwarfOreRunes", "lastDwarfHopper1", "lastDwarfHopper2", "lastDwarfHopper3", "lastDwarfHopper4", "lastEncounter", "lastMacroError", "lastMessageId", "lastPaperStrip3144", "lastPaperStrip4138", "lastPaperStrip4139", "lastPaperStrip4140", "lastPaperStrip4141", "lastPaperStrip4142", "lastPaperStrip4143", "lastPaperStrip4144", "lastPirateEphemera", "lastPorkoBoard", "lastPorkoPayouts", "lastPorkoExpected", "lastSlimeVial3885", "lastSlimeVial3886", "lastSlimeVial3887", "lastSlimeVial3888", "lastSlimeVial3889", "lastSlimeVial3890", "lastSlimeVial3891", "lastSlimeVial3892", "lastSlimeVial3893", "lastSlimeVial3894", "lastSlimeVial3895", "lastSlimeVial3896", "latteIngredients", "latteModifier", "latteUnlocks", "ledCandleMode", "libramSkillsHardcore", "libramSkillsSoftcore", "louvreOverride", "lovePotion", "lttQuestName", "maximizerList", "maximizerMRUList", "mayoInMouth", "mayoMinderSetting", "merkinQuestPath", "mineLayout1", "mineLayout2", "mineLayout3", "mineLayout4", "mineLayout5", "mineLayout6", "mpAutoRecoveryItems", "muffinOnOrder", "nextDistillateMods", "nextQuantumFamiliarName", "nextQuantumFamiliarOwner", "nsChallenge2", "nsChallenge3", "nsChallenge4", "nsChallenge5", "nsTowerDoorKeysUsed", "oceanAction", "oceanDestination", "parkaMode", "pastaThrall1", "pastaThrall2", "pastaThrall3", "pastaThrall4", "pastaThrall5", "pastaThrall6", "pastaThrall7", "pastaThrall8", "peteMotorbikeTires", "peteMotorbikeGasTank", "peteMotorbikeHeadlight", "peteMotorbikeCowling", "peteMotorbikeMuffler", "peteMotorbikeSeat", "pieStuffing", "plantingDate", "plantingLength", "plantingScript", "plumberCostumeWorn", "pokefamBoosts", "postAscensionScript", "preAscensionScript", "questClumsinessGrove", "questDoctorBag", "questECoBucket", "questESlAudit", "questESlBacteria", "questESlCheeseburger", "questESlCocktail", "questESlDebt", "questESlFish", "questESlMushStash", "questESlSalt", "questESlSprinkles", "questESpClipper", "questESpEVE", "questESpFakeMedium", "questESpGore", "questESpJunglePun", "questESpOutOfOrder", "questESpSerum", "questESpSmokes", "questEStFishTrash", "questEStGiveMeFuel", "questEStNastyBears", "questEStSocialJusticeI", "questEStSocialJusticeII", "questEStSuperLuber", "questEStWorkWithFood", "questEStZippityDooDah", "questEUNewYou", "questF01Primordial", "questF02Hyboria", "questF03Future", "questF04Elves", "questF05Clancy", "questG01Meatcar", "questG02Whitecastle", "questG03Ego", "questG04Nemesis", "questG05Dark", "questG06Delivery", "questG07Myst", "questG08Moxie", "questG09Muscle", "questGlacierOfJerks", "questGuzzlr", "questI01Scapegoat", "questI02Beat", "questL02Larva", "questL03Rat", "questL04Bat", "questL05Goblin", "questL06Friar", "questL07Cyrptic", "questL08Trapper", "questL09Topping", "questL10Garbage", "questL11Black", "questL11Business", "questL11Curses", "questL11Desert", "questL11Doctor", "questL11MacGuffin", "questL11Manor", "questL11Palindome", "questL11Pyramid", "questL11Ron", "questL11Shen", "questL11Spare", "questL11Worship", "questL12HippyFrat", "questL12War", "questL13Final", "questL13Warehouse", "questLTTQuestByWire", "questM01Untinker", "questM02Artist", "questM03Bugbear", "questM05Toot", "questM06Gourd", "questM07Hammer", "questM08Baker", "questM09Rocks", "questM10Azazel", "questM11Postal", "questM12Pirate", "questM13Escape", "questM14Bounty", "questM15Lol", "questM16Temple", "questM17Babies", "questM18Swamp", "questM19Hippy", "questM20Necklace", "questM21Dance", "questM22Shirt", "questM23Meatsmith", "questM24Doc", "questM25Armorer", "questM26Oracle", "questMaelstromOfLovers", "questPAGhost", "questRufus", "questS01OldGuy", "questS02Monkees", "raveCombo1", "raveCombo2", "raveCombo3", "raveCombo4", "raveCombo5", "raveCombo6", "recoveryScript", "relayCounters", "retroCapeSuperhero", "retroCapeWashingInstructions", "royalty", "rufusDesiredArtifact", "rufusDesiredItems", "rufusQuestTarget", "rufusQuestType", "scriptMRUList", "seahorseName", "shadowLabyrinthGoal", "shadowRiftIngress", "shenQuestItem", "shrubGarland", "shrubGifts", "shrubLights", "shrubTopper", "sideDefeated", "sidequestArenaCompleted", "sidequestFarmCompleted", "sidequestJunkyardCompleted", "sidequestLighthouseCompleted", "sidequestNunsCompleted", "sidequestOrchardCompleted", "skateParkStatus", "snowsuit", "sourceTerminalChips", "sourceTerminalEducate1", "sourceTerminalEducate2", "sourceTerminalEnquiry", "sourceTerminalEducateKnown", "sourceTerminalEnhanceKnown", "sourceTerminalEnquiryKnown", "sourceTerminalExtrudeKnown", "spadingData", "spadingScript", "speakeasyName", "spelunkyStatus", "spelunkyUpgrades", "spookyravenRecipeUsed", "stationaryButton1", "stationaryButton2", "stationaryButton3", "stationaryButton4", "stationaryButton5", "streamCrossDefaultTarget", "sweetSynthesisBlacklist", "telescope1", "telescope2", "telescope3", "telescope4", "telescope5", "testudinalTeachings", "textColors", "thanksMessage", "tomeSkillsHardcore", "tomeSkillsSoftcore", "trackVoteMonster", "trainsetConfiguration", "trapperOre", "umbrellaState", "umdLastObtained", "vintnerWineEffect", "vintnerWineName", "vintnerWineType", "violetFogLayout", "volcanoMaze1", "volcanoMaze2", "volcanoMaze3", "volcanoMaze4", "volcanoMaze5", "walfordBucketItem", "warProgress", "watchedPreferences", "workteaClue", "yourFavoriteBird", "yourFavoriteBirdMods", "youRobotCPUUpgrades", "_automatedFutureSide", "_bastilleBoosts", "_bastilleChoice1", "_bastilleChoice2", "_bastilleChoice3", "_bastilleCurrentStyles", "_bastilleEnemyCastle", "_bastilleEnemyName", "_bastilleLastBattleResults", "_bastilleLastEncounter", "_bastilleStats", "_beachHeadsUsed", "_beachLayout", "_beachMinutes", "_birdOfTheDay", "_birdOfTheDayMods", "_bittycar", "_campAwaySmileBuffSign", "_citizenZone", "_citizenZoneMods", "_cloudTalkMessage", "_cloudTalkSmoker", "_coatOfPaintModifier", "_dailySpecial", "_deckCardsSeen", "_feastedFamiliars", "_floristPlantsUsed", "_frAreasUnlocked", "_frHoursLeft", "_frMonstersKilled", "_horsery", "_horseryCrazyMox", "_horseryCrazyMus", "_horseryCrazyMys", "_horseryCrazyName", "_horseryCurrentName", "_horseryDarkName", "_horseryNormalName", "_horseryPaleName", "_jickJarAvailable", "_jiggleCheesedMonsters", "_lastCombatStarted", "_lastPirateRealmIsland", "_locketMonstersFought", "_mummeryMods", "_mummeryUses", "_newYouQuestSkill", "_noHatModifier", "_pantogramModifier", "_pottedPowerPlant", "_questESp", "_questPartyFair", "_questPartyFairProgress", "_questPartyFairQuest", "_roboDrinks", "_roninStoragePulls", "_spacegateAnimalLife", "_spacegateCoordinates", "_spacegateGear", "_spacegateHazards", "_spacegateIntelligentLife", "_spacegatePlanetName", "_spacegatePlantLife", "_stolenAccordions", "_tempRelayCounters", "_timeSpinnerFoodAvailable", "_unknownEasyBountyItem", "_unknownHardBountyItem", "_unknownSpecialBountyItem", "_untakenEasyBountyItem", "_untakenHardBountyItem", "_untakenSpecialBountyItem", "_userMods", "_villainLairColor", "_villainLairKey", "_voteLocal1", "_voteLocal2", "_voteLocal3", "_voteLocal4", "_voteMonster1", "_voteMonster2", "_voteModifier", "_VYKEACompanionType", "_VYKEACompanionRune", "_VYKEACompanionName"];
+var numericOrStringProperties = ["statusEngineering", "statusGalley", "statusMedbay", "statusMorgue", "statusNavigation", "statusScienceLab", "statusSonar", "statusSpecialOps", "statusWasteProcessing", "choiceAdventure2", "choiceAdventure3", "choiceAdventure4", "choiceAdventure5", "choiceAdventure6", "choiceAdventure7", "choiceAdventure8", "choiceAdventure9", "choiceAdventure10", "choiceAdventure11", "choiceAdventure12", "choiceAdventure14", "choiceAdventure15", "choiceAdventure16", "choiceAdventure17", "choiceAdventure18", "choiceAdventure19", "choiceAdventure20", "choiceAdventure21", "choiceAdventure22", "choiceAdventure23", "choiceAdventure24", "choiceAdventure25", "choiceAdventure26", "choiceAdventure27", "choiceAdventure28", "choiceAdventure29", "choiceAdventure40", "choiceAdventure41", "choiceAdventure42", "choiceAdventure45", "choiceAdventure46", "choiceAdventure47", "choiceAdventure71", "choiceAdventure72", "choiceAdventure73", "choiceAdventure74", "choiceAdventure75", "choiceAdventure76", "choiceAdventure77", "choiceAdventure86", "choiceAdventure87", "choiceAdventure88", "choiceAdventure89", "choiceAdventure90", "choiceAdventure91", "choiceAdventure105", "choiceAdventure106", "choiceAdventure107", "choiceAdventure108", "choiceAdventure109", "choiceAdventure110", "choiceAdventure111", "choiceAdventure112", "choiceAdventure113", "choiceAdventure114", "choiceAdventure115", "choiceAdventure116", "choiceAdventure117", "choiceAdventure118", "choiceAdventure120", "choiceAdventure123", "choiceAdventure125", "choiceAdventure126", "choiceAdventure127", "choiceAdventure129", "choiceAdventure131", "choiceAdventure132", "choiceAdventure135", "choiceAdventure136", "choiceAdventure137", "choiceAdventure138", "choiceAdventure139", "choiceAdventure140", "choiceAdventure141", "choiceAdventure142", "choiceAdventure143", "choiceAdventure144", "choiceAdventure145", "choiceAdventure146", "choiceAdventure147", "choiceAdventure148", "choiceAdventure149", "choiceAdventure151", "choiceAdventure152", "choiceAdventure153", "choiceAdventure154", "choiceAdventure155", "choiceAdventure156", "choiceAdventure157", "choiceAdventure158", "choiceAdventure159", "choiceAdventure160", "choiceAdventure161", "choiceAdventure162", "choiceAdventure163", "choiceAdventure164", "choiceAdventure165", "choiceAdventure166", "choiceAdventure167", "choiceAdventure168", "choiceAdventure169", "choiceAdventure170", "choiceAdventure171", "choiceAdventure172", "choiceAdventure177", "choiceAdventure178", "choiceAdventure180", "choiceAdventure181", "choiceAdventure182", "choiceAdventure184", "choiceAdventure185", "choiceAdventure186", "choiceAdventure187", "choiceAdventure188", "choiceAdventure189", "choiceAdventure191", "choiceAdventure197", "choiceAdventure198", "choiceAdventure199", "choiceAdventure200", "choiceAdventure201", "choiceAdventure202", "choiceAdventure203", "choiceAdventure204", "choiceAdventure205", "choiceAdventure206", "choiceAdventure207", "choiceAdventure208", "choiceAdventure211", "choiceAdventure212", "choiceAdventure213", "choiceAdventure214", "choiceAdventure215", "choiceAdventure216", "choiceAdventure217", "choiceAdventure218", "choiceAdventure219", "choiceAdventure220", "choiceAdventure221", "choiceAdventure222", "choiceAdventure223", "choiceAdventure224", "choiceAdventure225", "choiceAdventure230", "choiceAdventure272", "choiceAdventure273", "choiceAdventure276", "choiceAdventure277", "choiceAdventure278", "choiceAdventure279", "choiceAdventure280", "choiceAdventure281", "choiceAdventure282", "choiceAdventure283", "choiceAdventure284", "choiceAdventure285", "choiceAdventure286", "choiceAdventure287", "choiceAdventure288", "choiceAdventure289", "choiceAdventure290", "choiceAdventure291", "choiceAdventure292", "choiceAdventure293", "choiceAdventure294", "choiceAdventure295", "choiceAdventure296", "choiceAdventure297", "choiceAdventure298", "choiceAdventure299", "choiceAdventure302", "choiceAdventure303", "choiceAdventure304", "choiceAdventure305", "choiceAdventure306", "choiceAdventure307", "choiceAdventure308", "choiceAdventure309", "choiceAdventure310", "choiceAdventure311", "choiceAdventure317", "choiceAdventure318", "choiceAdventure319", "choiceAdventure320", "choiceAdventure321", "choiceAdventure322", "choiceAdventure326", "choiceAdventure327", "choiceAdventure328", "choiceAdventure329", "choiceAdventure330", "choiceAdventure331", "choiceAdventure332", "choiceAdventure333", "choiceAdventure334", "choiceAdventure335", "choiceAdventure336", "choiceAdventure337", "choiceAdventure338", "choiceAdventure339", "choiceAdventure340", "choiceAdventure341", "choiceAdventure342", "choiceAdventure343", "choiceAdventure344", "choiceAdventure345", "choiceAdventure346", "choiceAdventure347", "choiceAdventure348", "choiceAdventure349", "choiceAdventure350", "choiceAdventure351", "choiceAdventure352", "choiceAdventure353", "choiceAdventure354", "choiceAdventure355", "choiceAdventure356", "choiceAdventure357", "choiceAdventure358", "choiceAdventure360", "choiceAdventure361", "choiceAdventure362", "choiceAdventure363", "choiceAdventure364", "choiceAdventure365", "choiceAdventure366", "choiceAdventure367", "choiceAdventure372", "choiceAdventure376", "choiceAdventure387", "choiceAdventure388", "choiceAdventure389", "choiceAdventure390", "choiceAdventure391", "choiceAdventure392", "choiceAdventure393", "choiceAdventure395", "choiceAdventure396", "choiceAdventure397", "choiceAdventure398", "choiceAdventure399", "choiceAdventure400", "choiceAdventure401", "choiceAdventure402", "choiceAdventure403", "choiceAdventure423", "choiceAdventure424", "choiceAdventure425", "choiceAdventure426", "choiceAdventure427", "choiceAdventure428", "choiceAdventure429", "choiceAdventure430", "choiceAdventure431", "choiceAdventure432", "choiceAdventure433", "choiceAdventure435", "choiceAdventure438", "choiceAdventure439", "choiceAdventure442", "choiceAdventure444", "choiceAdventure445", "choiceAdventure446", "choiceAdventure447", "choiceAdventure448", "choiceAdventure449", "choiceAdventure451", "choiceAdventure452", "choiceAdventure453", "choiceAdventure454", "choiceAdventure455", "choiceAdventure456", "choiceAdventure457", "choiceAdventure458", "choiceAdventure460", "choiceAdventure461", "choiceAdventure462", "choiceAdventure463", "choiceAdventure464", "choiceAdventure465", "choiceAdventure467", "choiceAdventure468", "choiceAdventure469", "choiceAdventure470", "choiceAdventure471", "choiceAdventure472", "choiceAdventure473", "choiceAdventure474", "choiceAdventure475", "choiceAdventure477", "choiceAdventure478", "choiceAdventure480", "choiceAdventure483", "choiceAdventure484", "choiceAdventure485", "choiceAdventure486", "choiceAdventure488", "choiceAdventure489", "choiceAdventure490", "choiceAdventure491", "choiceAdventure496", "choiceAdventure497", "choiceAdventure502", "choiceAdventure503", "choiceAdventure504", "choiceAdventure505", "choiceAdventure506", "choiceAdventure507", "choiceAdventure509", "choiceAdventure510", "choiceAdventure511", "choiceAdventure512", "choiceAdventure513", "choiceAdventure514", "choiceAdventure515", "choiceAdventure517", "choiceAdventure518", "choiceAdventure519", "choiceAdventure521", "choiceAdventure522", "choiceAdventure523", "choiceAdventure527", "choiceAdventure528", "choiceAdventure529", "choiceAdventure530", "choiceAdventure531", "choiceAdventure532", "choiceAdventure533", "choiceAdventure534", "choiceAdventure535", "choiceAdventure536", "choiceAdventure538", "choiceAdventure539", "choiceAdventure542", "choiceAdventure543", "choiceAdventure544", "choiceAdventure546", "choiceAdventure548", "choiceAdventure549", "choiceAdventure550", "choiceAdventure551", "choiceAdventure552", "choiceAdventure553", "choiceAdventure554", "choiceAdventure556", "choiceAdventure557", "choiceAdventure558", "choiceAdventure559", "choiceAdventure560", "choiceAdventure561", "choiceAdventure562", "choiceAdventure563", "choiceAdventure564", "choiceAdventure565", "choiceAdventure566", "choiceAdventure567", "choiceAdventure568", "choiceAdventure569", "choiceAdventure571", "choiceAdventure572", "choiceAdventure573", "choiceAdventure574", "choiceAdventure575", "choiceAdventure576", "choiceAdventure577", "choiceAdventure578", "choiceAdventure579", "choiceAdventure581", "choiceAdventure582", "choiceAdventure583", "choiceAdventure584", "choiceAdventure594", "choiceAdventure595", "choiceAdventure596", "choiceAdventure597", "choiceAdventure598", "choiceAdventure599", "choiceAdventure600", "choiceAdventure603", "choiceAdventure604", "choiceAdventure616", "choiceAdventure634", "choiceAdventure640", "choiceAdventure654", "choiceAdventure655", "choiceAdventure656", "choiceAdventure657", "choiceAdventure658", "choiceAdventure664", "choiceAdventure669", "choiceAdventure670", "choiceAdventure671", "choiceAdventure672", "choiceAdventure673", "choiceAdventure674", "choiceAdventure675", "choiceAdventure676", "choiceAdventure677", "choiceAdventure678", "choiceAdventure679", "choiceAdventure681", "choiceAdventure683", "choiceAdventure684", "choiceAdventure685", "choiceAdventure686", "choiceAdventure687", "choiceAdventure688", "choiceAdventure689", "choiceAdventure690", "choiceAdventure691", "choiceAdventure692", "choiceAdventure693", "choiceAdventure694", "choiceAdventure695", "choiceAdventure696", "choiceAdventure697", "choiceAdventure698", "choiceAdventure700", "choiceAdventure701", "choiceAdventure705", "choiceAdventure706", "choiceAdventure707", "choiceAdventure708", "choiceAdventure709", "choiceAdventure710", "choiceAdventure711", "choiceAdventure712", "choiceAdventure713", "choiceAdventure714", "choiceAdventure715", "choiceAdventure716", "choiceAdventure717", "choiceAdventure721", "choiceAdventure725", "choiceAdventure729", "choiceAdventure733", "choiceAdventure737", "choiceAdventure741", "choiceAdventure745", "choiceAdventure749", "choiceAdventure753", "choiceAdventure771", "choiceAdventure778", "choiceAdventure780", "choiceAdventure781", "choiceAdventure783", "choiceAdventure784", "choiceAdventure785", "choiceAdventure786", "choiceAdventure787", "choiceAdventure788", "choiceAdventure789", "choiceAdventure791", "choiceAdventure793", "choiceAdventure794", "choiceAdventure795", "choiceAdventure796", "choiceAdventure797", "choiceAdventure803", "choiceAdventure805", "choiceAdventure808", "choiceAdventure809", "choiceAdventure813", "choiceAdventure815", "choiceAdventure830", "choiceAdventure832", "choiceAdventure833", "choiceAdventure834", "choiceAdventure835", "choiceAdventure837", "choiceAdventure838", "choiceAdventure839", "choiceAdventure840", "choiceAdventure841", "choiceAdventure842", "choiceAdventure851", "choiceAdventure852", "choiceAdventure853", "choiceAdventure854", "choiceAdventure855", "choiceAdventure856", "choiceAdventure857", "choiceAdventure858", "choiceAdventure866", "choiceAdventure873", "choiceAdventure875", "choiceAdventure876", "choiceAdventure877", "choiceAdventure878", "choiceAdventure879", "choiceAdventure880", "choiceAdventure881", "choiceAdventure882", "choiceAdventure888", "choiceAdventure889", "choiceAdventure918", "choiceAdventure919", "choiceAdventure920", "choiceAdventure921", "choiceAdventure923", "choiceAdventure924", "choiceAdventure925", "choiceAdventure926", "choiceAdventure927", "choiceAdventure928", "choiceAdventure929", "choiceAdventure930", "choiceAdventure931", "choiceAdventure932", "choiceAdventure940", "choiceAdventure941", "choiceAdventure942", "choiceAdventure943", "choiceAdventure944", "choiceAdventure945", "choiceAdventure946", "choiceAdventure950", "choiceAdventure955", "choiceAdventure957", "choiceAdventure958", "choiceAdventure959", "choiceAdventure960", "choiceAdventure961", "choiceAdventure962", "choiceAdventure963", "choiceAdventure964", "choiceAdventure965", "choiceAdventure966", "choiceAdventure970", "choiceAdventure973", "choiceAdventure974", "choiceAdventure975", "choiceAdventure976", "choiceAdventure977", "choiceAdventure979", "choiceAdventure980", "choiceAdventure981", "choiceAdventure982", "choiceAdventure983", "choiceAdventure988", "choiceAdventure989", "choiceAdventure993", "choiceAdventure998", "choiceAdventure1000", "choiceAdventure1003", "choiceAdventure1005", "choiceAdventure1006", "choiceAdventure1007", "choiceAdventure1008", "choiceAdventure1009", "choiceAdventure1010", "choiceAdventure1011", "choiceAdventure1012", "choiceAdventure1013", "choiceAdventure1015", "choiceAdventure1016", "choiceAdventure1017", "choiceAdventure1018", "choiceAdventure1019", "choiceAdventure1020", "choiceAdventure1021", "choiceAdventure1022", "choiceAdventure1023", "choiceAdventure1026", "choiceAdventure1027", "choiceAdventure1028", "choiceAdventure1029", "choiceAdventure1030", "choiceAdventure1031", "choiceAdventure1032", "choiceAdventure1033", "choiceAdventure1034", "choiceAdventure1035", "choiceAdventure1036", "choiceAdventure1037", "choiceAdventure1038", "choiceAdventure1039", "choiceAdventure1040", "choiceAdventure1041", "choiceAdventure1042", "choiceAdventure1044", "choiceAdventure1045", "choiceAdventure1046", "choiceAdventure1048", "choiceAdventure1051", "choiceAdventure1052", "choiceAdventure1053", "choiceAdventure1054", "choiceAdventure1055", "choiceAdventure1056", "choiceAdventure1057", "choiceAdventure1059", "choiceAdventure1060", "choiceAdventure1061", "choiceAdventure1062", "choiceAdventure1065", "choiceAdventure1067", "choiceAdventure1068", "choiceAdventure1069", "choiceAdventure1070", "choiceAdventure1071", "choiceAdventure1073", "choiceAdventure1077", "choiceAdventure1080", "choiceAdventure1081", "choiceAdventure1082", "choiceAdventure1083", "choiceAdventure1084", "choiceAdventure1085", "choiceAdventure1091", "choiceAdventure1094", "choiceAdventure1095", "choiceAdventure1096", "choiceAdventure1097", "choiceAdventure1102", "choiceAdventure1106", "choiceAdventure1107", "choiceAdventure1108", "choiceAdventure1110", "choiceAdventure1114", "choiceAdventure1115", "choiceAdventure1116", "choiceAdventure1118", "choiceAdventure1119", "choiceAdventure1120", "choiceAdventure1121", "choiceAdventure1122", "choiceAdventure1123", "choiceAdventure1171", "choiceAdventure1172", "choiceAdventure1173", "choiceAdventure1174", "choiceAdventure1175", "choiceAdventure1193", "choiceAdventure1195", "choiceAdventure1196", "choiceAdventure1197", "choiceAdventure1198", "choiceAdventure1199", "choiceAdventure1202", "choiceAdventure1203", "choiceAdventure1204", "choiceAdventure1205", "choiceAdventure1206", "choiceAdventure1207", "choiceAdventure1208", "choiceAdventure1209", "choiceAdventure1210", "choiceAdventure1211", "choiceAdventure1212", "choiceAdventure1213", "choiceAdventure1214", "choiceAdventure1215", "choiceAdventure1219", "choiceAdventure1222", "choiceAdventure1223", "choiceAdventure1224", "choiceAdventure1225", "choiceAdventure1226", "choiceAdventure1227", "choiceAdventure1228", "choiceAdventure1229", "choiceAdventure1236", "choiceAdventure1237", "choiceAdventure1238", "choiceAdventure1239", "choiceAdventure1240", "choiceAdventure1241", "choiceAdventure1242", "choiceAdventure1243", "choiceAdventure1244", "choiceAdventure1245", "choiceAdventure1246", "choiceAdventure1247", "choiceAdventure1248", "choiceAdventure1249", "choiceAdventure1250", "choiceAdventure1251", "choiceAdventure1252", "choiceAdventure1253", "choiceAdventure1254", "choiceAdventure1255", "choiceAdventure1256", "choiceAdventure1266", "choiceAdventure1280", "choiceAdventure1281", "choiceAdventure1282", "choiceAdventure1283", "choiceAdventure1284", "choiceAdventure1285", "choiceAdventure1286", "choiceAdventure1287", "choiceAdventure1288", "choiceAdventure1289", "choiceAdventure1290", "choiceAdventure1291", "choiceAdventure1292", "choiceAdventure1293", "choiceAdventure1294", "choiceAdventure1295", "choiceAdventure1296", "choiceAdventure1297", "choiceAdventure1298", "choiceAdventure1299", "choiceAdventure1300", "choiceAdventure1301", "choiceAdventure1302", "choiceAdventure1303", "choiceAdventure1304", "choiceAdventure1305", "choiceAdventure1307", "choiceAdventure1310", "choiceAdventure1312", "choiceAdventure1313", "choiceAdventure1314", "choiceAdventure1315", "choiceAdventure1316", "choiceAdventure1317", "choiceAdventure1318", "choiceAdventure1319", "choiceAdventure1321", "choiceAdventure1322", "choiceAdventure1323", "choiceAdventure1324", "choiceAdventure1325", "choiceAdventure1326", "choiceAdventure1327", "choiceAdventure1328", "choiceAdventure1332", "choiceAdventure1333", "choiceAdventure1335", "choiceAdventure1340", "choiceAdventure1341", "choiceAdventure1345", "choiceAdventure1389", "choiceAdventure1392", "choiceAdventure1397", "choiceAdventure1399", "choiceAdventure1405", "choiceAdventure1411", "choiceAdventure1415", "choiceAdventure1427", "choiceAdventure1428", "choiceAdventure1429", "choiceAdventure1430", "choiceAdventure1431", "choiceAdventure1432", "choiceAdventure1433", "choiceAdventure1434", "choiceAdventure1436", "choiceAdventure1460", "choiceAdventure1461", "choiceAdventure1467", "choiceAdventure1468", "choiceAdventure1469", "choiceAdventure1470", "choiceAdventure1471", "choiceAdventure1472", "choiceAdventure1473", "choiceAdventure1474", "choiceAdventure1475", "choiceAdventure1486", "choiceAdventure1487", "choiceAdventure1488", "choiceAdventure1489", "choiceAdventure1491", "choiceAdventure1494", "choiceAdventure1505"];
 var familiarProperties = ["commaFamiliar", "nextQuantumFamiliar", "stillsuitFamiliar"];
 var statProperties = ["nsChallenge1", "snojoSetting"];
-var phylumProperties = ["dnaSyringe", "locketPhylum", "redSnapperPhylum"];
+var phylumProperties = ["dnaSyringe", "locketPhylum", "redSnapperPhylum", "_circadianRhythmsPhylum"];
 ;// CONCATENATED MODULE: ./node_modules/libram/dist/propertyTyping.js
 
 var booleanPropertiesSet = new Set(booleanProperties);
@@ -2470,7 +2574,7 @@ function isBooleanProperty(property) {
  * @returns Whether the supplied property has a numeric value
  */
 
-function isNumericProperty(property) {
+function propertyTyping_isNumericProperty(property) {
   return numericPropertiesSet.has(property);
 }
 /**
@@ -2621,7 +2725,7 @@ function property_get(property, _default) {
     var _getBoolean;
 
     return (_getBoolean = getBoolean(property, _default)) !== null && _getBoolean !== void 0 ? _getBoolean : false;
-  } else if (isNumericProperty(property)) {
+  } else if (propertyTyping_isNumericProperty(property)) {
     var _getNumber;
 
     return (_getNumber = getNumber(property, _default)) !== null && _getNumber !== void 0 ? _getNumber : 0;
@@ -2667,19 +2771,55 @@ function property_get(property, _default) {
  *
  * @param property Name of the property
  * @param value Value to give the property
+ * @returns Value that was set
  */
 
 function _set(property, value) {
   var stringValue = value === null ? "" : value.toString();
   (0,external_kolmafia_namespaceObject.setProperty)(property, stringValue);
+  return value;
+}
+/**
+ * Increment a property
+ *
+ * @param property Numeric property to increment
+ * @param delta Number by which to increment
+ * @param max Maximum value to set
+ * @returns New value
+ */
+
+
+
+function increment(property) {
+  var delta = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var max = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : Infinity;
+  var value = property_get(property);
+  if (!isNumericProperty(property)) return value;
+  var nextValue = Math.min(max, value + delta);
+  return _set(property, nextValue);
+}
+/**
+ * Decrement a property
+ *
+ * @param property Numeric property to decrement
+ * @param delta Number by which to decrement
+ * @param min Maximum value to set
+ * @returns New value
+ */
+
+function decrement(property) {
+  var delta = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var min = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : Infinity;
+  var value = property_get(property);
+  if (!isNumericProperty(property)) return value;
+  var nextValue = Math.max(min, value - delta);
+  return _set(property, nextValue);
 }
 /**
  * Sets the value of a set of mafia properties
  *
  * @param properties Set of properties
  */
-
-
 
 function setProperties(properties) {
   for (var _i = 0, _Object$entries = Object.entries(properties); _i < _Object$entries.length; _i++) {
@@ -2781,8 +2921,8 @@ var PropertiesManager = /*#__PURE__*/function () {
             propertyName = _Object$entries2$_i[0],
             propertyValue = _Object$entries2$_i[1];
 
-        if (this.properties[propertyName] === undefined) {
-          this.properties[propertyName] = property_get(propertyName);
+        if (!(propertyName in this.properties)) {
+          this.properties[propertyName] = (0,external_kolmafia_namespaceObject.propertyExists)(propertyName) ? property_get(propertyName) : PropertiesManager.EMPTY_PREFERENCE;
         }
 
         _set(propertyName, propertyValue);
@@ -2832,10 +2972,15 @@ var PropertiesManager = /*#__PURE__*/function () {
 
       for (var _i3 = 0, _properties = properties; _i3 < _properties.length; _i3++) {
         var property = _properties[_i3];
+        if (!(property in this.properties)) continue;
         var value = this.properties[property];
 
-        if (value) {
+        if (value === PropertiesManager.EMPTY_PREFERENCE) {
+          (0,external_kolmafia_namespaceObject.removeProperty)(property);
+        } else if (value) {
           _set(property, value);
+        } else {
+          _set(property, "");
         }
       }
     }
@@ -3004,6 +3149,8 @@ var PropertiesManager = /*#__PURE__*/function () {
 
   return PropertiesManager;
 }();
+
+property_defineProperty(PropertiesManager, "EMPTY_PREFERENCE", Symbol("empty preference"));
 ;// CONCATENATED MODULE: ./node_modules/libram/dist/combat.js
 function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
 
@@ -4781,7 +4928,7 @@ logger_defineProperty(Logger, "currentLevel", LogLevels.ERROR);
 
 /* harmony default export */ const dist_logger = (new Logger());
 ;// CONCATENATED MODULE: ./node_modules/libram/dist/maximize.js
-var maximize_templateObject, maximize_templateObject2, maximize_templateObject3, maximize_templateObject4, maximize_templateObject5, maximize_templateObject6, maximize_templateObject7, maximize_templateObject8, maximize_templateObject9, maximize_templateObject10, maximize_templateObject11, maximize_templateObject12, maximize_templateObject13, maximize_templateObject14, maximize_templateObject15, maximize_templateObject16, maximize_templateObject17, maximize_templateObject18, maximize_templateObject19, maximize_templateObject20, maximize_templateObject21, maximize_templateObject22, maximize_templateObject23, maximize_templateObject24, maximize_templateObject25, maximize_templateObject26, maximize_templateObject27, maximize_templateObject28, maximize_templateObject29, maximize_templateObject30, maximize_templateObject31, maximize_templateObject32, maximize_templateObject33, maximize_templateObject34, _templateObject35, _templateObject36, _templateObject37, _templateObject38, _templateObject39, _templateObject40, _templateObject41, _templateObject42, _templateObject43, _templateObject44, _templateObject45, _templateObject46, _templateObject47, _templateObject48;
+var maximize_templateObject, maximize_templateObject2, maximize_templateObject3, maximize_templateObject4, maximize_templateObject5, maximize_templateObject6, maximize_templateObject7, maximize_templateObject8, maximize_templateObject9, maximize_templateObject10, maximize_templateObject11, maximize_templateObject12, maximize_templateObject13, maximize_templateObject14, maximize_templateObject15, maximize_templateObject16, maximize_templateObject17, maximize_templateObject18, maximize_templateObject19, maximize_templateObject20, maximize_templateObject21, maximize_templateObject22, maximize_templateObject23, maximize_templateObject24, maximize_templateObject25, maximize_templateObject26, maximize_templateObject27, maximize_templateObject28, maximize_templateObject29, maximize_templateObject30, maximize_templateObject31, maximize_templateObject32, maximize_templateObject33, maximize_templateObject34, maximize_templateObject35, maximize_templateObject36, maximize_templateObject37, maximize_templateObject38, maximize_templateObject39, maximize_templateObject40, maximize_templateObject41, maximize_templateObject42, maximize_templateObject43, maximize_templateObject44, maximize_templateObject45, _templateObject46, _templateObject47, _templateObject48, _templateObject49, _templateObject50;
 
 function maximize_slicedToArray(arr, i) { return maximize_arrayWithHoles(arr) || maximize_iterableToArrayLimit(arr, i) || maximize_unsupportedIterableToArray(arr, i) || maximize_nonIterableRest(); }
 
@@ -4828,6 +4975,7 @@ function maximize_iterableToArray(iter) { if (typeof Symbol !== "undefined" && i
 function maximize_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return maximize_arrayLikeToArray(arr); }
 
 function maximize_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 
 
 
@@ -4893,14 +5041,15 @@ var defaultMaximizeOptions = {
 function setDefaultMaximizeOptions(options) {
   Object.assign(defaultMaximizeOptions, options);
 }
-var modeableCommands = ["backupcamera", "umbrella", "snowsuit", "edpiece", "retrocape", "parka"];
+var modeableCommands = ["backupcamera", "umbrella", "snowsuit", "edpiece", "retrocape", "parka", "jillcandle"];
 var modeableItems = {
   backupcamera: template_string_$item(maximize_templateObject || (maximize_templateObject = maximize_taggedTemplateLiteral(["backup camera"]))),
   umbrella: template_string_$item(maximize_templateObject2 || (maximize_templateObject2 = maximize_taggedTemplateLiteral(["unbreakable umbrella"]))),
   snowsuit: template_string_$item(maximize_templateObject3 || (maximize_templateObject3 = maximize_taggedTemplateLiteral(["Snow Suit"]))),
   edpiece: template_string_$item(maximize_templateObject4 || (maximize_templateObject4 = maximize_taggedTemplateLiteral(["The Crown of Ed the Undying"]))),
   retrocape: template_string_$item(maximize_templateObject5 || (maximize_templateObject5 = maximize_taggedTemplateLiteral(["unwrapped knock-off retro superhero cape"]))),
-  parka: template_string_$item(maximize_templateObject6 || (maximize_templateObject6 = maximize_taggedTemplateLiteral(["Jurassic Parka"])))
+  parka: template_string_$item(maximize_templateObject6 || (maximize_templateObject6 = maximize_taggedTemplateLiteral(["Jurassic Parka"]))),
+  jillcandle: template_string_$item(maximize_templateObject7 || (maximize_templateObject7 = maximize_taggedTemplateLiteral(["LED candle"])))
 };
 var modeableState = {
   backupcamera: () => (0,external_kolmafia_namespaceObject.getProperty)("backupCameraMode"),
@@ -4908,7 +5057,8 @@ var modeableState = {
   snowsuit: () => (0,external_kolmafia_namespaceObject.getProperty)("snowsuit"),
   edpiece: () => (0,external_kolmafia_namespaceObject.getProperty)("edPiece"),
   retrocape: () => (0,external_kolmafia_namespaceObject.getProperty)("retroCapeSuperhero") + " " + (0,external_kolmafia_namespaceObject.getProperty)("retroCapeWashingInstructions"),
-  parka: () => (0,external_kolmafia_namespaceObject.getProperty)("parkaMode")
+  parka: () => (0,external_kolmafia_namespaceObject.getProperty)("parkaMode"),
+  jillcandle: () => (0,external_kolmafia_namespaceObject.getProperty)("ledCandleMode")
 };
 /**
  * Get set of current modes for modeables
@@ -4965,7 +5115,7 @@ function applyModes(modes) {
   }
 } // Subset of slots that are valid for caching.
 
-var cachedSlots = $slots(maximize_templateObject7 || (maximize_templateObject7 = maximize_taggedTemplateLiteral(["hat, weapon, off-hand, back, shirt, pants, acc1, acc2, acc3, familiar"])));
+var cachedSlots = $slots(maximize_templateObject8 || (maximize_templateObject8 = maximize_taggedTemplateLiteral(["hat, weapon, off-hand, back, shirt, pants, acc1, acc2, acc3, familiar"])));
 
 var CacheEntry = function CacheEntry(equipment, rider, familiar, canEquipItemCount, modes) {
   maximize_classCallCheck(this, CacheEntry);
@@ -5104,7 +5254,7 @@ var cachedCanEquipItemCount = 0;
  */
 
 function canEquipItemCount() {
-  var stats = $stats(maximize_templateObject8 || (maximize_templateObject8 = maximize_taggedTemplateLiteral(["Muscle, Mysticality, Moxie"]))).map(stat => Math.min((0,external_kolmafia_namespaceObject.myBasestat)(stat), 300));
+  var stats = $stats(maximize_templateObject9 || (maximize_templateObject9 = maximize_taggedTemplateLiteral(["Muscle, Mysticality, Moxie"]))).map(stat => Math.min((0,external_kolmafia_namespaceObject.myBasestat)(stat), 300));
 
   if (stats.every((value, index) => value === cachedStats[index])) {
     return cachedCanEquipItemCount;
@@ -5158,8 +5308,8 @@ function applyCached(entry, options) {
       (0,external_kolmafia_namespaceObject.outfit)(outfitName);
     }
 
-    var familiarEquip = entry.equipment.get($slot(maximize_templateObject9 || (maximize_templateObject9 = maximize_taggedTemplateLiteral(["familiar"]))));
-    if (familiarEquip) (0,external_kolmafia_namespaceObject.equip)($slot(maximize_templateObject10 || (maximize_templateObject10 = maximize_taggedTemplateLiteral(["familiar"]))), familiarEquip);
+    var familiarEquip = entry.equipment.get($slot(maximize_templateObject10 || (maximize_templateObject10 = maximize_taggedTemplateLiteral(["familiar"]))));
+    if (familiarEquip) (0,external_kolmafia_namespaceObject.equip)($slot(maximize_templateObject11 || (maximize_templateObject11 = maximize_taggedTemplateLiteral(["familiar"]))), familiarEquip);
   } else {
     var _iterator3 = maximize_createForOfIteratorHelper(entry.equipment),
         _step3;
@@ -5188,18 +5338,18 @@ function applyCached(entry, options) {
     }
   }
 
-  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject11 || (maximize_templateObject11 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) > 0 && entry.rider.get(template_string_$item(maximize_templateObject12 || (maximize_templateObject12 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))))) {
-    (0,external_kolmafia_namespaceObject.enthroneFamiliar)(entry.rider.get(template_string_$item(maximize_templateObject13 || (maximize_templateObject13 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) || template_string_$familiar.none);
+  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject12 || (maximize_templateObject12 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) > 0 && entry.rider.get(template_string_$item(maximize_templateObject13 || (maximize_templateObject13 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))))) {
+    (0,external_kolmafia_namespaceObject.enthroneFamiliar)(entry.rider.get(template_string_$item(maximize_templateObject14 || (maximize_templateObject14 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) || template_string_$familiar.none);
   }
 
-  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject14 || (maximize_templateObject14 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) > 0 && entry.rider.get(template_string_$item(maximize_templateObject15 || (maximize_templateObject15 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))))) {
-    (0,external_kolmafia_namespaceObject.bjornifyFamiliar)(entry.rider.get(template_string_$item(maximize_templateObject16 || (maximize_templateObject16 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) || template_string_$familiar.none);
+  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject15 || (maximize_templateObject15 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) > 0 && entry.rider.get(template_string_$item(maximize_templateObject16 || (maximize_templateObject16 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))))) {
+    (0,external_kolmafia_namespaceObject.bjornifyFamiliar)(entry.rider.get(template_string_$item(maximize_templateObject17 || (maximize_templateObject17 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) || template_string_$familiar.none);
   }
 
   applyModes(maximize_objectSpread(maximize_objectSpread({}, entry.modes), options.modes));
 }
 
-var slotStructure = [$slots(maximize_templateObject17 || (maximize_templateObject17 = maximize_taggedTemplateLiteral(["hat"]))), $slots(maximize_templateObject18 || (maximize_templateObject18 = maximize_taggedTemplateLiteral(["back"]))), $slots(maximize_templateObject19 || (maximize_templateObject19 = maximize_taggedTemplateLiteral(["shirt"]))), $slots(maximize_templateObject20 || (maximize_templateObject20 = maximize_taggedTemplateLiteral(["weapon, off-hand"]))), $slots(maximize_templateObject21 || (maximize_templateObject21 = maximize_taggedTemplateLiteral(["pants"]))), $slots(maximize_templateObject22 || (maximize_templateObject22 = maximize_taggedTemplateLiteral(["acc1, acc2, acc3"]))), $slots(maximize_templateObject23 || (maximize_templateObject23 = maximize_taggedTemplateLiteral(["familiar"])))];
+var slotStructure = [$slots(maximize_templateObject18 || (maximize_templateObject18 = maximize_taggedTemplateLiteral(["hat"]))), $slots(maximize_templateObject19 || (maximize_templateObject19 = maximize_taggedTemplateLiteral(["back"]))), $slots(maximize_templateObject20 || (maximize_templateObject20 = maximize_taggedTemplateLiteral(["shirt"]))), $slots(maximize_templateObject21 || (maximize_templateObject21 = maximize_taggedTemplateLiteral(["weapon, off-hand"]))), $slots(maximize_templateObject22 || (maximize_templateObject22 = maximize_taggedTemplateLiteral(["pants"]))), $slots(maximize_templateObject23 || (maximize_templateObject23 = maximize_taggedTemplateLiteral(["acc1, acc2, acc3"]))), $slots(maximize_templateObject24 || (maximize_templateObject24 = maximize_taggedTemplateLiteral(["familiar"])))];
 /**
  * Verifies that a CacheEntry was applied successfully.
  *
@@ -5255,20 +5405,20 @@ function verifyCached(entry) {
     _iterator4.f();
   }
 
-  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject24 || (maximize_templateObject24 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) > 0 && entry.rider.get(template_string_$item(maximize_templateObject25 || (maximize_templateObject25 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))))) {
-    if (entry.rider.get(template_string_$item(maximize_templateObject26 || (maximize_templateObject26 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) !== (0,external_kolmafia_namespaceObject.myEnthronedFamiliar)()) {
+  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject25 || (maximize_templateObject25 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) > 0 && entry.rider.get(template_string_$item(maximize_templateObject26 || (maximize_templateObject26 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))))) {
+    if (entry.rider.get(template_string_$item(maximize_templateObject27 || (maximize_templateObject27 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) !== (0,external_kolmafia_namespaceObject.myEnthronedFamiliar)()) {
       if (warn) {
-        dist_logger.warning("Failed to apply ".concat(entry.rider.get(template_string_$item(maximize_templateObject27 || (maximize_templateObject27 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))), " in ").concat(template_string_$item(maximize_templateObject28 || (maximize_templateObject28 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))), "."));
+        dist_logger.warning("Failed to apply ".concat(entry.rider.get(template_string_$item(maximize_templateObject28 || (maximize_templateObject28 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))), " in ").concat(template_string_$item(maximize_templateObject29 || (maximize_templateObject29 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))), "."));
       }
 
       success = false;
     }
   }
 
-  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject29 || (maximize_templateObject29 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) > 0 && entry.rider.get(template_string_$item(maximize_templateObject30 || (maximize_templateObject30 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))))) {
-    if (entry.rider.get(template_string_$item(maximize_templateObject31 || (maximize_templateObject31 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) !== (0,external_kolmafia_namespaceObject.myBjornedFamiliar)()) {
+  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject30 || (maximize_templateObject30 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) > 0 && entry.rider.get(template_string_$item(maximize_templateObject31 || (maximize_templateObject31 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))))) {
+    if (entry.rider.get(template_string_$item(maximize_templateObject32 || (maximize_templateObject32 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) !== (0,external_kolmafia_namespaceObject.myBjornedFamiliar)()) {
       if (warn) {
-        dist_logger.warning("Failed to apply".concat(entry.rider.get(template_string_$item(maximize_templateObject32 || (maximize_templateObject32 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))), " in ").concat(template_string_$item(maximize_templateObject33 || (maximize_templateObject33 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))), "."));
+        dist_logger.warning("Failed to apply".concat(entry.rider.get(template_string_$item(maximize_templateObject33 || (maximize_templateObject33 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))), " in ").concat(template_string_$item(maximize_templateObject34 || (maximize_templateObject34 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))), "."));
       }
 
       success = false;
@@ -5303,16 +5453,16 @@ function saveCached(cacheKey, options) {
     _iterator5.f();
   }
 
-  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject34 || (maximize_templateObject34 = maximize_taggedTemplateLiteral(["card sleeve"])))) > 0) {
-    equipment.set($slot(_templateObject35 || (_templateObject35 = maximize_taggedTemplateLiteral(["card-sleeve"]))), (0,external_kolmafia_namespaceObject.equippedItem)($slot(_templateObject36 || (_templateObject36 = maximize_taggedTemplateLiteral(["card-sleeve"])))));
+  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject35 || (maximize_templateObject35 = maximize_taggedTemplateLiteral(["card sleeve"])))) > 0) {
+    equipment.set($slot(maximize_templateObject36 || (maximize_templateObject36 = maximize_taggedTemplateLiteral(["card-sleeve"]))), (0,external_kolmafia_namespaceObject.equippedItem)($slot(maximize_templateObject37 || (maximize_templateObject37 = maximize_taggedTemplateLiteral(["card-sleeve"])))));
   }
 
-  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(_templateObject37 || (_templateObject37 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) > 0) {
-    rider.set(template_string_$item(_templateObject38 || (_templateObject38 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))), (0,external_kolmafia_namespaceObject.myEnthronedFamiliar)());
+  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject38 || (maximize_templateObject38 = maximize_taggedTemplateLiteral(["Crown of Thrones"])))) > 0) {
+    rider.set(template_string_$item(maximize_templateObject39 || (maximize_templateObject39 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))), (0,external_kolmafia_namespaceObject.myEnthronedFamiliar)());
   }
 
-  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(_templateObject39 || (_templateObject39 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) > 0) {
-    rider.set(template_string_$item(_templateObject40 || (_templateObject40 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))), (0,external_kolmafia_namespaceObject.myBjornedFamiliar)());
+  if ((0,external_kolmafia_namespaceObject.equippedAmount)(template_string_$item(maximize_templateObject40 || (maximize_templateObject40 = maximize_taggedTemplateLiteral(["Buddy Bjorn"])))) > 0) {
+    rider.set(template_string_$item(maximize_templateObject41 || (maximize_templateObject41 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))), (0,external_kolmafia_namespaceObject.myBjornedFamiliar)());
   }
 
   if (options.preventSlot && options.preventSlot.length > 0) {
@@ -5330,12 +5480,12 @@ function saveCached(cacheKey, options) {
       _iterator6.f();
     }
 
-    if (options.preventSlot.includes($slot(_templateObject41 || (_templateObject41 = maximize_taggedTemplateLiteral(["buddy-bjorn"]))))) {
-      rider.delete(template_string_$item(_templateObject42 || (_templateObject42 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))));
+    if (options.preventSlot.includes($slot(maximize_templateObject42 || (maximize_templateObject42 = maximize_taggedTemplateLiteral(["buddy-bjorn"]))))) {
+      rider.delete(template_string_$item(maximize_templateObject43 || (maximize_templateObject43 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))));
     }
 
-    if (options.preventSlot.includes($slot(_templateObject43 || (_templateObject43 = maximize_taggedTemplateLiteral(["crown-of-thrones"]))))) {
-      rider.delete(template_string_$item(_templateObject44 || (_templateObject44 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))));
+    if (options.preventSlot.includes($slot(maximize_templateObject44 || (maximize_templateObject44 = maximize_taggedTemplateLiteral(["crown-of-thrones"]))))) {
+      rider.delete(template_string_$item(maximize_templateObject45 || (maximize_templateObject45 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))));
     }
   }
 
@@ -5357,12 +5507,12 @@ function saveCached(cacheKey, options) {
       _iterator7.f();
     }
 
-    if (!options.onlySlot.includes($slot(_templateObject45 || (_templateObject45 = maximize_taggedTemplateLiteral(["buddy-bjorn"]))))) {
-      rider.delete(template_string_$item(_templateObject46 || (_templateObject46 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))));
+    if (!options.onlySlot.includes($slot(_templateObject46 || (_templateObject46 = maximize_taggedTemplateLiteral(["buddy-bjorn"]))))) {
+      rider.delete(template_string_$item(_templateObject47 || (_templateObject47 = maximize_taggedTemplateLiteral(["Buddy Bjorn"]))));
     }
 
-    if (!options.onlySlot.includes($slot(_templateObject47 || (_templateObject47 = maximize_taggedTemplateLiteral(["crown-of-thrones"]))))) {
-      rider.delete(template_string_$item(_templateObject48 || (_templateObject48 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))));
+    if (!options.onlySlot.includes($slot(_templateObject48 || (_templateObject48 = maximize_taggedTemplateLiteral(["crown-of-thrones"]))))) {
+      rider.delete(template_string_$item(_templateObject49 || (_templateObject49 = maximize_taggedTemplateLiteral(["Crown of Thrones"]))));
     }
   }
 
@@ -5414,7 +5564,7 @@ function maximizeCached(objectives) {
 
 
   var untouchedSlots = cachedSlots.filter(slot => preventSlot.includes(slot) || onlySlot.length > 0 && !onlySlot.includes(slot));
-  var cacheKey = [objective].concat(maximize_toConsumableArray(untouchedSlots.map(slot => "".concat(slot, ":").concat((0,external_kolmafia_namespaceObject.equippedItem)(slot))).sort())).join("; ");
+  var cacheKey = [objective].concat(maximize_toConsumableArray(untouchedSlots.map(slot => "".concat(slot, ":").concat((0,external_kolmafia_namespaceObject.equippedItem)(slot))).sort()), [have(template_string_$effect(_templateObject50 || (_templateObject50 = maximize_taggedTemplateLiteral(["Offhand Remarkable"]))))]).join("; ");
   var cacheEntry = checkCache(cacheKey, fullOptions);
 
   if (cacheEntry && !forceUpdate) {
@@ -5560,7 +5710,7 @@ function clearMaximizerCache() {
   }
 }
 ;// CONCATENATED MODULE: ./node_modules/grimoire-kolmafia/dist/outfit.js
-var outfit_templateObject, outfit_templateObject2, outfit_templateObject3, outfit_templateObject4, outfit_templateObject5, outfit_templateObject6, outfit_templateObject7, outfit_templateObject8, outfit_templateObject9, outfit_templateObject10, outfit_templateObject11, outfit_templateObject12, outfit_templateObject13, outfit_templateObject14, outfit_templateObject15, outfit_templateObject16, outfit_templateObject17, outfit_templateObject18, outfit_templateObject19, outfit_templateObject20, outfit_templateObject21, outfit_templateObject22, outfit_templateObject23, outfit_templateObject24, outfit_templateObject25, outfit_templateObject26, outfit_templateObject27, outfit_templateObject28, outfit_templateObject29, outfit_templateObject30, outfit_templateObject31, outfit_templateObject32, outfit_templateObject33, outfit_templateObject34, outfit_templateObject35, outfit_templateObject36, outfit_templateObject37, outfit_templateObject38, outfit_templateObject39, outfit_templateObject40, outfit_templateObject41, outfit_templateObject42, outfit_templateObject43, outfit_templateObject44, outfit_templateObject45, outfit_templateObject46, outfit_templateObject47, outfit_templateObject48, _templateObject49, _templateObject50, _templateObject51, _templateObject52, _templateObject53, _templateObject54, _templateObject55, _templateObject56, _templateObject57, _templateObject58, _templateObject59, _templateObject60, _templateObject61, _templateObject62, _templateObject63;
+var outfit_templateObject, outfit_templateObject2, outfit_templateObject3, outfit_templateObject4, outfit_templateObject5, outfit_templateObject6, outfit_templateObject7, outfit_templateObject8, outfit_templateObject9, outfit_templateObject10, outfit_templateObject11, outfit_templateObject12, outfit_templateObject13, outfit_templateObject14, outfit_templateObject15, outfit_templateObject16, outfit_templateObject17, outfit_templateObject18, outfit_templateObject19, outfit_templateObject20, outfit_templateObject21, outfit_templateObject22, outfit_templateObject23, outfit_templateObject24, outfit_templateObject25, outfit_templateObject26, outfit_templateObject27, outfit_templateObject28, outfit_templateObject29, outfit_templateObject30, outfit_templateObject31, outfit_templateObject32, outfit_templateObject33, outfit_templateObject34, outfit_templateObject35, outfit_templateObject36, outfit_templateObject37, outfit_templateObject38, outfit_templateObject39, outfit_templateObject40, outfit_templateObject41, outfit_templateObject42, outfit_templateObject43, outfit_templateObject44, outfit_templateObject45, outfit_templateObject46, outfit_templateObject47, outfit_templateObject48, outfit_templateObject49, outfit_templateObject50, _templateObject51, _templateObject52, _templateObject53, _templateObject54, _templateObject55, _templateObject56, _templateObject57, _templateObject58, _templateObject59, _templateObject60, _templateObject61, _templateObject62, _templateObject63;
 
 function outfit_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
 
@@ -6306,7 +6456,7 @@ var Outfit = /*#__PURE__*/function () {
         _iterator9.f();
       }
 
-      for (var _i3 = 0, _arr2 = [[$slot(_templateObject49 || (_templateObject49 = outfit_taggedTemplateLiteral(["buddy-bjorn"]))), external_kolmafia_namespaceObject.myBjornedFamiliar], [$slot(_templateObject50 || (_templateObject50 = outfit_taggedTemplateLiteral(["crown-of-thrones"]))), external_kolmafia_namespaceObject.myEnthronedFamiliar]]; _i3 < _arr2.length; _i3++) {
+      for (var _i3 = 0, _arr2 = [[$slot(outfit_templateObject49 || (outfit_templateObject49 = outfit_taggedTemplateLiteral(["buddy-bjorn"]))), external_kolmafia_namespaceObject.myBjornedFamiliar], [$slot(outfit_templateObject50 || (outfit_templateObject50 = outfit_taggedTemplateLiteral(["crown-of-thrones"]))), external_kolmafia_namespaceObject.myEnthronedFamiliar]]; _i3 < _arr2.length; _i3++) {
         var _arr2$_i = outfit_slicedToArray(_arr2[_i3], 2),
             rider = _arr2$_i[0],
             checkingFunction = _arr2$_i[1];
@@ -7253,8 +7403,3154 @@ export function Exp3IX(): number {
   return sortedPvpIDs[idx];
 }
 */
+;// CONCATENATED MODULE: ./node_modules/fuzzball/dist/esm/fuzzball.esm.min.js
+var se,
+    pe = "undefined" != typeof globalThis ? globalThis : "undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : {},
+    he = {
+  exports: {}
+},
+    de = Math.floor,
+    ge = Math.max,
+    ve = Math.min,
+    _calculateRatio = function _calculateRatio(se, pe) {
+  return pe ? 2 * se / pe : 1;
+},
+    _arrayCmp = function _arrayCmp(se, pe) {
+  var he, de, ge, ye, _e, be;
+
+  for (_e = [se.length, pe.length], he = ye = 0, be = ve(de = _e[0], ge = _e[1]); 0 <= be ? ye < be : ye > be; he = 0 <= be ? ++ye : --ye) {
+    if (se[he] < pe[he]) return -1;
+    if (se[he] > pe[he]) return 1;
+  }
+
+  return de - ge;
+},
+    _has = function _has(se, pe) {
+  return Object.prototype.hasOwnProperty.call(se, pe);
+},
+    ye = function () {
+  function SequenceMatcher(se, pe, he, de) {
+    this.isjunk = se, null == pe && (pe = ""), null == he && (he = ""), this.autojunk = null == de || de, this.a = this.b = null, this.setSeqs(pe, he);
+  }
+
+  return SequenceMatcher.prototype.setSeqs = function (se, pe) {
+    return this.setSeq1(se), this.setSeq2(pe);
+  }, SequenceMatcher.prototype.setSeq1 = function (se) {
+    if (se !== this.a) return this.a = se, this.matchingBlocks = this.opcodes = null;
+  }, SequenceMatcher.prototype.setSeq2 = function (se) {
+    if (se !== this.b) return this.b = se, this.matchingBlocks = this.opcodes = null, this.fullbcount = null, this._chainB();
+  }, SequenceMatcher.prototype._chainB = function () {
+    var se, pe, he, ge, ve, ye, _e, be, me, xe, we, je, ke, Ee;
+
+    for (se = this.b, this.b2j = pe = {}, ge = xe = 0, je = se.length; xe < je; ge = ++xe) {
+      he = se[ge], (_has(pe, he) ? pe[he] : pe[he] = []).push(ge);
+    }
+
+    if (ye = {}, ve = this.isjunk) for (we = 0, ke = (Ee = Object.keys(pe)).length; we < ke; we++) {
+      ve(he = Ee[we]) && (ye[he] = !0, delete pe[he]);
+    }
+    if (me = {}, _e = se.length, this.autojunk && _e >= 200) for (he in be = de(_e / 100) + 1, pe) {
+      pe[he].length > be && (me[he] = !0, delete pe[he]);
+    }
+    return this.isbjunk = function (se) {
+      return _has(ye, se);
+    }, this.isbpopular = function (se) {
+      return _has(me, se);
+    };
+  }, SequenceMatcher.prototype.findLongestMatch = function (se, pe, he, de) {
+    var ge, ve, ye, _e, be, me, xe, we, je, ke, Ee, Ae, Se, Oe, Re, Ce, Ie, ze, $e, Me, Ne;
+
+    for (ge = (Ce = [this.a, this.b, this.b2j, this.isbjunk])[0], ve = Ce[1], ye = Ce[2], we = Ce[3], _e = (Ie = [se, he, 0])[0], be = Ie[1], me = Ie[2], ke = {}, xe = Se = se; se <= pe ? Se < pe : Se > pe; xe = se <= pe ? ++Se : --Se) {
+      for (Ae = {}, Oe = 0, Re = (ze = _has(ye, ge[xe]) ? ye[ge[xe]] : []).length; Oe < Re; Oe++) {
+        if (!((je = ze[Oe]) < he)) {
+          if (je >= de) break;
+          (Ee = Ae[je] = (ke[je - 1] || 0) + 1) > me && (_e = ($e = [xe - Ee + 1, je - Ee + 1, Ee])[0], be = $e[1], me = $e[2]);
+        }
+      }
+
+      ke = Ae;
+    }
+
+    for (; _e > se && be > he && !we(ve[be - 1]) && ge[_e - 1] === ve[be - 1];) {
+      _e = (Me = [_e - 1, be - 1, me + 1])[0], be = Me[1], me = Me[2];
+    }
+
+    for (; _e + me < pe && be + me < de && !we(ve[be + me]) && ge[_e + me] === ve[be + me];) {
+      me++;
+    }
+
+    for (; _e > se && be > he && we(ve[be - 1]) && ge[_e - 1] === ve[be - 1];) {
+      _e = (Ne = [_e - 1, be - 1, me + 1])[0], be = Ne[1], me = Ne[2];
+    }
+
+    for (; _e + me < pe && be + me < de && we(ve[be + me]) && ge[_e + me] === ve[be + me];) {
+      me++;
+    }
+
+    return [_e, be, me];
+  }, SequenceMatcher.prototype.getMatchingBlocks = function () {
+    var se, pe, he, de, ge, ve, ye, _e, be, me, xe, we, je, ke, Ee, Ae, Se, Oe, Re, Ce, Ie, ze, $e, Me, Ne, Pe;
+
+    if (this.matchingBlocks) return this.matchingBlocks;
+
+    for (Oe = [[0, ke = (ze = [this.a.length, this.b.length])[0], 0, Ee = ze[1]]], Ae = []; Oe.length;) {
+      pe = ($e = Oe.pop())[0], se = $e[1], de = $e[2], he = $e[3], ge = (Me = Re = this.findLongestMatch(pe, se, de, he))[0], _e = Me[1], (xe = Me[2]) && (Ae.push(Re), pe < ge && de < _e && Oe.push([pe, ge, de, _e]), ge + xe < se && _e + xe < he && Oe.push([ge + xe, se, _e + xe, he]));
+    }
+
+    for (Ae.sort(_arrayCmp), ve = be = we = 0, Se = [], Ce = 0, Ie = Ae.length; Ce < Ie; Ce++) {
+      ye = (Ne = Ae[Ce])[0], me = Ne[1], je = Ne[2], ve + we === ye && be + we === me ? we += je : (we && Se.push([ve, be, we]), ve = (Pe = [ye, me, je])[0], be = Pe[1], we = Pe[2]);
+    }
+
+    return we && Se.push([ve, be, we]), Se.push([ke, Ee, 0]), this.matchingBlocks = Se;
+  }, SequenceMatcher.prototype.getOpcodes = function () {
+    var se, pe, he, de, ge, ve, ye, _e, be, me, xe, we;
+
+    if (this.opcodes) return this.opcodes;
+
+    for (de = ge = 0, this.opcodes = pe = [], _e = 0, be = (me = this.getMatchingBlocks()).length; _e < be; _e++) {
+      se = (xe = me[_e])[0], he = xe[1], ve = xe[2], ye = "", de < se && ge < he ? ye = "replace" : de < se ? ye = "delete" : ge < he && (ye = "insert"), ye && pe.push([ye, de, se, ge, he]), de = (we = [se + ve, he + ve])[0], ge = we[1], ve && pe.push(["equal", se, de, he, ge]);
+    }
+
+    return pe;
+  }, SequenceMatcher.prototype.getGroupedOpcodes = function (se) {
+    var pe, he, de, ye, _e, be, me, xe, we, je, ke, Ee, Ae, Se, Oe;
+
+    for (null == se && (se = 3), (pe = this.getOpcodes()).length || (pe = [["equal", 0, 1, 0, 1]]), "equal" === pe[0][0] && (we = (Ee = pe[0])[0], ye = Ee[1], _e = Ee[2], be = Ee[3], me = Ee[4], pe[0] = [we, ge(ye, _e - se), _e, ge(be, me - se), me]), "equal" === pe[pe.length - 1][0] && (we = (Ae = pe[pe.length - 1])[0], ye = Ae[1], _e = Ae[2], be = Ae[3], me = Ae[4], pe[pe.length - 1] = [we, ye, ve(_e, ye + se), be, ve(me, be + se)]), xe = se + se, de = [], he = [], je = 0, ke = pe.length; je < ke; je++) {
+      we = (Se = pe[je])[0], ye = Se[1], _e = Se[2], be = Se[3], me = Se[4], "equal" === we && _e - ye > xe && (he.push([we, ye, ve(_e, ye + se), be, ve(me, be + se)]), de.push(he), he = [], ye = (Oe = [ge(ye, _e - se), ge(be, me - se)])[0], be = Oe[1]), he.push([we, ye, _e, be, me]);
+    }
+
+    return !he.length || 1 === he.length && "equal" === he[0][0] || de.push(he), de;
+  }, SequenceMatcher.prototype.ratio = function () {
+    var se, pe, he, de;
+
+    for (se = 0, pe = 0, he = (de = this.getMatchingBlocks()).length; pe < he; pe++) {
+      se += de[pe][2];
+    }
+
+    return _calculateRatio(se, this.a.length + this.b.length);
+  }, SequenceMatcher.prototype.quickRatio = function () {
+    var se, pe, he, de, ge, ve, ye, _e, be, me, xe;
+
+    if (!this.fullbcount) for (this.fullbcount = he = {}, ve = 0, _e = (me = this.b).length; ve < _e; ve++) {
+      he[pe = me[ve]] = (he[pe] || 0) + 1;
+    }
+
+    for (he = this.fullbcount, se = {}, de = 0, ye = 0, be = (xe = this.a).length; ye < be; ye++) {
+      pe = xe[ye], ge = _has(se, pe) ? se[pe] : he[pe] || 0, se[pe] = ge - 1, ge > 0 && de++;
+    }
+
+    return _calculateRatio(de, this.a.length + this.b.length);
+  }, SequenceMatcher.prototype.realQuickRatio = function () {
+    var se, pe, he;
+    return he = [this.a.length, this.b.length], _calculateRatio(ve(se = he[0], pe = he[1]), se + pe);
+  }, SequenceMatcher;
+}(),
+    _e = {
+  exports: {}
+};
+
+se = _e, function () {
+  var pe, he, de, ge, ve, ye, _e, be, me, xe, we, je, ke, Ee, Ae;
+
+  de = Math.floor, xe = Math.min, he = function he(se, pe) {
+    return se < pe ? -1 : se > pe ? 1 : 0;
+  }, me = function me(se, pe, ge, ve, ye) {
+    var _e;
+
+    if (null == ge && (ge = 0), null == ye && (ye = he), ge < 0) throw new Error("lo must be non-negative");
+
+    for (null == ve && (ve = se.length); ge < ve;) {
+      ye(pe, se[_e = de((ge + ve) / 2)]) < 0 ? ve = _e : ge = _e + 1;
+    }
+
+    return [].splice.apply(se, [ge, ge - ge].concat(pe)), pe;
+  }, ye = function ye(se, pe, de) {
+    return null == de && (de = he), se.push(pe), Ee(se, 0, se.length - 1, de);
+  }, ve = function ve(se, pe) {
+    var de, ge;
+    return null == pe && (pe = he), de = se.pop(), se.length ? (ge = se[0], se[0] = de, Ae(se, 0, pe)) : ge = de, ge;
+  }, be = function be(se, pe, de) {
+    var ge;
+    return null == de && (de = he), ge = se[0], se[0] = pe, Ae(se, 0, de), ge;
+  }, _e = function _e(se, pe, de) {
+    var ge;
+    return null == de && (de = he), se.length && de(se[0], pe) < 0 && (pe = (ge = [se[0], pe])[0], se[0] = ge[1], Ae(se, 0, de)), pe;
+  }, ge = function ge(se, pe) {
+    var ge, ve, ye, _e, be, me;
+
+    for (null == pe && (pe = he), be = [], ve = 0, ye = (_e = function () {
+      me = [];
+
+      for (var pe = 0, he = de(se.length / 2); 0 <= he ? pe < he : pe > he; 0 <= he ? pe++ : pe--) {
+        me.push(pe);
+      }
+
+      return me;
+    }.apply(this).reverse()).length; ve < ye; ve++) {
+      ge = _e[ve], be.push(Ae(se, ge, pe));
+    }
+
+    return be;
+  }, ke = function ke(se, pe, de) {
+    var ge;
+    if (null == de && (de = he), -1 !== (ge = se.indexOf(pe))) return Ee(se, 0, ge, de), Ae(se, ge, de);
+  }, we = function we(se, pe, de) {
+    var ve, ye, be, me, xe;
+    if (null == de && (de = he), !(ye = se.slice(0, pe)).length) return ye;
+
+    for (ge(ye, de), be = 0, me = (xe = se.slice(pe)).length; be < me; be++) {
+      ve = xe[be], _e(ye, ve, de);
+    }
+
+    return ye.sort(de).reverse();
+  }, je = function je(se, pe, de) {
+    var ye, _e, be, we, je, ke, Ee, Ae, Se;
+
+    if (null == de && (de = he), 10 * pe <= se.length) {
+      if (!(be = se.slice(0, pe).sort(de)).length) return be;
+
+      for (_e = be[be.length - 1], we = 0, ke = (Ee = se.slice(pe)).length; we < ke; we++) {
+        de(ye = Ee[we], _e) < 0 && (me(be, ye, 0, null, de), be.pop(), _e = be[be.length - 1]);
+      }
+
+      return be;
+    }
+
+    for (ge(se, de), Se = [], je = 0, Ae = xe(pe, se.length); 0 <= Ae ? je < Ae : je > Ae; 0 <= Ae ? ++je : --je) {
+      Se.push(ve(se, de));
+    }
+
+    return Se;
+  }, Ee = function Ee(se, pe, de, ge) {
+    var ve, ye, _e;
+
+    for (null == ge && (ge = he), ve = se[de]; de > pe && ge(ve, ye = se[_e = de - 1 >> 1]) < 0;) {
+      se[de] = ye, de = _e;
+    }
+
+    return se[de] = ve;
+  }, Ae = function Ae(se, pe, de) {
+    var ge, ve, ye, _e, be;
+
+    for (null == de && (de = he), ve = se.length, be = pe, ye = se[pe], ge = 2 * pe + 1; ge < ve;) {
+      (_e = ge + 1) < ve && !(de(se[ge], se[_e]) < 0) && (ge = _e), se[pe] = se[ge], ge = 2 * (pe = ge) + 1;
+    }
+
+    return se[pe] = ye, Ee(se, be, pe, de);
+  }, pe = function () {
+    function Heap(se) {
+      this.cmp = null != se ? se : he, this.nodes = [];
+    }
+
+    return Heap.push = ye, Heap.pop = ve, Heap.replace = be, Heap.pushpop = _e, Heap.heapify = ge, Heap.updateItem = ke, Heap.nlargest = we, Heap.nsmallest = je, Heap.prototype.push = function (se) {
+      return ye(this.nodes, se, this.cmp);
+    }, Heap.prototype.pop = function () {
+      return ve(this.nodes, this.cmp);
+    }, Heap.prototype.peek = function () {
+      return this.nodes[0];
+    }, Heap.prototype.contains = function (se) {
+      return -1 !== this.nodes.indexOf(se);
+    }, Heap.prototype.replace = function (se) {
+      return be(this.nodes, se, this.cmp);
+    }, Heap.prototype.pushpop = function (se) {
+      return _e(this.nodes, se, this.cmp);
+    }, Heap.prototype.heapify = function () {
+      return ge(this.nodes, this.cmp);
+    }, Heap.prototype.updateItem = function (se) {
+      return ke(this.nodes, se, this.cmp);
+    }, Heap.prototype.clear = function () {
+      return this.nodes = [];
+    }, Heap.prototype.empty = function () {
+      return 0 === this.nodes.length;
+    }, Heap.prototype.size = function () {
+      return this.nodes.length;
+    }, Heap.prototype.clone = function () {
+      var se;
+      return (se = new Heap()).nodes = this.nodes.slice(0), se;
+    }, Heap.prototype.toArray = function () {
+      return this.nodes.slice(0);
+    }, Heap.prototype.insert = Heap.prototype.push, Heap.prototype.top = Heap.prototype.peek, Heap.prototype.front = Heap.prototype.peek, Heap.prototype.has = Heap.prototype.contains, Heap.prototype.copy = Heap.prototype.clone, Heap;
+  }(), se.exports = pe;
+}.call(pe);
+var be,
+    me,
+    xe,
+    we = _e.exports,
+    je = {
+  exports: {}
+};
+/**
+ * @license
+ * Lodash (Custom Build) lodash.com/license | Underscore.js 1.8.3 underscorejs.org/LICENSE
+ * Build: `lodash include="intersection,difference,uniq,intersectionWith,differenceWith,uniqWith,toArray,partialRight,keys,isArray,forEach,orderBy" -p -o ./lib/lodash.custom.min.js`
+ */
+
+!function (se, he) {
+  (function () {
+    function t(se, pe, he) {
+      switch (he.length) {
+        case 0:
+          return se.call(pe);
+
+        case 1:
+          return se.call(pe, he[0]);
+
+        case 2:
+          return se.call(pe, he[0], he[1]);
+
+        case 3:
+          return se.call(pe, he[0], he[1], he[2]);
+      }
+
+      return se.apply(pe, he);
+    }
+
+    function e(se, pe) {
+      for (var he = -1, de = null == se ? 0 : se.length; ++he < de && !1 !== pe(se[he], he, se);) {
+        ;
+      }
+
+      return se;
+    }
+
+    function n(se, pe) {
+      var he;
+
+      if (he = !(null == se || !se.length)) {
+        if (pe == pe) e: {
+          he = -1;
+
+          for (var de = se.length; ++he < de;) {
+            if (se[he] === pe) break e;
+          }
+
+          he = -1;
+        } else e: {
+          he = f;
+          de = se.length;
+
+          for (var ge = -1; ++ge < de;) {
+            if (he(se[ge], ge, se)) {
+              he = ge;
+              break e;
+            }
+          }
+
+          he = -1;
+        }
+        he = -1 < he;
+      }
+
+      return he;
+    }
+
+    function u(se, pe, he) {
+      for (var de = -1, ge = null == se ? 0 : se.length; ++de < ge;) {
+        if (he(pe, se[de])) return !0;
+      }
+
+      return !1;
+    }
+
+    function o(se, pe) {
+      for (var he = -1, de = null == se ? 0 : se.length, ge = Array(de); ++he < de;) {
+        ge[he] = pe(se[he], he, se);
+      }
+
+      return ge;
+    }
+
+    function i(se, pe) {
+      for (var he = -1, de = pe.length, ge = se.length; ++he < de;) {
+        se[ge + he] = pe[he];
+      }
+
+      return se;
+    }
+
+    function c(se, pe) {
+      for (var he = -1, de = null == se ? 0 : se.length; ++he < de;) {
+        if (pe(se[he], he, se)) return !0;
+      }
+
+      return !1;
+    }
+
+    function f(se) {
+      return se != se;
+    }
+
+    function s(se) {
+      return function (pe) {
+        return se(pe);
+      };
+    }
+
+    function b(se, pe) {
+      return se.has(pe);
+    }
+
+    function p(se) {
+      var pe = -1,
+          he = Array(se.size);
+      return se.forEach(function (se, de) {
+        he[++pe] = [de, se];
+      }), he;
+    }
+
+    function y(se) {
+      var pe = Object;
+      return function (he) {
+        return se(pe(he));
+      };
+    }
+
+    function _(se, pe) {
+      for (var he = -1, de = se.length, ge = 0, ve = []; ++he < de;) {
+        var ye = se[he];
+        ye !== pe && "__lodash_placeholder__" !== ye || (se[he] = "__lodash_placeholder__", ve[ge++] = he);
+      }
+
+      return ve;
+    }
+
+    function g(se) {
+      var pe = -1,
+          he = Array(se.size);
+      return se.forEach(function (se) {
+        he[++pe] = se;
+      }), he;
+    }
+
+    function v() {}
+
+    function d(se) {
+      this.__wrapped__ = se, this.__actions__ = [], this.__dir__ = 1, this.__filtered__ = !1, this.__iteratees__ = [], this.__takeCount__ = 4294967295, this.__views__ = [];
+    }
+
+    function j(se) {
+      var pe = -1,
+          he = null == se ? 0 : se.length;
+
+      for (this.clear(); ++pe < he;) {
+        var de = se[pe];
+        this.set(de[0], de[1]);
+      }
+    }
+
+    function w(se) {
+      var pe = -1,
+          he = null == se ? 0 : se.length;
+
+      for (this.clear(); ++pe < he;) {
+        var de = se[pe];
+        this.set(de[0], de[1]);
+      }
+    }
+
+    function A(se) {
+      var pe = -1,
+          he = null == se ? 0 : se.length;
+
+      for (this.clear(); ++pe < he;) {
+        var de = se[pe];
+        this.set(de[0], de[1]);
+      }
+    }
+
+    function m(se) {
+      var pe = -1,
+          he = null == se ? 0 : se.length;
+
+      for (this.__data__ = new A(); ++pe < he;) {
+        this.add(se[pe]);
+      }
+    }
+
+    function O(se) {
+      this.size = (this.__data__ = new w(se)).size;
+    }
+
+    function S(se, pe) {
+      var he = tn(se),
+          de = !he && en(se),
+          ge = !he && !de && rn(se),
+          ve = !he && !de && !ge && an(se);
+
+      if (he = he || de || ge || ve) {
+        de = se.length;
+
+        for (var ye = String, _e = -1, be = Array(de); ++_e < de;) {
+          be[_e] = ye(_e);
+        }
+
+        de = be;
+      } else de = [];
+
+      var me;
+      ye = de.length;
+
+      for (me in se) {
+        !pe && !Ke.call(se, me) || he && ("length" == me || ge && ("offset" == me || "parent" == me) || ve && ("buffer" == me || "byteLength" == me || "byteOffset" == me) || xt(me, ye)) || de.push(me);
+      }
+
+      return de;
+    }
+
+    function k(se, pe, he) {
+      var ge = se[pe];
+      Ke.call(se, pe) && Ct(ge, he) && (he !== de || pe in se) || F(se, pe, he);
+    }
+
+    function x(se, pe) {
+      for (var he = se.length; he--;) {
+        if (Ct(se[he][0], pe)) return he;
+      }
+
+      return -1;
+    }
+
+    function F(se, pe, he) {
+      "__proto__" == pe && hr ? hr(se, pe, {
+        configurable: !0,
+        enumerable: !0,
+        value: he,
+        writable: !0
+      }) : se[pe] = he;
+    }
+
+    function I(se, pe, he, ge, ve, ye) {
+      var _e,
+          be = 1 & pe,
+          me = 2 & pe,
+          xe = 4 & pe;
+
+      if (he && (_e = ve ? he(se, ge, ve, ye) : he(se)), _e !== de) return _e;
+      if (!qt(se)) return se;
+
+      if (ge = tn(se)) {
+        if (_e = function Ot(se) {
+          var pe = se.length,
+              he = new se.constructor(pe);
+          return pe && "string" == typeof se[0] && Ke.call(se, "index") && (he.index = se.index, he.input = se.input), he;
+        }(se), !be) return ot(se, _e);
+      } else {
+        var we = Ur(se),
+            je = "[object Function]" == we || "[object GeneratorFunction]" == we;
+        if (rn(se)) return function et(se, pe) {
+          if (pe) return se.slice();
+          var he = se.length;
+          he = ar ? ar(he) : new se.constructor(he);
+          return se.copy(he), he;
+        }(se, be);
+
+        if ("[object Object]" == we || "[object Arguments]" == we || je && !ve) {
+          if (_e = me || je || "function" != typeof se.constructor || Et(se) ? {} : Fr(ir(se)), !be) return me ? function ft(se, pe) {
+            return it(se, Hr(se), pe);
+          }(se, function E(se, pe) {
+            return se && it(pe, re(pe), se);
+          }(_e, se)) : function ct(se, pe) {
+            return it(se, Lr(se), pe);
+          }(se, function z(se, pe) {
+            return se && it(pe, ee(pe), se);
+          }(_e, se));
+        } else {
+          if (!Ne[we]) return ve ? se : {};
+
+          _e = function St(se, pe, he) {
+            var de = se.constructor;
+
+            switch (pe) {
+              case "[object ArrayBuffer]":
+                return rt(se);
+
+              case "[object Boolean]":
+              case "[object Date]":
+                return new de(+se);
+
+              case "[object DataView]":
+                return pe = he ? rt(se.buffer) : se.buffer, new se.constructor(pe, se.byteOffset, se.byteLength);
+
+              case "[object Float32Array]":
+              case "[object Float64Array]":
+              case "[object Int8Array]":
+              case "[object Int16Array]":
+              case "[object Int32Array]":
+              case "[object Uint8Array]":
+              case "[object Uint8ClampedArray]":
+              case "[object Uint16Array]":
+              case "[object Uint32Array]":
+                return pe = he ? rt(se.buffer) : se.buffer, new se.constructor(pe, se.byteOffset, se.length);
+
+              case "[object Map]":
+                return new de();
+
+              case "[object Number]":
+              case "[object String]":
+                return new de(se);
+
+              case "[object RegExp]":
+                return (pe = new se.constructor(se.source, Ae.exec(se))).lastIndex = se.lastIndex, pe;
+
+              case "[object Set]":
+                return new de();
+
+              case "[object Symbol]":
+                return Nr ? Object(Nr.call(se)) : {};
+            }
+          }(se, we, be);
+        }
+      }
+
+      if (ye || (ye = new O()), ve = ye.get(se)) return ve;
+      if (ye.set(se, _e), on(se)) return se.forEach(function (de) {
+        _e.add(I(de, pe, he, de, se, ye));
+      }), _e;
+      if (nn(se)) return se.forEach(function (de, ge) {
+        _e.set(ge, I(de, pe, he, ge, se, ye));
+      }), _e;
+      me = xe ? me ? vt : gt : me ? re : ee;
+      var ke = ge ? de : me(se);
+      return e(ke || se, function (de, ge) {
+        ke && (de = se[ge = de]), k(_e, ge, I(de, pe, he, ge, se, ye));
+      }), _e;
+    }
+
+    function M(se, pe, he, de) {
+      var ge = -1,
+          ve = n,
+          ye = !0,
+          _e = se.length,
+          be = [],
+          me = pe.length;
+      if (!_e) return be;
+      he && (pe = o(pe, s(he))), de ? (ve = u, ye = !1) : 200 <= pe.length && (ve = b, ye = !1, pe = new m(pe));
+
+      e: for (; ++ge < _e;) {
+        var xe = se[ge],
+            we = null == he ? xe : he(xe);
+        xe = de || 0 !== xe ? xe : 0;
+
+        if (ye && we == we) {
+          for (var je = me; je--;) {
+            if (pe[je] === we) continue e;
+          }
+
+          be.push(xe);
+        } else ve(pe, we, de) || be.push(xe);
+      }
+
+      return be;
+    }
+
+    function $(se, pe, he, de, ge) {
+      var ve = -1,
+          ye = se.length;
+
+      for (he || (he = kt), ge || (ge = []); ++ve < ye;) {
+        var _e = se[ve];
+        0 < pe && he(_e) ? 1 < pe ? $(_e, pe - 1, he, de, ge) : i(ge, _e) : de || (ge[ge.length] = _e);
+      }
+
+      return ge;
+    }
+
+    function U(se, pe) {
+      for (var he = 0, ge = (pe = tt(pe, se)).length; null != se && he < ge;) {
+        se = se[Ut(pe[he++])];
+      }
+
+      return he && he == ge ? se : de;
+    }
+
+    function B(se, pe, he) {
+      return pe = pe(se), tn(se) ? pe : i(pe, he(se));
+    }
+
+    function D(se) {
+      if (null == se) se = se === de ? "[object Undefined]" : "[object Null]";else if (pr && pr in Object(se)) {
+        var pe = Ke.call(se, pr),
+            he = se[pr];
+
+        try {
+          se[pr] = de;
+          var ge = !0;
+        } catch (se) {}
+
+        var ve = er.call(se);
+        ge && (pe ? se[pr] = he : delete se[pr]), se = ve;
+      } else se = er.call(se);
+      return se;
+    }
+
+    function R(se, pe, he) {
+      for (var ge = he ? u : n, ve = se[0].length, ye = se.length, _e = ye, be = Array(ye), me = 1 / 0, xe = []; _e--;) {
+        var we = se[_e];
+        _e && pe && (we = o(we, s(pe))), me = _r(we.length, me), be[_e] = !he && (pe || 120 <= ve && 120 <= we.length) ? new m(_e && we) : de;
+      }
+
+      we = se[0];
+      var je = -1,
+          ke = be[0];
+
+      e: for (; ++je < ve && xe.length < me;) {
+        var Ee = we[je],
+            Ae = pe ? pe(Ee) : Ee;
+        Ee = he || 0 !== Ee ? Ee : 0;
+
+        if (ke ? !b(ke, Ae) : !ge(xe, Ae, he)) {
+          for (_e = ye; --_e;) {
+            var Se = be[_e];
+            if (Se ? !b(Se, Ae) : !ge(se[_e], Ae, he)) continue e;
+          }
+
+          ke && ke.push(Ae), xe.push(Ee);
+        }
+      }
+
+      return xe;
+    }
+
+    function L(se) {
+      return Gt(se) && "[object Arguments]" == D(se);
+    }
+
+    function P(se, pe, he, ge, ve) {
+      if (se === pe) pe = !0;else if (null == se || null == pe || !Gt(se) && !Gt(pe)) pe = se != se && pe != pe;else e: {
+        var ye,
+            _e,
+            be = tn(se),
+            me = tn(pe),
+            xe = "[object Object]" == (ye = "[object Arguments]" == (ye = be ? "[object Array]" : Ur(se)) ? "[object Object]" : ye);
+
+        me = "[object Object]" == (_e = "[object Arguments]" == (_e = me ? "[object Array]" : Ur(pe)) ? "[object Object]" : _e);
+
+        if ((_e = ye == _e) && rn(se)) {
+          if (!rn(pe)) {
+            pe = !1;
+            break e;
+          }
+
+          be = !0, xe = !1;
+        }
+
+        if (_e && !xe) ve || (ve = new O()), pe = be || an(se) ? yt(se, pe, he, ge, P, ve) : _t(se, pe, ye, he, ge, P, ve);else {
+          if (!(1 & he) && (be = xe && Ke.call(se, "__wrapped__"), ye = me && Ke.call(pe, "__wrapped__"), be || ye)) {
+            se = be ? se.value() : se, pe = ye ? pe.value() : pe, ve || (ve = new O()), pe = P(se, pe, he, ge, ve);
+            break e;
+          }
+
+          if (_e) {
+            t: if (ve || (ve = new O()), be = 1 & he, ye = gt(se), me = ye.length, _e = gt(pe).length, me == _e || be) {
+              for (xe = me; xe--;) {
+                var we = ye[xe];
+
+                if (!(be ? we in pe : Ke.call(pe, we))) {
+                  pe = !1;
+                  break t;
+                }
+              }
+
+              if ((_e = ve.get(se)) && ve.get(pe)) pe = _e == pe;else {
+                _e = !0, ve.set(se, pe), ve.set(pe, se);
+
+                for (var je = be; ++xe < me;) {
+                  var ke = se[we = ye[xe]],
+                      Ee = pe[we];
+                  if (ge) var Ae = be ? ge(Ee, ke, we, pe, se, ve) : ge(ke, Ee, we, se, pe, ve);
+
+                  if (Ae === de ? ke !== Ee && !P(ke, Ee, he, ge, ve) : !Ae) {
+                    _e = !1;
+                    break;
+                  }
+
+                  je || (je = "constructor" == we);
+                }
+
+                _e && !je && (he = se.constructor) != (ge = pe.constructor) && "constructor" in se && "constructor" in pe && !("function" == typeof he && he instanceof he && "function" == typeof ge && ge instanceof ge) && (_e = !1), ve.delete(se), ve.delete(pe), pe = _e;
+              }
+            } else pe = !1;
+          } else pe = !1;
+        }
+      }
+      return pe;
+    }
+
+    function W(se) {
+      return "function" == typeof se ? se : null == se ? oe : "object" == typeof se ? tn(se) ? function K(se, pe) {
+        return zt(se) && pe == pe && !qt(pe) ? Ft(Ut(se), pe) : function (he) {
+          var ge = Zt(he, se);
+          return ge === de && ge === pe ? te(he, se) : P(pe, ge, 3);
+        };
+      }(se[0], se[1]) : function G(se) {
+        var pe = function At(se) {
+          for (var pe = ee(se), he = pe.length; he--;) {
+            var de = pe[he],
+                ge = se[de];
+            pe[he] = [de, ge, ge == ge && !qt(ge)];
+          }
+
+          return pe;
+        }(se);
+
+        return 1 == pe.length && pe[0][2] ? Ft(pe[0][0], pe[0][1]) : function (he) {
+          return he === se || function N(se, pe) {
+            var he = pe.length,
+                ge = he;
+            if (null == se) return !ge;
+
+            for (se = Object(se); he--;) {
+              if ((ve = pe[he])[2] ? ve[1] !== se[ve[0]] : !(ve[0] in se)) return !1;
+            }
+
+            for (; ++he < ge;) {
+              var ve,
+                  ye = (ve = pe[he])[0],
+                  _e = se[ye],
+                  be = ve[1];
+
+              if (ve[2]) {
+                if (_e === de && !(ye in se)) return !1;
+              } else if (!P(be, _e, 3, void 0, ve = new O())) return !1;
+            }
+
+            return !0;
+          }(he, pe);
+        };
+      }(se) : fe(se);
+    }
+
+    function H(se, pe, he) {
+      var ge = -1;
+      return pe = o(pe.length ? pe : [oe], s(jt())), function l(se, pe) {
+        var he = se.length;
+
+        for (se.sort(pe); he--;) {
+          se[he] = se[he].c;
+        }
+
+        return se;
+      }(se = function q(se, pe) {
+        var he = -1,
+            de = Nt(se) ? Array(se.length) : [];
+        return Dr(se, function (se, ge, ve) {
+          de[++he] = pe(se, ge, ve);
+        }), de;
+      }(se, function (se) {
+        return {
+          a: o(pe, function (pe) {
+            return pe(se);
+          }),
+          b: ++ge,
+          c: se
+        };
+      }), function (se, pe) {
+        var ge;
+
+        e: {
+          ge = -1;
+
+          for (var ve = se.a, ye = pe.a, _e = ve.length, be = he.length; ++ge < _e;) {
+            var me;
+
+            t: {
+              me = ve[ge];
+              var xe = ye[ge];
+
+              if (me !== xe) {
+                var we = me !== de,
+                    je = null === me,
+                    ke = me == me,
+                    Ee = Ht(me),
+                    Ae = xe !== de,
+                    Se = null === xe,
+                    Oe = xe == xe,
+                    Re = Ht(xe);
+
+                if (!Se && !Re && !Ee && me > xe || Ee && Ae && Oe && !Se && !Re || je && Ae && Oe || !we && Oe || !ke) {
+                  me = 1;
+                  break t;
+                }
+
+                if (!je && !Ee && !Re && me < xe || Re && we && ke && !je && !Ee || Se && we && ke || !Ae && ke || !Oe) {
+                  me = -1;
+                  break t;
+                }
+              }
+
+              me = 0;
+            }
+
+            if (me) {
+              ge = ge >= be ? me : me * ("desc" == he[ge] ? -1 : 1);
+              break e;
+            }
+          }
+
+          ge = se.b - pe.b;
+        }
+
+        return ge;
+      });
+    }
+
+    function Q(se) {
+      return Gr(It(se, oe), se + "");
+    }
+
+    function X(se) {
+      if ("string" == typeof se) return se;
+      if (tn(se)) return o(se, X) + "";
+      if (Ht(se)) return Pr ? Pr.call(se) : "";
+      var pe = se + "";
+      return "0" == pe && 1 / se == -ge ? "-0" : pe;
+    }
+
+    function Y(se, pe, he) {
+      var de = -1,
+          ge = n,
+          ve = se.length,
+          ye = !0,
+          _e = [],
+          be = _e;
+      if (he) ye = !1, ge = u;else if (200 <= ve) {
+        if (ge = pe ? null : Xr(se)) return g(ge);
+        ye = !1, ge = b, be = new m();
+      } else be = pe ? [] : _e;
+
+      e: for (; ++de < ve;) {
+        var me = se[de],
+            xe = pe ? pe(me) : me;
+        me = he || 0 !== me ? me : 0;
+
+        if (ye && xe == xe) {
+          for (var we = be.length; we--;) {
+            if (be[we] === xe) continue e;
+          }
+
+          pe && be.push(xe), _e.push(me);
+        } else ge(be, xe, he) || (be !== _e && be.push(xe), _e.push(me));
+      }
+
+      return _e;
+    }
+
+    function Z(se) {
+      return Tt(se) ? se : [];
+    }
+
+    function tt(se, pe) {
+      return tn(se) ? se : zt(se, pe) ? [se] : Qr(Yt(se));
+    }
+
+    function rt(se) {
+      var pe = new se.constructor(se.byteLength);
+      return new or(pe).set(new or(se)), pe;
+    }
+
+    function nt(se, pe, he, de) {
+      var ge = -1,
+          ve = se.length,
+          ye = he.length,
+          _e = -1,
+          be = pe.length,
+          me = yr(ve - ye, 0),
+          xe = Array(be + me);
+
+      for (de = !de; ++_e < be;) {
+        xe[_e] = pe[_e];
+      }
+
+      for (; ++ge < ye;) {
+        (de || ge < ve) && (xe[he[ge]] = se[ge]);
+      }
+
+      for (; me--;) {
+        xe[_e++] = se[ge++];
+      }
+
+      return xe;
+    }
+
+    function ut(se, pe, he, de) {
+      var ge = -1,
+          ve = se.length,
+          ye = -1,
+          _e = he.length,
+          be = -1,
+          me = pe.length,
+          xe = yr(ve - _e, 0),
+          we = Array(xe + me);
+
+      for (de = !de; ++ge < xe;) {
+        we[ge] = se[ge];
+      }
+
+      for (xe = ge; ++be < me;) {
+        we[xe + be] = pe[be];
+      }
+
+      for (; ++ye < _e;) {
+        (de || ge < ve) && (we[xe + he[ye]] = se[ge++]);
+      }
+
+      return we;
+    }
+
+    function ot(se, pe) {
+      var he = -1,
+          de = se.length;
+
+      for (pe || (pe = Array(de)); ++he < de;) {
+        pe[he] = se[he];
+      }
+
+      return pe;
+    }
+
+    function it(se, pe, he) {
+      var ge = !he;
+      he || (he = {});
+
+      for (var ve = -1, ye = pe.length; ++ve < ye;) {
+        var _e = pe[ve],
+            be = de;
+        be === de && (be = se[_e]), ge ? F(he, _e, be) : k(he, _e, be);
+      }
+
+      return he;
+    }
+
+    function lt(se) {
+      return function () {
+        switch ((pe = arguments).length) {
+          case 0:
+            return new se();
+
+          case 1:
+            return new se(pe[0]);
+
+          case 2:
+            return new se(pe[0], pe[1]);
+
+          case 3:
+            return new se(pe[0], pe[1], pe[2]);
+
+          case 4:
+            return new se(pe[0], pe[1], pe[2], pe[3]);
+
+          case 5:
+            return new se(pe[0], pe[1], pe[2], pe[3], pe[4]);
+
+          case 6:
+            return new se(pe[0], pe[1], pe[2], pe[3], pe[4], pe[5]);
+
+          case 7:
+            return new se(pe[0], pe[1], pe[2], pe[3], pe[4], pe[5], pe[6]);
+        }
+
+        var pe,
+            he = Fr(se.prototype);
+        return qt(pe = se.apply(he, pe)) ? pe : he;
+      };
+    }
+
+    function st(se, pe, he) {
+      var ge = lt(se);
+      return function u() {
+        for (var ve = arguments.length, ye = Array(ve), _e = ve, be = dt(u); _e--;) {
+          ye[_e] = arguments[_e];
+        }
+
+        return (ve -= (_e = 3 > ve && ye[0] !== be && ye[ve - 1] !== be ? [] : _(ye, be)).length) < he ? pt(se, pe, ht, u.placeholder, de, ye, _e, de, de, he - ve) : t(this && this !== Xe && this instanceof u ? ge : se, this, ye);
+      };
+    }
+
+    function ht(se, pe, he, ge, ve, ye, _e, be, me, xe) {
+      var we = 128 & pe,
+          je = 1 & pe,
+          ke = 2 & pe,
+          Ee = 24 & pe,
+          Ae = 512 & pe,
+          Se = ke ? de : lt(se);
+      return function l() {
+        for (var Oe = arguments.length, Re = Array(Oe), Ce = Oe; Ce--;) {
+          Re[Ce] = arguments[Ce];
+        }
+
+        if (Ee) {
+          var Ie,
+              ze = dt(l);
+          Ce = Re.length;
+
+          for (Ie = 0; Ce--;) {
+            Re[Ce] === ze && ++Ie;
+          }
+        }
+
+        if (ge && (Re = nt(Re, ge, ve, Ee)), ye && (Re = ut(Re, ye, _e, Ee)), Oe -= Ie, Ee && Oe < xe) return ze = _(Re, ze), pt(se, pe, ht, l.placeholder, he, Re, ze, be, me, xe - Oe);
+
+        if (ze = je ? he : this, Ce = ke ? ze[se] : se, Oe = Re.length, be) {
+          Ie = Re.length;
+
+          for (var $e = _r(be.length, Ie), Me = ot(Re); $e--;) {
+            var Ne = be[$e];
+            Re[$e] = xt(Ne, Ie) ? Me[Ne] : de;
+          }
+        } else Ae && 1 < Oe && Re.reverse();
+
+        return we && me < Oe && (Re.length = me), this && this !== Xe && this instanceof l && (Ce = Se || lt(Ce)), Ce.apply(ze, Re);
+      };
+    }
+
+    function bt(se, pe, he, de) {
+      var ge = 1 & pe,
+          ve = lt(se);
+      return function o() {
+        for (var pe = -1, ye = arguments.length, _e = -1, be = de.length, me = Array(be + ye), xe = this && this !== Xe && this instanceof o ? ve : se; ++_e < be;) {
+          me[_e] = de[_e];
+        }
+
+        for (; ye--;) {
+          me[_e++] = arguments[++pe];
+        }
+
+        return t(xe, ge ? he : this, me);
+      };
+    }
+
+    function pt(se, pe, he, ge, ve, ye, _e, be, me, xe) {
+      var we = 8 & pe,
+          je = we ? _e : de;
+      4 & (pe = (pe | (we ? 32 : 64)) & ~(we ? 64 : 32)) || (pe &= -4), ve = [se, pe, ve, we ? ye : de, je, ye = we ? de : ye, _e = we ? de : _e, be, me, xe], he = he.apply(de, ve);
+
+      e: for (be = se.name + "", me = Sr[be], xe = Ke.call(Sr, be) ? me.length : 0; xe--;) {
+        if (we = me[xe], je = we.func, null == je || je == se) {
+          be = we.name;
+          break e;
+        }
+      }
+
+      return "function" == typeof (me = v[be]) && be in d.prototype ? se === me ? be = !0 : be = !!(be = Br(me)) && se === be[0] : be = !1, be && Wr(he, ve), he.placeholder = ge, Mt(he, se, pe);
+    }
+
+    function yt(se, pe, he, ge, ve, ye) {
+      var _e = 1 & he,
+          be = se.length;
+
+      if (be != (me = pe.length) && !(_e && me > be)) return !1;
+      if ((me = ye.get(se)) && ye.get(pe)) return me == pe;
+      var me = -1,
+          xe = !0,
+          we = 2 & he ? new m() : de;
+
+      for (ye.set(se, pe), ye.set(pe, se); ++me < be;) {
+        var je = se[me],
+            ke = pe[me];
+        if (ge) var Ee = _e ? ge(ke, je, me, pe, se, ye) : ge(je, ke, me, se, pe, ye);
+
+        if (Ee !== de) {
+          if (Ee) continue;
+          xe = !1;
+          break;
+        }
+
+        if (we) {
+          if (!c(pe, function (se, pe) {
+            if (!b(we, pe) && (je === se || ve(je, se, he, ge, ye))) return we.push(pe);
+          })) {
+            xe = !1;
+            break;
+          }
+        } else if (je !== ke && !ve(je, ke, he, ge, ye)) {
+          xe = !1;
+          break;
+        }
+      }
+
+      return ye.delete(se), ye.delete(pe), xe;
+    }
+
+    function _t(se, pe, he, de, ge, ve, ye) {
+      switch (he) {
+        case "[object DataView]":
+          if (se.byteLength != pe.byteLength || se.byteOffset != pe.byteOffset) break;
+          se = se.buffer, pe = pe.buffer;
+
+        case "[object ArrayBuffer]":
+          if (se.byteLength != pe.byteLength || !ve(new or(se), new or(pe))) break;
+          return !0;
+
+        case "[object Boolean]":
+        case "[object Date]":
+        case "[object Number]":
+          return Ct(+se, +pe);
+
+        case "[object Error]":
+          return se.name == pe.name && se.message == pe.message;
+
+        case "[object RegExp]":
+        case "[object String]":
+          return se == pe + "";
+
+        case "[object Map]":
+          var _e = p;
+
+        case "[object Set]":
+          if (_e || (_e = g), se.size != pe.size && !(1 & de)) break;
+          return (he = ye.get(se)) ? he == pe : (de |= 2, ye.set(se, pe), pe = yt(_e(se), _e(pe), de, ge, ve, ye), ye.delete(se), pe);
+
+        case "[object Symbol]":
+          if (Nr) return Nr.call(se) == Nr.call(pe);
+      }
+
+      return !1;
+    }
+
+    function gt(se) {
+      return B(se, ee, Lr);
+    }
+
+    function vt(se) {
+      return B(se, re, Hr);
+    }
+
+    function dt(se) {
+      return (Ke.call(v, "placeholder") ? v : se).placeholder;
+    }
+
+    function jt() {
+      var se = (se = v.iteratee || ie) === ie ? W : se;
+      return arguments.length ? se(arguments[0], arguments[1]) : se;
+    }
+
+    function wt(se, pe) {
+      var he = se.__data__,
+          de = typeof pe;
+      return ("string" == de || "number" == de || "symbol" == de || "boolean" == de ? "__proto__" !== pe : null === pe) ? he["string" == typeof pe ? "string" : "hash"] : he.map;
+    }
+
+    function mt(se, pe) {
+      var he = null == se ? de : se[pe];
+      return !qt(he) || Je && Je in he || !(Vt(he) ? tr : Re).test(Bt(he)) ? de : he;
+    }
+
+    function kt(se) {
+      return tn(se) || en(se) || !!(lr && se && se[lr]);
+    }
+
+    function xt(se, pe) {
+      var he = typeof se;
+      return !!(pe = null == pe ? 9007199254740991 : pe) && ("number" == he || "symbol" != he && Ie.test(se)) && -1 < se && 0 == se % 1 && se < pe;
+    }
+
+    function zt(se, pe) {
+      if (tn(se)) return !1;
+      var he = typeof se;
+      return !("number" != he && "symbol" != he && "boolean" != he && null != se && !Ht(se)) || be.test(se) || !_e.test(se) || null != pe && se in Object(pe);
+    }
+
+    function Et(se) {
+      var pe = se && se.constructor;
+      return se === ("function" == typeof pe && pe.prototype || Ve);
+    }
+
+    function Ft(se, pe) {
+      return function (he) {
+        return null != he && he[se] === pe && (pe !== de || se in Object(he));
+      };
+    }
+
+    function It(se, pe) {
+      var he = yr((he = void 0) === de ? se.length - 1 : he, 0);
+      return function () {
+        for (var de = arguments, ge = -1, ve = yr(de.length - he, 0), ye = Array(ve); ++ge < ve;) {
+          ye[ge] = de[he + ge];
+        }
+
+        for (ge = -1, ve = Array(he + 1); ++ge < he;) {
+          ve[ge] = de[ge];
+        }
+
+        return ve[he] = pe(ye), t(se, this, ve);
+      };
+    }
+
+    function Mt(se, pe, he) {
+      var de = pe + "";
+      pe = Gr;
+      var ge,
+          ve = Dt;
+      return he = ve(ge = (ge = de.match(je)) ? ge[1].split(ke) : [], he), (ve = he.length) && (he[ge = ve - 1] = (1 < ve ? "& " : "") + he[ge], he = he.join(2 < ve ? ", " : " "), de = de.replace(we, "{\n/* [wrapped with " + he + "] */\n")), pe(se, de);
+    }
+
+    function $t(se) {
+      var pe = 0,
+          he = 0;
+      return function () {
+        var ge = br(),
+            ve = 16 - (ge - he);
+
+        if (he = ge, 0 < ve) {
+          if (800 <= ++pe) return arguments[0];
+        } else pe = 0;
+
+        return se.apply(de, arguments);
+      };
+    }
+
+    function Ut(se) {
+      if ("string" == typeof se || Ht(se)) return se;
+      var pe = se + "";
+      return "0" == pe && 1 / se == -ge ? "-0" : pe;
+    }
+
+    function Bt(se) {
+      if (null != se) {
+        try {
+          return Ze.call(se);
+        } catch (se) {}
+
+        return se + "";
+      }
+
+      return "";
+    }
+
+    function Dt(se, pe) {
+      return e(ye, function (he) {
+        var de = "_." + he[0];
+        pe & he[1] && !n(se, de) && se.push(de);
+      }), se.sort();
+    }
+
+    function Rt(se) {
+      var pe = null == se ? 0 : se.length;
+      return pe ? se[pe - 1] : de;
+    }
+
+    function Lt(se, pe) {
+      return (tn(se) ? e : Dr)(se, jt(pe, 3));
+    }
+
+    function Pt(se, pe) {
+      function r() {
+        var he = arguments,
+            de = pe ? pe.apply(this, he) : he[0],
+            ge = r.cache;
+        return ge.has(de) ? ge.get(de) : (he = se.apply(this, he), r.cache = ge.set(de, he) || ge, he);
+      }
+
+      if ("function" != typeof se || null != pe && "function" != typeof pe) throw new TypeError("Expected a function");
+      return r.cache = new (Pt.Cache || A)(), r;
+    }
+
+    function Ct(se, pe) {
+      return se === pe || se != se && pe != pe;
+    }
+
+    function Nt(se) {
+      return null != se && Wt(se.length) && !Vt(se);
+    }
+
+    function Tt(se) {
+      return Gt(se) && Nt(se);
+    }
+
+    function Vt(se) {
+      return !!qt(se) && ("[object Function]" == (se = D(se)) || "[object GeneratorFunction]" == se || "[object AsyncFunction]" == se || "[object Proxy]" == se);
+    }
+
+    function Wt(se) {
+      return "number" == typeof se && -1 < se && 0 == se % 1 && 9007199254740991 >= se;
+    }
+
+    function qt(se) {
+      var pe = typeof se;
+      return null != se && ("object" == pe || "function" == pe);
+    }
+
+    function Gt(se) {
+      return null != se && "object" == typeof se;
+    }
+
+    function Kt(se) {
+      return "string" == typeof se || !tn(se) && Gt(se) && "[object String]" == D(se);
+    }
+
+    function Ht(se) {
+      return "symbol" == typeof se || Gt(se) && "[object Symbol]" == D(se);
+    }
+
+    function Jt(se) {
+      return se ? (se = Xt(se)) === ge || se === -ge ? 17976931348623157e292 * (0 > se ? -1 : 1) : se == se ? se : 0 : 0 === se ? se : 0;
+    }
+
+    function Qt(se) {
+      var pe = (se = Jt(se)) % 1;
+      return se == se ? pe ? se - pe : se : 0;
+    }
+
+    function Xt(se) {
+      if ("number" == typeof se) return se;
+      if (Ht(se)) return ve;
+      if (qt(se) && (se = qt(se = "function" == typeof se.valueOf ? se.valueOf() : se) ? se + "" : se), "string" != typeof se) return 0 === se ? se : +se;
+      se = se.replace(xe, "");
+      var pe = Oe.test(se);
+      return pe || Ce.test(se) ? Fe(se.slice(2), pe ? 2 : 8) : Se.test(se) ? ve : +se;
+    }
+
+    function Yt(se) {
+      return null == se ? "" : X(se);
+    }
+
+    function Zt(se, pe, he) {
+      return (se = null == se ? de : U(se, pe)) === de ? he : se;
+    }
+
+    function te(se, pe) {
+      var he;
+
+      if (he = null != se) {
+        for (var de, ge = -1, ve = (de = tt(pe, he = se)).length, ye = !1; ++ge < ve;) {
+          var _e = Ut(de[ge]);
+
+          if (!(ye = null != he && null != he && _e in Object(he))) break;
+          he = he[_e];
+        }
+
+        ye || ++ge != ve ? he = ye : he = !!(ve = null == he ? 0 : he.length) && Wt(ve) && xt(_e, ve) && (tn(he) || en(he));
+      }
+
+      return he;
+    }
+
+    function ee(se) {
+      if (Nt(se)) se = S(se);else if (Et(se)) {
+        var pe,
+            he = [];
+
+        for (pe in Object(se)) {
+          Ke.call(se, pe) && "constructor" != pe && he.push(pe);
+        }
+
+        se = he;
+      } else se = vr(se);
+      return se;
+    }
+
+    function re(se) {
+      if (Nt(se)) se = S(se, !0);else if (qt(se)) {
+        var pe,
+            he = Et(se),
+            de = [];
+
+        for (pe in se) {
+          ("constructor" != pe || !he && Ke.call(se, pe)) && de.push(pe);
+        }
+
+        se = de;
+      } else {
+        if (pe = [], null != se) for (he in Object(se)) {
+          pe.push(he);
+        }
+        se = pe;
+      }
+      return se;
+    }
+
+    function ne(se) {
+      return null == se ? [] : function h(se, pe) {
+        return o(pe, function (pe) {
+          return se[pe];
+        });
+      }(se, ee(se));
+    }
+
+    function ue(se) {
+      return function () {
+        return se;
+      };
+    }
+
+    function oe(se) {
+      return se;
+    }
+
+    function ie(se) {
+      return W("function" == typeof se ? se : I(se, 1));
+    }
+
+    function ce() {}
+
+    function fe(se) {
+      return zt(se) ? function a(se) {
+        return function (pe) {
+          return null == pe ? de : pe[se];
+        };
+      }(Ut(se)) : function J(se) {
+        return function (pe) {
+          return U(pe, se);
+        };
+      }(se);
+    }
+
+    function ae() {
+      return [];
+    }
+
+    function le() {
+      return !1;
+    }
+
+    var de,
+        ge = 1 / 0,
+        ve = NaN,
+        ye = [["ary", 128], ["bind", 1], ["bindKey", 2], ["curry", 8], ["curryRight", 16], ["flip", 512], ["partial", 32], ["partialRight", 64], ["rearg", 256]],
+        _e = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/,
+        be = /^\w*$/,
+        me = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g,
+        xe = /^\s+|\s+$/g,
+        we = /\{(?:\n\/\* \[wrapped with .+\] \*\/)?\n?/,
+        je = /\{\n\/\* \[wrapped with (.+)\] \*/,
+        ke = /,? & /,
+        Ee = /\\(\\)?/g,
+        Ae = /\w*$/,
+        Se = /^[-+]0x[0-9a-f]+$/i,
+        Oe = /^0b[01]+$/i,
+        Re = /^\[object .+?Constructor\]$/,
+        Ce = /^0o[0-7]+$/i,
+        Ie = /^(?:0|[1-9]\d*)$/,
+        ze = RegExp("\\ud83c[\\udffb-\\udfff](?=\\ud83c[\\udffb-\\udfff])|(?:[^\\ud800-\\udfff][\\u0300-\\u036f\\ufe20-\\ufe2f\\u20d0-\\u20ff]?|[\\u0300-\\u036f\\ufe20-\\ufe2f\\u20d0-\\u20ff]|(?:\\ud83c[\\udde6-\\uddff]){2}|[\\ud800-\\udbff][\\udc00-\\udfff]|[\\ud800-\\udfff])[\\ufe0e\\ufe0f]?(?:[\\u0300-\\u036f\\ufe20-\\ufe2f\\u20d0-\\u20ff]|\\ud83c[\\udffb-\\udfff])?(?:\\u200d(?:[^\\ud800-\\udfff]|(?:\\ud83c[\\udde6-\\uddff]){2}|[\\ud800-\\udbff][\\udc00-\\udfff])[\\ufe0e\\ufe0f]?(?:[\\u0300-\\u036f\\ufe20-\\ufe2f\\u20d0-\\u20ff]|\\ud83c[\\udffb-\\udfff])?)*", "g"),
+        $e = RegExp("[\\u200d\\ud800-\\udfff\\u0300-\\u036f\\ufe20-\\ufe2f\\u20d0-\\u20ff\\ufe0e\\ufe0f]"),
+        Me = {};
+    Me["[object Float32Array]"] = Me["[object Float64Array]"] = Me["[object Int8Array]"] = Me["[object Int16Array]"] = Me["[object Int32Array]"] = Me["[object Uint8Array]"] = Me["[object Uint8ClampedArray]"] = Me["[object Uint16Array]"] = Me["[object Uint32Array]"] = !0, Me["[object Arguments]"] = Me["[object Array]"] = Me["[object ArrayBuffer]"] = Me["[object Boolean]"] = Me["[object DataView]"] = Me["[object Date]"] = Me["[object Error]"] = Me["[object Function]"] = Me["[object Map]"] = Me["[object Number]"] = Me["[object Object]"] = Me["[object RegExp]"] = Me["[object Set]"] = Me["[object String]"] = Me["[object WeakMap]"] = !1;
+    var Ne = {};
+    Ne["[object Arguments]"] = Ne["[object Array]"] = Ne["[object ArrayBuffer]"] = Ne["[object DataView]"] = Ne["[object Boolean]"] = Ne["[object Date]"] = Ne["[object Float32Array]"] = Ne["[object Float64Array]"] = Ne["[object Int8Array]"] = Ne["[object Int16Array]"] = Ne["[object Int32Array]"] = Ne["[object Map]"] = Ne["[object Number]"] = Ne["[object Object]"] = Ne["[object RegExp]"] = Ne["[object Set]"] = Ne["[object String]"] = Ne["[object Symbol]"] = Ne["[object Uint8Array]"] = Ne["[object Uint8ClampedArray]"] = Ne["[object Uint16Array]"] = Ne["[object Uint32Array]"] = !0, Ne["[object Error]"] = Ne["[object Function]"] = Ne["[object WeakMap]"] = !1;
+    var Pe,
+        Fe = parseInt,
+        qe = "object" == typeof pe && pe && pe.Object === Object && pe,
+        Te = "object" == typeof self && self && self.Object === Object && self,
+        Xe = qe || Te || Function("return this")(),
+        Be = he && !he.nodeType && he,
+        Le = Be && se && !se.nodeType && se,
+        He = Le && Le.exports === Be,
+        Ue = He && qe.process;
+
+    e: {
+      try {
+        Pe = Ue && Ue.binding && Ue.binding("util");
+        break e;
+      } catch (t) {}
+
+      Pe = void 0;
+    }
+
+    var De = Pe && Pe.isMap,
+        We = Pe && Pe.isSet,
+        Ge = Pe && Pe.isTypedArray,
+        Qe = Array.prototype,
+        Ve = Object.prototype,
+        Ye = Xe["__core-js_shared__"],
+        Ze = Function.prototype.toString,
+        Ke = Ve.hasOwnProperty,
+        Je = function () {
+      var se = /[^.]+$/.exec(Ye && Ye.keys && Ye.keys.IE_PROTO || "");
+      return se ? "Symbol(src)_1." + se : "";
+    }(),
+        er = Ve.toString,
+        tr = RegExp("^" + Ze.call(Ke).replace(/[\\^$.*+?()[\]{}|]/g, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"),
+        rr = He ? Xe.Buffer : de,
+        nr = Xe.Symbol,
+        or = Xe.Uint8Array,
+        ar = rr ? rr.f : de,
+        ir = y(Object.getPrototypeOf),
+        cr = Object.create,
+        ur = Ve.propertyIsEnumerable,
+        sr = Qe.splice,
+        lr = nr ? nr.isConcatSpreadable : de,
+        fr = nr ? nr.iterator : de,
+        pr = nr ? nr.toStringTag : de,
+        hr = function () {
+      try {
+        var se = mt(Object, "defineProperty");
+        return se({}, "", {}), se;
+      } catch (se) {}
+    }(),
+        dr = Object.getOwnPropertySymbols,
+        gr = rr ? rr.isBuffer : de,
+        vr = y(Object.keys),
+        yr = Math.max,
+        _r = Math.min,
+        br = Date.now,
+        mr = mt(Xe, "DataView"),
+        xr = mt(Xe, "Map"),
+        wr = mt(Xe, "Promise"),
+        jr = mt(Xe, "Set"),
+        kr = mt(Xe, "WeakMap"),
+        Er = mt(Object, "create"),
+        Ar = kr && new kr(),
+        Sr = {},
+        Or = Bt(mr),
+        Cr = Bt(xr),
+        Ir = Bt(wr),
+        zr = Bt(jr),
+        $r = Bt(kr),
+        Mr = nr ? nr.prototype : de,
+        Nr = Mr ? Mr.valueOf : de,
+        Pr = Mr ? Mr.toString : de,
+        Fr = function () {
+      function t() {}
+
+      return function (se) {
+        return qt(se) ? cr ? cr(se) : (t.prototype = se, se = new t(), t.prototype = de, se) : {};
+      };
+    }();
+
+    d.prototype = Fr(function () {}.prototype), d.prototype.constructor = d, j.prototype.clear = function () {
+      this.__data__ = Er ? Er(null) : {}, this.size = 0;
+    }, j.prototype.delete = function (se) {
+      return se = this.has(se) && delete this.__data__[se], this.size -= se ? 1 : 0, se;
+    }, j.prototype.get = function (se) {
+      var pe = this.__data__;
+      return Er ? "__lodash_hash_undefined__" === (se = pe[se]) ? de : se : Ke.call(pe, se) ? pe[se] : de;
+    }, j.prototype.has = function (se) {
+      var pe = this.__data__;
+      return Er ? pe[se] !== de : Ke.call(pe, se);
+    }, j.prototype.set = function (se, pe) {
+      var he = this.__data__;
+      return this.size += this.has(se) ? 0 : 1, he[se] = Er && pe === de ? "__lodash_hash_undefined__" : pe, this;
+    }, w.prototype.clear = function () {
+      this.__data__ = [], this.size = 0;
+    }, w.prototype.delete = function (se) {
+      var pe = this.__data__;
+      return !(0 > (se = x(pe, se)) || (se == pe.length - 1 ? pe.pop() : sr.call(pe, se, 1), --this.size, 0));
+    }, w.prototype.get = function (se) {
+      var pe = this.__data__;
+      return 0 > (se = x(pe, se)) ? de : pe[se][1];
+    }, w.prototype.has = function (se) {
+      return -1 < x(this.__data__, se);
+    }, w.prototype.set = function (se, pe) {
+      var he = this.__data__,
+          de = x(he, se);
+      return 0 > de ? (++this.size, he.push([se, pe])) : he[de][1] = pe, this;
+    }, A.prototype.clear = function () {
+      this.size = 0, this.__data__ = {
+        hash: new j(),
+        map: new (xr || w)(),
+        string: new j()
+      };
+    }, A.prototype.delete = function (se) {
+      return se = wt(this, se).delete(se), this.size -= se ? 1 : 0, se;
+    }, A.prototype.get = function (se) {
+      return wt(this, se).get(se);
+    }, A.prototype.has = function (se) {
+      return wt(this, se).has(se);
+    }, A.prototype.set = function (se, pe) {
+      var he = wt(this, se),
+          de = he.size;
+      return he.set(se, pe), this.size += he.size == de ? 0 : 1, this;
+    }, m.prototype.add = m.prototype.push = function (se) {
+      return this.__data__.set(se, "__lodash_hash_undefined__"), this;
+    }, m.prototype.has = function (se) {
+      return this.__data__.has(se);
+    }, O.prototype.clear = function () {
+      this.__data__ = new w(), this.size = 0;
+    }, O.prototype.delete = function (se) {
+      var pe = this.__data__;
+      return se = pe.delete(se), this.size = pe.size, se;
+    }, O.prototype.get = function (se) {
+      return this.__data__.get(se);
+    }, O.prototype.has = function (se) {
+      return this.__data__.has(se);
+    }, O.prototype.set = function (se, pe) {
+      var he = this.__data__;
+
+      if (he instanceof w) {
+        var de = he.__data__;
+        if (!xr || 199 > de.length) return de.push([se, pe]), this.size = ++he.size, this;
+        he = this.__data__ = new A(de);
+      }
+
+      return he.set(se, pe), this.size = he.size, this;
+    };
+
+    var Dr = function Dr(se, pe) {
+      if (null == se) return se;
+      if (!Nt(se)) return function (se, pe) {
+        return se && Rr(se, pe, ee);
+      }(se, pe);
+
+      for (var he = se.length, de = -1, ge = Object(se); ++de < he && !1 !== pe(ge[de], de, ge);) {
+        ;
+      }
+
+      return se;
+    },
+        Rr = function Rr(se, pe, he) {
+      for (var de = -1, ge = Object(se), ve = (he = he(se)).length; ve--;) {
+        var ye = he[++de];
+        if (!1 === pe(ge[ye], ye, ge)) break;
+      }
+
+      return se;
+    },
+        qr = Ar ? function (se, pe) {
+      return Ar.set(se, pe), se;
+    } : oe,
+        Tr = hr ? function (se, pe) {
+      return hr(se, "toString", {
+        configurable: !0,
+        enumerable: !1,
+        value: ue(pe),
+        writable: !0
+      });
+    } : oe,
+        Xr = jr && 1 / g(new jr([, -0]))[1] == ge ? function (se) {
+      return new jr(se);
+    } : ce,
+        Br = Ar ? function (se) {
+      return Ar.get(se);
+    } : ce,
+        Lr = dr ? function (se) {
+      return null == se ? [] : (se = Object(se), function r(se, pe) {
+        for (var he = -1, de = null == se ? 0 : se.length, ge = 0, ve = []; ++he < de;) {
+          var ye = se[he];
+          pe(ye, he, se) && (ve[ge++] = ye);
+        }
+
+        return ve;
+      }(dr(se), function (pe) {
+        return ur.call(se, pe);
+      }));
+    } : ae,
+        Hr = dr ? function (se) {
+      for (var pe = []; se;) {
+        i(pe, Lr(se)), se = ir(se);
+      }
+
+      return pe;
+    } : ae,
+        Ur = D;
+
+    (mr && "[object DataView]" != Ur(new mr(new ArrayBuffer(1))) || xr && "[object Map]" != Ur(new xr()) || wr && "[object Promise]" != Ur(wr.resolve()) || jr && "[object Set]" != Ur(new jr()) || kr && "[object WeakMap]" != Ur(new kr())) && (Ur = function Ur(se) {
+      var pe = D(se);
+      if (se = (se = "[object Object]" == pe ? se.constructor : de) ? Bt(se) : "") switch (se) {
+        case Or:
+          return "[object DataView]";
+
+        case Cr:
+          return "[object Map]";
+
+        case Ir:
+          return "[object Promise]";
+
+        case zr:
+          return "[object Set]";
+
+        case $r:
+          return "[object WeakMap]";
+      }
+      return pe;
+    });
+
+    var Wr = $t(qr),
+        Gr = $t(Tr),
+        Qr = function (se) {
+      var pe = (se = Pt(se, function (se) {
+        return 500 === pe.size && pe.clear(), se;
+      })).cache;
+      return se;
+    }(function (se) {
+      var pe = [];
+      return 46 === se.charCodeAt(0) && pe.push(""), se.replace(me, function (se, he, de, ge) {
+        pe.push(de ? ge.replace(Ee, "$1") : he || se);
+      }), pe;
+    }),
+        Vr = Q(function (se, pe) {
+      return Tt(se) ? M(se, $(pe, 1, Tt, !0)) : [];
+    }),
+        Yr = Q(function (se, pe) {
+      var he = Rt(pe);
+      return Tt(he) && (he = de), Tt(se) ? M(se, $(pe, 1, Tt, !0), de, he) : [];
+    }),
+        Zr = Q(function (se) {
+      var pe = o(se, Z);
+      return pe.length && pe[0] === se[0] ? R(pe) : [];
+    }),
+        Kr = Q(function (se) {
+      var pe = Rt(se),
+          he = o(se, Z);
+      return (pe = "function" == typeof pe ? pe : de) && he.pop(), he.length && he[0] === se[0] ? R(he, de, pe) : [];
+    });
+
+    Pt.Cache = A;
+    var Jr = Q(function (se, pe) {
+      var he,
+          ge,
+          ve = _(pe, dt(Jr)),
+          ye = se,
+          _e = de,
+          be = pe,
+          me = ve,
+          xe = 64;
+
+      if (!(ve = 2 & xe) && "function" != typeof ye) throw new TypeError("Expected a function");
+      var we = be ? be.length : 0;
+
+      if (we || (xe &= -97, be = me = de), he = he === de ? he : yr(Qt(he), 0), ge = ge === de ? ge : Qt(ge), we -= me ? me.length : 0, 64 & xe) {
+        var je = be,
+            ke = me;
+        be = me = de;
+      }
+
+      var Ee = ve ? de : Br(ye);
+      return he = [ye, xe, _e, be, me, je, ke, void 0, he, ge], Ee && (_e = (be = he[1]) | (ye = Ee[1]), ge = 128 == ye && 8 == be || 128 == ye && 256 == be && he[7].length <= Ee[8] || 384 == ye && Ee[7].length <= Ee[8] && 8 == be, 131 > _e || ge) && (1 & ye && (he[2] = Ee[2], _e |= 1 & be ? 0 : 4), (be = Ee[3]) && (ge = he[3], he[3] = ge ? nt(ge, be, Ee[4]) : be, he[4] = ge ? _(he[3], "__lodash_placeholder__") : Ee[4]), (be = Ee[5]) && (ge = he[5], he[5] = ge ? ut(ge, be, Ee[6]) : be, he[6] = ge ? _(he[5], "__lodash_placeholder__") : Ee[6]), (be = Ee[7]) && (he[7] = be), 128 & ye && (he[8] = null == he[8] ? Ee[8] : _r(he[8], Ee[8])), null == he[9] && (he[9] = Ee[9]), he[0] = Ee[0], he[1] = _e), ye = he[0], xe = he[1], _e = he[2], be = he[3], me = he[4], !(ge = he[9] = he[9] === de ? ve ? 0 : ye.length : yr(he[9] - we, 0)) && 24 & xe && (xe &= -25), Mt((Ee ? qr : Wr)(xe && 1 != xe ? 8 == xe || 16 == xe ? st(ye, xe, ge) : 32 != xe && 33 != xe || me.length ? ht.apply(de, he) : bt(ye, xe, _e, be) : function at(se, pe, he) {
+        var de = 1 & pe,
+            ge = lt(se);
+        return function n() {
+          return (this && this !== Xe && this instanceof n ? ge : se).apply(de ? he : this, arguments);
+        };
+      }(ye, xe, _e), he), ye, xe);
+    }),
+        en = L(function () {
+      return arguments;
+    }()) ? L : function (se) {
+      return Gt(se) && Ke.call(se, "callee") && !ur.call(se, "callee");
+    },
+        tn = Array.isArray,
+        rn = gr || le,
+        nn = De ? s(De) : function C(se) {
+      return Gt(se) && "[object Map]" == Ur(se);
+    },
+        on = We ? s(We) : function T(se) {
+      return Gt(se) && "[object Set]" == Ur(se);
+    },
+        an = Ge ? s(Ge) : function V(se) {
+      return Gt(se) && Wt(se.length) && !!Me[D(se)];
+    };
+    v.constant = ue, v.difference = Vr, v.differenceWith = Yr, v.intersection = Zr, v.intersectionWith = Kr, v.iteratee = ie, v.keys = ee, v.keysIn = re, v.memoize = Pt, v.orderBy = function (se, pe, he, ge) {
+      return null == se ? [] : (tn(pe) || (pe = null == pe ? [] : [pe]), tn(he = ge ? de : he) || (he = null == he ? [] : [he]), H(se, pe, he));
+    }, v.partialRight = Jr, v.property = fe, v.toArray = function (se) {
+      if (!se) return [];
+      if (Nt(se)) return Kt(se) ? $e.test(se) ? se.match(ze) || [] : se.split("") : ot(se);
+
+      if (fr && se[fr]) {
+        se = se[fr]();
+
+        for (var pe, he = []; !(pe = se.next()).done;) {
+          he.push(pe.value);
+        }
+
+        return he;
+      }
+
+      return ("[object Map]" == (pe = Ur(se)) ? p : "[object Set]" == pe ? g : ne)(se);
+    }, v.uniq = function (se) {
+      return se && se.length ? Y(se) : [];
+    }, v.uniqWith = function (se, pe) {
+      return pe = "function" == typeof pe ? pe : de, se && se.length ? Y(se, de, pe) : [];
+    }, v.values = ne, v.eq = Ct, v.forEach = Lt, v.get = Zt, v.hasIn = te, v.identity = oe, v.isArguments = en, v.isArray = tn, v.isArrayLike = Nt, v.isArrayLikeObject = Tt, v.isBuffer = rn, v.isFunction = Vt, v.isLength = Wt, v.isMap = nn, v.isObject = qt, v.isObjectLike = Gt, v.isSet = on, v.isString = Kt, v.isSymbol = Ht, v.isTypedArray = an, v.last = Rt, v.stubArray = ae, v.stubFalse = le, v.noop = ce, v.toFinite = Jt, v.toInteger = Qt, v.toNumber = Xt, v.toString = Yt, v.each = Lt, v.VERSION = "4.17.5", Jr.placeholder = v, Le ? ((Le.exports = v)._ = v, Be._ = v) : Xe._ = v;
+  }).call(pe);
+}(je, je.exports),
+/*! https://mths.be/codepointat v0.2.0 by @mathias */
+String.prototype.codePointAt || (be = function () {
+  try {
+    var se = {},
+        pe = Object.defineProperty,
+        he = pe(se, se, se) && pe;
+  } catch (se) {}
+
+  return he;
+}(), me = function me(se) {
+  if (null == this) throw TypeError();
+  var pe = String(this),
+      he = pe.length,
+      de = se ? Number(se) : 0;
+
+  if (de != de && (de = 0), !(de < 0 || de >= he)) {
+    var ge,
+        ve = pe.charCodeAt(de);
+    return ve >= 55296 && ve <= 56319 && he > de + 1 && (ge = pe.charCodeAt(de + 1)) >= 56320 && ge <= 57343 ? 1024 * (ve - 55296) + ge - 56320 + 65536 : ve;
+  }
+}, be ? be(String.prototype, "codePointAt", {
+  value: me,
+  configurable: !0,
+  writable: !0
+}) : String.prototype.codePointAt = me)
+/*! http://mths.be/fromcodepoint v0.2.1 by @mathias */
+, String.fromCodePoint || function () {
+  var se = function () {
+    try {
+      var se = {},
+          pe = Object.defineProperty,
+          he = pe(se, se, se) && pe;
+    } catch (se) {}
+
+    return he;
+  }(),
+      pe = String.fromCharCode,
+      he = Math.floor,
+      fromCodePoint = function fromCodePoint(se) {
+    var de,
+        ge,
+        ve = 16384,
+        ye = [],
+        _e = -1,
+        be = arguments.length;
+
+    if (!be) return "";
+
+    for (var me = ""; ++_e < be;) {
+      var xe = Number(arguments[_e]);
+      if (!isFinite(xe) || xe < 0 || xe > 1114111 || he(xe) != xe) throw RangeError("Invalid code point: " + xe);
+      xe <= 65535 ? ye.push(xe) : (de = 55296 + ((xe -= 65536) >> 10), ge = xe % 1024 + 56320, ye.push(de, ge)), (_e + 1 == be || ye.length > ve) && (me += pe.apply(null, ye), ye.length = 0);
+    }
+
+    return me;
+  };
+
+  se ? se(String, "fromCodePoint", {
+    value: fromCodePoint,
+    configurable: !0,
+    writable: !0
+  }) : String.fromCodePoint = fromCodePoint;
+}();
+
+try {
+  xe = "undefined" != typeof Intl && void 0 !== Intl.Collator ? Intl.Collator("generic", {
+    sensitivity: "base"
+  }) : null;
+} catch (se) {
+  void 0 !== typeof console && console.warn("Collator could not be initialized and wouldn't be used");
+}
+
+var ke,
+    Ee = function leven(se, pe, he, de) {
+  var ge = [],
+      ve = [],
+      ye = he && xe && he.useCollator,
+      _e = 1;
+  if (he && he.subcost && "number" == typeof he.subcost && (_e = he.subcost), se === pe) return 0;
+  var be,
+      me,
+      we,
+      je,
+      ke = de(se),
+      Ee = de(pe),
+      Ae = ke.length,
+      Se = Ee.length;
+  if (0 === Ae) return Se;
+  if (0 === Se) return Ae;
+
+  for (var Oe = 0, Re = 0; Oe < Ae;) {
+    ve[Oe] = ke[Oe].codePointAt(0), ge[Oe] = ++Oe;
+  }
+
+  if (ye) for (; Re < Se;) {
+    for (be = Ee[Re].codePointAt(0), we = Re++, me = Re, Oe = 0; Oe < Ae; Oe++) {
+      je = 0 === xe.compare(String.fromCodePoint(be), String.fromCodePoint(ve[Oe])) ? we : we + _e, we = ge[Oe], me = ge[Oe] = we > me ? je > me ? me + 1 : je : je > we ? we + 1 : je;
+    }
+  } else for (; Re < Se;) {
+    for (be = Ee[Re].codePointAt(0), we = Re++, me = Re, Oe = 0; Oe < Ae; Oe++) {
+      je = be === ve[Oe] ? we : we + _e, we = ge[Oe], me = ge[Oe] = we > me ? je > me ? me + 1 : je : je > we ? we + 1 : je;
+    }
+  }
+  return me;
+};
+
+try {
+  ke = "undefined" != typeof Intl && void 0 !== Intl.Collator ? Intl.Collator("generic", {
+    sensitivity: "base"
+  }) : null;
+} catch (se) {
+  void 0 !== typeof console && console.warn("Collator could not be initialized and wouldn't be used");
+}
+
+var Ae,
+    Se = function leven(se, pe, he, de) {
+  var ge = [],
+      ve = [],
+      ye = he && ke && he.useCollator,
+      _e = 1;
+  if (he && he.subcost && "number" == typeof he.subcost && (_e = he.subcost), se === pe) return 0;
+  var be = se.length,
+      me = pe.length;
+  if (0 === be) return me;
+  if (0 === me) return be;
+
+  if (he && he.wildcards && "string" == typeof he.wildcards && he.wildcards.length > 0) {
+    var xe, we, je, Ee, Ae, Se;
+
+    if (!1 === he.full_process && !0 !== he.processed) {
+      we = (xe = he.wildcards[0]).charCodeAt(0);
+
+      var Oe = "[" + function escapeRegExp(se) {
+        return se.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }(he.wildcards) + "]";
+
+      if ((se = se.replace(new RegExp(Oe, "g"), xe)) === (pe = pe.replace(new RegExp(Oe, "g"), xe))) return 0;
+    } else we = (xe = he.wildcards[0].toLowerCase()).charCodeAt(0);
+
+    for (var Re = 0, Ce = 0; Re < be;) {
+      ve[Re] = se.charCodeAt(Re), ge[Re] = ++Re;
+    }
+
+    if (ye) for (; Ce < me;) {
+      for (je = pe.charCodeAt(Ce), Ae = Ce++, Ee = Ce, Re = 0; Re < be; Re++) {
+        Se = 0 === ke.compare(String.fromCharCode(je), String.fromCharCode(ve[Re])) || je === we || ve[Re] === we ? Ae : Ae + _e, Ae = ge[Re], Ee = ge[Re] = Ae > Ee ? Se > Ee ? Ee + 1 : Se : Se > Ae ? Ae + 1 : Se;
+      }
+    } else for (; Ce < me;) {
+      for (je = pe.charCodeAt(Ce), Ae = Ce++, Ee = Ce, Re = 0; Re < be; Re++) {
+        Se = je === ve[Re] || je === we || ve[Re] === we ? Ae : Ae + _e, Ae = ge[Re], Ee = ge[Re] = Ae > Ee ? Se > Ee ? Ee + 1 : Se : Se > Ae ? Ae + 1 : Se;
+      }
+    }
+    return Ee;
+  }
+
+  return de(se, pe, he);
+};
+
+try {
+  Ae = "undefined" != typeof Intl && void 0 !== Intl.Collator ? Intl.Collator("generic", {
+    sensitivity: "base"
+  }) : null;
+} catch (se) {
+  void 0 !== typeof console && console.warn("Collator could not be initialized and wouldn't be used");
+}
+
+var Oe = function leven(se, pe, he) {
+  var de = [],
+      ge = [],
+      ve = he && Ae && he.useCollator,
+      ye = 1;
+  if (he && he.subcost && "number" == typeof he.subcost && (ye = he.subcost), se === pe) return 0;
+
+  var _e,
+      be,
+      me,
+      xe,
+      we = se.length,
+      je = pe.length;
+
+  if (0 === we) return je;
+  if (0 === je) return we;
+
+  for (var ke = 0, Ee = 0; ke < we;) {
+    ge[ke] = se.charCodeAt(ke), de[ke] = ++ke;
+  }
+
+  if (ve) for (; Ee < je;) {
+    for (_e = pe.charCodeAt(Ee), me = Ee++, be = Ee, ke = 0; ke < we; ke++) {
+      xe = 0 === Ae.compare(String.fromCharCode(_e), String.fromCharCode(ge[ke])) ? me : me + ye, me = de[ke], be = de[ke] = me > be ? xe > be ? be + 1 : xe : xe > me ? me + 1 : xe;
+    }
+  } else for (; Ee < je;) {
+    for (_e = pe.charCodeAt(Ee), me = Ee++, be = Ee, ke = 0; ke < we; ke++) {
+      xe = _e === ge[ke] ? me : me + ye, me = de[ke], be = de[ke] = me > be ? xe > be ? be + 1 : xe : xe > me ? me + 1 : xe;
+    }
+  }
+  return be;
+};
+
+!function (se, pe) {
+  if (!se.setImmediate) {
+    var he,
+        de = 1,
+        ge = {},
+        ve = !1,
+        ye = se.document,
+        _e = Object.getPrototypeOf && Object.getPrototypeOf(se);
+
+    _e = _e && _e.setTimeout ? _e : se, "[object process]" === {}.toString.call(se.process) ? function installNextTickImplementation() {
+      he = function he(se) {
+        process.nextTick(function () {
+          runIfPresent(se);
+        });
+      };
+    }() : !function canUsePostMessage() {
+      if (se.postMessage && !se.importScripts) {
+        var pe = !0,
+            he = se.onmessage;
+        return se.onmessage = function () {
+          pe = !1;
+        }, se.postMessage("", "*"), se.onmessage = he, pe;
+      }
+    }() ? se.MessageChannel ? function installMessageChannelImplementation() {
+      var se = new MessageChannel();
+      se.port1.onmessage = function (se) {
+        runIfPresent(se.data);
+      }, he = function he(pe) {
+        se.port2.postMessage(pe);
+      };
+    }() : ye && "onreadystatechange" in ye.createElement("script") ? function installReadyStateChangeImplementation() {
+      var se = ye.documentElement;
+
+      he = function he(pe) {
+        var he = ye.createElement("script");
+        he.onreadystatechange = function () {
+          runIfPresent(pe), he.onreadystatechange = null, se.removeChild(he), he = null;
+        }, se.appendChild(he);
+      };
+    }() : function installSetTimeoutImplementation() {
+      he = function he(se) {
+        setTimeout(runIfPresent, 0, se);
+      };
+    }() : function installPostMessageImplementation() {
+      var pe = "setImmediate$" + Math.random() + "$",
+          onGlobalMessage = function onGlobalMessage(he) {
+        he.source === se && "string" == typeof he.data && 0 === he.data.indexOf(pe) && runIfPresent(+he.data.slice(pe.length));
+      };
+
+      se.addEventListener ? se.addEventListener("message", onGlobalMessage, !1) : se.attachEvent("onmessage", onGlobalMessage), he = function he(_he) {
+        se.postMessage(pe + _he, "*");
+      };
+    }(), _e.setImmediate = function setImmediate(se) {
+      "function" != typeof se && (se = new Function("" + se));
+
+      for (var pe = new Array(arguments.length - 1), ve = 0; ve < pe.length; ve++) {
+        pe[ve] = arguments[ve + 1];
+      }
+
+      var ye = {
+        callback: se,
+        args: pe
+      };
+      return ge[de] = ye, he(de), de++;
+    }, _e.clearImmediate = clearImmediate;
+  }
+
+  function clearImmediate(se) {
+    delete ge[se];
+  }
+
+  function runIfPresent(se) {
+    if (ve) setTimeout(runIfPresent, 0, se);else {
+      var pe = ge[se];
+
+      if (pe) {
+        ve = !0;
+
+        try {
+          !function run(se) {
+            var pe = se.callback,
+                he = se.args;
+
+            switch (he.length) {
+              case 0:
+                pe();
+                break;
+
+              case 1:
+                pe(he[0]);
+                break;
+
+              case 2:
+                pe(he[0], he[1]);
+                break;
+
+              case 3:
+                pe(he[0], he[1], he[2]);
+                break;
+
+              default:
+                pe.apply(void 0, he);
+            }
+          }(pe);
+        } finally {
+          clearImmediate(se), ve = !1;
+        }
+      }
+    }
+  }
+}("undefined" == typeof self ? pe : self);
+/*!
+ * XRegExp 3.1.1-next
+ * <xregexp.com>
+ * Steven Levithan (c) 2007-2016 MIT License
+ */
+
+var Re = {
+  astral: !1,
+  natives: !1
+},
+    Ce = {
+  exec: RegExp.prototype.exec,
+  test: RegExp.prototype.test,
+  match: String.prototype.match,
+  replace: String.prototype.replace,
+  split: String.prototype.split
+},
+    Ie = {},
+    ze = {},
+    $e = {},
+    Me = [],
+    Ne = {
+  default: /\\(?:0(?:[0-3][0-7]{0,2}|[4-7][0-7]?)?|[1-9]\d*|x[\dA-Fa-f]{2}|u(?:[\dA-Fa-f]{4}|{[\dA-Fa-f]+})|c[A-Za-z]|[\s\S])|\(\?(?:[:=!]|<[=!])|[?*+]\?|{\d+(?:,\d*)?}\??|[\s\S]/,
+  class: /\\(?:[0-3][0-7]{0,2}|[4-7][0-7]?|x[\dA-Fa-f]{2}|u(?:[\dA-Fa-f]{4}|{[\dA-Fa-f]+})|c[A-Za-z]|[\s\S])|[\s\S]/
+},
+    Pe = /\$(?:{([\w$]+)}|(\d\d?|[\s\S]))/g,
+    Fe = void 0 === Ce.exec.call(/()??/, "")[1],
+    qe = void 0 !== /x/.flags,
+    Te = {}.toString;
+
+function hasNativeFlag(se) {
+  var pe = !0;
+
+  try {
+    new RegExp("", se);
+  } catch (se) {
+    pe = !1;
+  }
+
+  return pe && "y" === se ? new RegExp("aa|.", "y").test("b") : pe;
+}
+
+var Xe = hasNativeFlag("u"),
+    Be = hasNativeFlag("y"),
+    Le = {
+  g: !0,
+  i: !0,
+  m: !0,
+  u: Xe,
+  y: Be
+};
+
+function augment(se, pe, he, de, ge) {
+  var ve;
+  if (se.xregexp = {
+    captureNames: pe
+  }, ge) return se;
+  if (se.__proto__) se.__proto__ = XRegExp$1.prototype;else for (ve in XRegExp$1.prototype) {
+    se[ve] = XRegExp$1.prototype[ve];
+  }
+  return se.xregexp.source = he, se.xregexp.flags = de ? de.split("").sort().join("") : de, se;
+}
+
+function clipDuplicates(se) {
+  return Ce.replace.call(se, /([\s\S])(?=[\s\S]*\1)/g, "");
+}
+
+function copyRegex(se, pe) {
+  if (!XRegExp$1.isRegExp(se)) throw new TypeError("Type RegExp expected");
+
+  var he = se.xregexp || {},
+      de = function getNativeFlags(se) {
+    return qe ? se.flags : Ce.exec.call(/\/([a-z]*)$/i, RegExp.prototype.toString.call(se))[1];
+  }(se),
+      ge = "",
+      ve = "",
+      ye = null,
+      _e = null;
+
+  return (pe = pe || {}).removeG && (ve += "g"), pe.removeY && (ve += "y"), ve && (de = Ce.replace.call(de, new RegExp("[" + ve + "]+", "g"), "")), pe.addG && (ge += "g"), pe.addY && (ge += "y"), ge && (de = clipDuplicates(de + ge)), pe.isInternalOnly || (void 0 !== he.source && (ye = he.source), null != he.flags && (_e = ge ? clipDuplicates(he.flags + ge) : he.flags)), se = augment(new RegExp(pe.source || se.source, de), function hasNamedCapture(se) {
+    return !(!se.xregexp || !se.xregexp.captureNames);
+  }(se) ? he.captureNames.slice(0) : null, ye, _e, pe.isInternalOnly);
+}
+
+function dec(se) {
+  return parseInt(se, 16);
+}
+
+function hex(se) {
+  return parseInt(se, 10).toString(16);
+}
+
+function indexOf(se, pe) {
+  var he,
+      de = se.length;
+
+  for (he = 0; he < de; ++he) {
+    if (se[he] === pe) return he;
+  }
+
+  return -1;
+}
+
+function isQuantifierNext(se, pe, he) {
+  return Ce.test.call(he.indexOf("x") > -1 ? /^(?:\s|#[^#\n]*|\(\?#[^)]*\))*(?:[?*+]|{\d+(?:,\d*)?})/ : /^(?:\(\?#[^)]*\))*(?:[?*+]|{\d+(?:,\d*)?})/, se.slice(pe));
+}
+
+function pad4(se) {
+  for (; se.length < 4;) {
+    se = "0" + se;
+  }
+
+  return se;
+}
+
+function registerFlag(se) {
+  if (!/^[\w$]$/.test(se)) throw new Error("Flag must be a single character A-Za-z0-9_$");
+  Le[se] = !0;
+}
+
+function runTokens(se, pe, he, de, ge) {
+  for (var ve, ye, _e = Me.length, be = se.charAt(he), me = null; _e--;) {
+    if (!((ye = Me[_e]).leadChar && ye.leadChar !== be || ye.scope !== de && "all" !== ye.scope || ye.flag && -1 === pe.indexOf(ye.flag)) && (ve = XRegExp$1.exec(se, ye.regex, he, "sticky"))) {
+      me = {
+        matchLength: ve[0].length,
+        output: ye.handler.call(ge, ve, de, pe),
+        reparse: ye.reparse
+      };
+      break;
+    }
+  }
+
+  return me;
+}
+
+function XRegExp$1(se, pe) {
+  if (XRegExp$1.isRegExp(se)) {
+    if (void 0 !== pe) throw new TypeError("Cannot supply flags when copying a RegExp");
+    return copyRegex(se);
+  }
+
+  if (se = void 0 === se ? "" : String(se), pe = void 0 === pe ? "" : String(pe), XRegExp$1.isInstalled("astral") && -1 === pe.indexOf("A") && (pe += "A"), $e[se] || ($e[se] = {}), !$e[se][pe]) {
+    for (var he, de = {
+      hasNamedCapture: !1,
+      captureNames: []
+    }, ge = "default", ve = "", ye = 0, _e = function prepareFlags(se, pe) {
+      var he;
+      if (clipDuplicates(pe) !== pe) throw new SyntaxError("Invalid duplicate regex flag " + pe);
+
+      for (se = Ce.replace.call(se, /^\(\?([\w$]+)\)/, function (se, he) {
+        if (Ce.test.call(/[gy]/, he)) throw new SyntaxError("Cannot use flag g or y in mode modifier " + se);
+        return pe = clipDuplicates(pe + he), "";
+      }), he = 0; he < pe.length; ++he) {
+        if (!Le[pe.charAt(he)]) throw new SyntaxError("Unknown regex flag " + pe.charAt(he));
+      }
+
+      return {
+        pattern: se,
+        flags: pe
+      };
+    }(se, pe), be = _e.pattern, me = _e.flags; ye < be.length;) {
+      do {
+        (he = runTokens(be, me, ye, ge, de)) && he.reparse && (be = be.slice(0, ye) + he.output + be.slice(ye + he.matchLength));
+      } while (he && he.reparse);
+
+      if (he) ve += he.output, ye += he.matchLength || 1;else {
+        var xe = XRegExp$1.exec(be, Ne[ge], ye, "sticky")[0];
+        ve += xe, ye += xe.length, "[" === xe && "default" === ge ? ge = "class" : "]" === xe && "class" === ge && (ge = "default");
+      }
+    }
+
+    $e[se][pe] = {
+      pattern: Ce.replace.call(ve, /(?:\(\?:\))+/g, "(?:)"),
+      flags: Ce.replace.call(me, /[^gimuy]+/g, ""),
+      captures: de.hasNamedCapture ? de.captureNames : null
+    };
+  }
+
+  var we = $e[se][pe];
+  return augment(new RegExp(we.pattern, we.flags), we.captures, se, pe);
+}
+
+XRegExp$1.prototype = new RegExp(), XRegExp$1.version = "3.1.1-next", XRegExp$1._clipDuplicates = clipDuplicates, XRegExp$1._hasNativeFlag = hasNativeFlag, XRegExp$1._dec = dec, XRegExp$1._hex = hex, XRegExp$1._pad4 = pad4, XRegExp$1.addToken = function (se, pe, he) {
+  var de,
+      ge = (he = he || {}).optionalFlags;
+  if (he.flag && registerFlag(he.flag), ge) for (ge = Ce.split.call(ge, ""), de = 0; de < ge.length; ++de) {
+    registerFlag(ge[de]);
+  }
+  Me.push({
+    regex: copyRegex(se, {
+      addG: !0,
+      addY: Be,
+      isInternalOnly: !0
+    }),
+    handler: pe,
+    scope: he.scope || "default",
+    flag: he.flag,
+    reparse: he.reparse,
+    leadChar: he.leadChar
+  }), XRegExp$1.cache.flush("patterns");
+}, XRegExp$1.cache = function (se, pe) {
+  return ze[se] || (ze[se] = {}), ze[se][pe] || (ze[se][pe] = XRegExp$1(se, pe));
+}, XRegExp$1.cache.flush = function (se) {
+  "patterns" === se ? $e = {} : ze = {};
+}, XRegExp$1.exec = function (se, pe, he, de) {
+  var ge,
+      ve,
+      ye,
+      _e = "g",
+      be = !1;
+  return (ge = Be && !!(de || pe.sticky && !1 !== de)) ? _e += "y" : de && (be = !0, _e += "FakeY"), pe.xregexp = pe.xregexp || {}, he = he || 0, (ye = pe.xregexp[_e] || (pe.xregexp[_e] = copyRegex(pe, {
+    addG: !0,
+    addY: ge,
+    source: be ? pe.source + "|()" : void 0,
+    removeY: !1 === de,
+    isInternalOnly: !0
+  }))).lastIndex = he, ve = Ie.exec.call(ye, se), be && ve && "" === ve.pop() && (ve = null), pe.global && (pe.lastIndex = ve ? ye.lastIndex : 0), ve;
+}, XRegExp$1.isInstalled = function (se) {
+  return !!Re[se];
+}, XRegExp$1.isRegExp = function (se) {
+  return "[object RegExp]" === Te.call(se);
+}, XRegExp$1.replace = function (se, pe, he, de) {
+  var ge,
+      ve = XRegExp$1.isRegExp(pe),
+      ye = pe.global && "one" !== de || "all" === de,
+      _e = (ye ? "g" : "") + (pe.sticky ? "y" : "") || "noGY",
+      be = pe;
+
+  return ve ? (pe.xregexp = pe.xregexp || {}, be = pe.xregexp[_e] || (pe.xregexp[_e] = copyRegex(pe, {
+    addG: !!ye,
+    removeG: "one" === de,
+    isInternalOnly: !0
+  }))) : ye && (be = new RegExp(XRegExp$1.escape(String(pe)), "g")), ge = Ie.replace.call(function toObject(se) {
+    if (null == se) throw new TypeError("Cannot convert null or undefined to object");
+    return se;
+  }(se), be, he), ve && pe.global && (pe.lastIndex = 0), ge;
+}, Ie.exec = function (se) {
+  var pe,
+      he,
+      de,
+      ge = this.lastIndex,
+      ve = Ce.exec.apply(this, arguments);
+
+  if (ve) {
+    if (!Fe && ve.length > 1 && indexOf(ve, "") > -1 && (he = copyRegex(this, {
+      removeG: !0,
+      isInternalOnly: !0
+    }), Ce.replace.call(String(se).slice(ve.index), he, function () {
+      var se,
+          pe = arguments.length;
+
+      for (se = 1; se < pe - 2; ++se) {
+        void 0 === arguments[se] && (ve[se] = void 0);
+      }
+    })), this.xregexp && this.xregexp.captureNames) for (de = 1; de < ve.length; ++de) {
+      (pe = this.xregexp.captureNames[de - 1]) && (ve[pe] = ve[de]);
+    }
+    this.global && !ve[0].length && this.lastIndex > ve.index && (this.lastIndex = ve.index);
+  }
+
+  return this.global || (this.lastIndex = ge), ve;
+}, Ie.replace = function (se, pe) {
+  var he,
+      de,
+      ge,
+      ve = XRegExp$1.isRegExp(se);
+  return ve ? (se.xregexp && (de = se.xregexp.captureNames), he = se.lastIndex) : se += "", ge = function isType(se, pe) {
+    return Te.call(se) === "[object " + pe + "]";
+  }(pe, "Function") ? Ce.replace.call(String(this), se, function () {
+    var he,
+        ge = arguments;
+    if (de) for (ge[0] = new String(ge[0]), he = 0; he < de.length; ++he) {
+      de[he] && (ge[0][de[he]] = ge[he + 1]);
+    }
+    return ve && se.global && (se.lastIndex = ge[ge.length - 2] + ge[0].length), pe.apply(void 0, ge);
+  }) : Ce.replace.call(null == this ? this : String(this), se, function () {
+    var se = arguments;
+    return Ce.replace.call(String(pe), Pe, function (pe, he, ge) {
+      var ve;
+
+      if (he) {
+        if ((ve = +he) <= se.length - 3) return se[ve] || "";
+        if ((ve = de ? indexOf(de, he) : -1) < 0) throw new SyntaxError("Backreference to undefined group " + pe);
+        return se[ve + 1] || "";
+      }
+
+      if ("$" === ge) return "$";
+      if ("&" === ge || 0 == +ge) return se[0];
+      if ("`" === ge) return se[se.length - 1].slice(0, se[se.length - 2]);
+      if ("'" === ge) return se[se.length - 1].slice(se[se.length - 2] + se[0].length);
+
+      if (ge = +ge, !isNaN(ge)) {
+        if (ge > se.length - 3) throw new SyntaxError("Backreference to undefined group " + pe);
+        return se[ge] || "";
+      }
+
+      throw new SyntaxError("Invalid token " + pe);
+    });
+  }), ve && (se.global ? se.lastIndex = 0 : se.lastIndex = he), ge;
+}, Ie.split = function (se, pe) {
+  if (!XRegExp$1.isRegExp(se)) return Ce.split.apply(this, arguments);
+  var he,
+      de = String(this),
+      ge = [],
+      ve = se.lastIndex,
+      ye = 0;
+  return pe = (void 0 === pe ? -1 : pe) >>> 0, XRegExp$1.forEach(de, se, function (se) {
+    se.index + se[0].length > ye && (ge.push(de.slice(ye, se.index)), se.length > 1 && se.index < de.length && Array.prototype.push.apply(ge, se.slice(1)), he = se[0].length, ye = se.index + he);
+  }), ye === de.length ? Ce.test.call(se, "") && !he || ge.push("") : ge.push(de.slice(ye)), se.lastIndex = ve, ge.length > pe ? ge.slice(0, pe) : ge;
+}, XRegExp$1.addToken(/\\([ABCE-RTUVXYZaeg-mopqyz]|c(?![A-Za-z])|u(?![\dA-Fa-f]{4}|{[\dA-Fa-f]+})|x(?![\dA-Fa-f]{2}))/, function (se, pe) {
+  if ("B" === se[1] && "default" === pe) return se[0];
+  throw new SyntaxError("Invalid escape " + se[0]);
+}, {
+  scope: "all",
+  leadChar: "\\"
+}), XRegExp$1.addToken(/\\u{([\dA-Fa-f]+)}/, function (se, pe, he) {
+  var de = dec(se[1]);
+  if (de > 1114111) throw new SyntaxError("Invalid Unicode code point " + se[0]);
+  if (de <= 65535) return "\\u" + pad4(hex(de));
+  if (Xe && he.indexOf("u") > -1) return se[0];
+  throw new SyntaxError("Cannot use Unicode code point above \\u{FFFF} without flag u");
+}, {
+  scope: "all",
+  leadChar: "\\"
+}), XRegExp$1.addToken(/\[(\^?)\]/, function (se) {
+  return se[1] ? "[\\s\\S]" : "\\b\\B";
+}, {
+  leadChar: "["
+}), XRegExp$1.addToken(/\(\?#[^)]*\)/, function (se, pe, he) {
+  return isQuantifierNext(se.input, se.index + se[0].length, he) ? "" : "(?:)";
+}, {
+  leadChar: "("
+}), XRegExp$1.addToken(/\s+|#[^\n]*\n?/, function (se, pe, he) {
+  return isQuantifierNext(se.input, se.index + se[0].length, he) ? "" : "(?:)";
+}, {
+  flag: "x"
+}), XRegExp$1.addToken(/\./, function () {
+  return "[\\s\\S]";
+}, {
+  flag: "s",
+  leadChar: "."
+}), XRegExp$1.addToken(/\\k<([\w$]+)>/, function (se) {
+  var pe = isNaN(se[1]) ? indexOf(this.captureNames, se[1]) + 1 : +se[1],
+      he = se.index + se[0].length;
+  if (!pe || pe > this.captureNames.length) throw new SyntaxError("Backreference to undefined group " + se[0]);
+  return "\\" + pe + (he === se.input.length || isNaN(se.input.charAt(he)) ? "" : "(?:)");
+}, {
+  leadChar: "\\"
+}), XRegExp$1.addToken(/\\(\d+)/, function (se, pe) {
+  if (!("default" === pe && /^[1-9]/.test(se[1]) && +se[1] <= this.captureNames.length) && "0" !== se[1]) throw new SyntaxError("Cannot use octal escape or backreference to undefined group " + se[0]);
+  return se[0];
+}, {
+  scope: "all",
+  leadChar: "\\"
+}), XRegExp$1.addToken(/\(\?P?<([\w$]+)>/, function (se) {
+  if (!isNaN(se[1])) throw new SyntaxError("Cannot use integer as capture name " + se[0]);
+  if ("length" === se[1] || "__proto__" === se[1]) throw new SyntaxError("Cannot use reserved word as capture name " + se[0]);
+  if (indexOf(this.captureNames, se[1]) > -1) throw new SyntaxError("Cannot use same name for multiple groups " + se[0]);
+  return this.captureNames.push(se[1]), this.hasNamedCapture = !0, "(";
+}, {
+  leadChar: "("
+}), XRegExp$1.addToken(/\((?!\?)/, function (se, pe, he) {
+  return he.indexOf("n") > -1 ? "(?:" : (this.captureNames.push(null), "(");
+}, {
+  optionalFlags: "n",
+  leadChar: "("
+});
+var He = XRegExp$1;
+/*!
+ * XRegExp Unicode Base 3.1.1-next
+ * <xregexp.com>
+ * Steven Levithan (c) 2008-2016 MIT License
+ */
+
+!function (se) {
+  var pe = {},
+      he = se._dec,
+      de = se._hex,
+      ge = se._pad4;
+
+  function normalize(se) {
+    return se.replace(/[- _]+/g, "").toLowerCase();
+  }
+
+  function charCode(se) {
+    var pe = /^\\[xu](.+)/.exec(se);
+    return pe ? he(pe[1]) : se.charCodeAt("\\" === se.charAt(0) ? 1 : 0);
+  }
+
+  function cacheInvertedBmp(he) {
+    return pe[he]["b!"] || (pe[he]["b!"] = function invertBmp(pe) {
+      var he = "",
+          ve = -1;
+      return se.forEach(pe, /(\\x..|\\u....|\\?[\s\S])(?:-(\\x..|\\u....|\\?[\s\S]))?/, function (se) {
+        var pe = charCode(se[1]);
+        pe > ve + 1 && (he += "\\u" + ge(de(ve + 1)), pe > ve + 2 && (he += "-\\u" + ge(de(pe - 1)))), ve = charCode(se[2] || se[1]);
+      }), ve < 65535 && (he += "\\u" + ge(de(ve + 1)), ve < 65534 && (he += "-\\uFFFF")), he;
+    }(pe[he].bmp));
+  }
+
+  se.addToken(/\\([pP])(?:{(\^?)([^}]*)}|([A-Za-z]))/, function (se, he, de) {
+    var ge = "P" === se[1] || !!se[2],
+        ve = normalize(se[4] || se[3]),
+        ye = pe[ve];
+    if ("P" === se[1] && se[2]) throw new SyntaxError("Invalid double negation " + se[0]);
+    if (!pe.hasOwnProperty(ve)) throw new SyntaxError("Unknown Unicode token " + se[0]);
+
+    if (ye.inverseOf) {
+      if (ve = normalize(ye.inverseOf), !pe.hasOwnProperty(ve)) throw new ReferenceError("Unicode token missing data " + se[0] + " -> " + ye.inverseOf);
+      ye = pe[ve], ge = !ge;
+    }
+
+    if (!ye.bmp) throw new SyntaxError("Astral mode required for Unicode token " + se[0]);
+    return "class" === he ? ge ? cacheInvertedBmp(ve) : ye.bmp : (ge ? "[^" : "[") + ye.bmp + "]";
+  }, {
+    scope: "all",
+    optionalFlags: "A",
+    leadChar: "\\"
+  }), se.addUnicodeData = function (he) {
+    for (var de, ge = 0; ge < he.length; ++ge) {
+      if (!(de = he[ge]).name) throw new Error("Unicode token requires name");
+      if (!(de.inverseOf || de.bmp || de.astral)) throw new Error("Unicode token has no character data " + de.name);
+      pe[normalize(de.name)] = de, de.alias && (pe[normalize(de.alias)] = de);
+    }
+
+    se.cache.flush("patterns");
+  }, se._getUnicodeProperty = function (se) {
+    var he = normalize(se);
+    return pe[he];
+  };
+}(He), function (se) {
+  if (!se.addUnicodeData) throw new ReferenceError("Unicode Base must be loaded before Unicode Categories");
+  se.addUnicodeData([{
+    name: "L",
+    alias: "Letter",
+    bmp: "A-Za-zªµºÀ-ÖØ-öø-ˁˆ-ˑˠ-ˤˬˮͰ-ʹͶͷͺ-ͽͿΆΈ-ΊΌΎ-ΡΣ-ϵϷ-ҁҊ-ԯԱ-Ֆՙՠ-ֈא-תׯ-ײؠ-يٮٯٱ-ۓەۥۦۮۯۺ-ۼۿܐܒ-ܯݍ-ޥޱߊ-ߪߴߵߺࠀ-ࠕࠚࠤࠨࡀ-ࡘࡠ-ࡪࢠ-ࢴࢶ-ࢽऄ-हऽॐक़-ॡॱ-ঀঅ-ঌএঐও-নপ-রলশ-হঽৎড়ঢ়য়-ৡৰৱৼਅ-ਊਏਐਓ-ਨਪ-ਰਲਲ਼ਵਸ਼ਸਹਖ਼-ੜਫ਼ੲ-ੴઅ-ઍએ-ઑઓ-નપ-રલળવ-હઽૐૠૡૹଅ-ଌଏଐଓ-ନପ-ରଲଳଵ-ହଽଡ଼ଢ଼ୟ-ୡୱஃஅ-ஊஎ-ஐஒ-கஙசஜஞடணதந-பம-ஹௐఅ-ఌఎ-ఐఒ-నప-హఽౘ-ౚౠౡಀಅ-ಌಎ-ಐಒ-ನಪ-ಳವ-ಹಽೞೠೡೱೲഅ-ഌഎ-ഐഒ-ഺഽൎൔ-ൖൟ-ൡൺ-ൿඅ-ඖක-නඳ-රලව-ෆก-ะาำเ-ๆກຂຄຆ-ຊຌ-ຣລວ-ະາຳຽເ-ໄໆໜ-ໟༀཀ-ཇཉ-ཬྈ-ྌက-ဪဿၐ-ၕၚ-ၝၡၥၦၮ-ၰၵ-ႁႎႠ-ჅჇჍა-ჺჼ-ቈቊ-ቍቐ-ቖቘቚ-ቝበ-ኈኊ-ኍነ-ኰኲ-ኵኸ-ኾዀዂ-ዅወ-ዖዘ-ጐጒ-ጕጘ-ፚᎀ-ᎏᎠ-Ᏽᏸ-ᏽᐁ-ᙬᙯ-ᙿᚁ-ᚚᚠ-ᛪᛱ-ᛸᜀ-ᜌᜎ-ᜑᜠ-ᜱᝀ-ᝑᝠ-ᝬᝮ-ᝰក-ឳៗៜᠠ-ᡸᢀ-ᢄᢇ-ᢨᢪᢰ-ᣵᤀ-ᤞᥐ-ᥭᥰ-ᥴᦀ-ᦫᦰ-ᧉᨀ-ᨖᨠ-ᩔᪧᬅ-ᬳᭅ-ᭋᮃ-ᮠᮮᮯᮺ-ᯥᰀ-ᰣᱍ-ᱏᱚ-ᱽᲀ-ᲈᲐ-ᲺᲽ-Ჿᳩ-ᳬᳮ-ᳳᳵᳶᳺᴀ-ᶿḀ-ἕἘ-Ἕἠ-ὅὈ-Ὅὐ-ὗὙὛὝὟ-ώᾀ-ᾴᾶ-ᾼιῂ-ῄῆ-ῌῐ-ΐῖ-Ίῠ-Ῥῲ-ῴῶ-ῼⁱⁿₐ-ₜℂℇℊ-ℓℕℙ-ℝℤΩℨK-ℭℯ-ℹℼ-ℿⅅ-ⅉⅎↃↄⰀ-Ⱞⰰ-ⱞⱠ-ⳤⳫ-ⳮⳲⳳⴀ-ⴥⴧⴭⴰ-ⵧⵯⶀ-ⶖⶠ-ⶦⶨ-ⶮⶰ-ⶶⶸ-ⶾⷀ-ⷆⷈ-ⷎⷐ-ⷖⷘ-ⷞⸯ々〆〱-〵〻〼ぁ-ゖゝ-ゟァ-ヺー-ヿㄅ-ㄯㄱ-ㆎㆠ-ㆺㇰ-ㇿ㐀-䶵一-鿯ꀀ-ꒌꓐ-ꓽꔀ-ꘌꘐ-ꘟꘪꘫꙀ-ꙮꙿ-ꚝꚠ-ꛥꜗ-ꜟꜢ-ꞈꞋ-ꞿꟂ-Ᶎꟷ-ꠁꠃ-ꠅꠇ-ꠊꠌ-ꠢꡀ-ꡳꢂ-ꢳꣲ-ꣷꣻꣽꣾꤊ-ꤥꤰ-ꥆꥠ-ꥼꦄ-ꦲꧏꧠ-ꧤꧦ-ꧯꧺ-ꧾꨀ-ꨨꩀ-ꩂꩄ-ꩋꩠ-ꩶꩺꩾ-ꪯꪱꪵꪶꪹ-ꪽꫀꫂꫛ-ꫝꫠ-ꫪꫲ-ꫴꬁ-ꬆꬉ-ꬎꬑ-ꬖꬠ-ꬦꬨ-ꬮꬰ-ꭚꭜ-ꭧꭰ-ꯢ가-힣ힰ-ퟆퟋ-ퟻ豈-舘並-龎ﬀ-ﬆﬓ-ﬗיִײַ-ﬨשׁ-זּטּ-לּמּנּסּףּפּצּ-ﮱﯓ-ﴽﵐ-ﶏﶒ-ﷇﷰ-ﷻﹰ-ﹴﹶ-ﻼＡ-Ｚａ-ｚｦ-ﾾￂ-ￇￊ-ￏￒ-ￗￚ-ￜ"
+  }, {
+    name: "N",
+    alias: "Number",
+    bmp: "0-9²³¹¼-¾٠-٩۰-۹߀-߉०-९০-৯৴-৹੦-੯૦-૯୦-୯୲-୷௦-௲౦-౯౸-౾೦-೯൘-൞൦-൸෦-෯๐-๙໐-໙༠-༳၀-၉႐-႙፩-፼ᛮ-ᛰ០-៩៰-៹᠐-᠙᥆-᥏᧐-᧚᪀-᪉᪐-᪙᭐-᭙᮰-᮹᱀-᱉᱐-᱙⁰⁴-⁹₀-₉⅐-ↂↅ-↉①-⒛⓪-⓿❶-➓⳽〇〡-〩〸-〺㆒-㆕㈠-㈩㉈-㉏㉑-㉟㊀-㊉㊱-㊿꘠-꘩ꛦ-ꛯ꠰-꠵꣐-꣙꤀-꤉꧐-꧙꧰-꧹꩐-꩙꯰-꯹０-９"
+  }]);
+}(He);
+var Ue = He,
+    De = {
+  exports: {}
+};
+!function (se) {
+  se.exports = function (pe, he, de, ge) {
+    return (se = {}).dedupe = function dedupe(se, ve) {
+      var ye,
+          _e = pe(ve);
+
+      if (!he(se) && "object" != typeof se) throw new Error("contains_dupes must be an array or object");
+      if (0 === Object.keys(se).length) return void 0 !== typeof console && console.warn("contains_dupes is empty"), [];
+      _e.limit && (void 0 !== typeof console && console.warn("options.limit will be ignored in dedupe"), _e.limit = 0), _e.cutoff && "number" == typeof _e.cutoff || (void 0 !== typeof console && console.warn("Using default cutoff of 70"), _e.cutoff = 70), _e.scorer || (_e.scorer = de, void 0 !== typeof console && console.log("Using default scorer 'ratio' for dedupe")), ye = _e.processor && "function" == typeof _e.processor ? _e.processor : function (se) {
+        return se;
+      };
+      var be = {};
+
+      for (var me in se) {
+        var xe = ye(se[me]);
+        if ("string" != typeof xe && xe instanceof String == !1) throw new Error("Each processed item in dedupe must be a string.");
+        var we = ge(xe, se, _e);
+        _e.returnObjects ? (1 === we.length || (we = we.sort(function (se, pe) {
+          var he = ye(se.choice),
+              de = ye(pe.choice),
+              ge = he.length,
+              ve = de.length;
+          return ge === ve ? he < de ? -1 : 1 : ve - ge;
+        })), _e.keepmap ? be[ye(we[0].choice)] = {
+          item: we[0].choice,
+          key: we[0].key,
+          matches: we
+        } : be[ye(we[0].choice)] = {
+          item: we[0].choice,
+          key: we[0].key
+        }) : (1 === we.length || (we = we.sort(function (se, pe) {
+          var he = ye(se[0]),
+              de = ye(pe[0]),
+              ge = he.length,
+              ve = de.length;
+          return ge === ve ? he < de ? -1 : 1 : ve - ge;
+        })), _e.keepmap ? be[ye(we[0][0])] = [we[0][0], we[0][2], we] : be[ye(we[0][0])] = [we[0][0], we[0][2]]);
+      }
+
+      var je = [];
+
+      for (var ke in be) {
+        je.push(be[ke]);
+      }
+
+      return je;
+    }, se;
+  };
+}(De), function () {
+  var se = ye,
+      pe = we,
+      de = je.exports.intersection,
+      ge = je.exports.intersectionWith,
+      ve = je.exports.difference,
+      _e = je.exports.differenceWith,
+      be = je.exports.uniq,
+      me = je.exports.uniqWith,
+      xe = je.exports.partialRight,
+      ke = je.exports.forEach,
+      Ae = je.exports.keys,
+      Re = je.exports.isArray,
+      Ce = je.exports.toArray,
+      Ie = je.exports.orderBy,
+      ze = Ee,
+      $e = Se,
+      Me = Oe,
+      Ne = function (se, pe, he) {
+    var de = {},
+        ge = Ue,
+        ve = Se,
+        ye = Oe;
+
+    function escapeRegExp(se) {
+      return se.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function validate(se) {
+      return ("string" == typeof se || se instanceof String) && se.length > 0;
+    }
+
+    de.validate = validate, de.process_and_sort = function process_and_sort(se) {
+      return validate(se) ? se.match(/\S+/g).sort().join(" ").trim() : "";
+    }, de.tokenize = function unique_tokens(de, ge) {
+      if (ge && ge.wildcards && pe && he) {
+        var _e = he(ve, ge, ye);
+
+        return pe(de.match(/\S+/g), function (se, pe) {
+          return 0 === _e(se, pe);
+        });
+      }
+
+      return se(de.match(/\S+/g));
+    };
+
+    var _e = ge("[^\\pN|\\pL]", "g");
+
+    return de.full_process = function full_process(se, pe) {
+      if (!(se instanceof String) && "string" != typeof se) return "";
+      var he;
+
+      if (pe && "object" == typeof pe && pe.wildcards && "string" == typeof pe.wildcards && pe.wildcards.length > 0) {
+        var de = pe.wildcards.toLowerCase();
+
+        if (se = se.toLowerCase(), pe.force_ascii) {
+          var ve = "[^\0 -|" + escapeRegExp(de) + "]";
+          se = se.replace(new RegExp(ve, "g"), "");
+          var ye = "[" + escapeRegExp(de) + "]",
+              be = de[0];
+          se = se.replace(new RegExp(ye, "g"), be);
+          var me = "[^A-Za-z0-9" + escapeRegExp(de) + "]";
+          he = (se = (se = se.replace(new RegExp(me, "g"), " ")).replace(/_/g, " ")).trim();
+        } else {
+          var xe = "[^\\pN|\\pL|" + escapeRegExp(de) + "]",
+              we = ge(xe, "g");
+          se = ge.replace(se, we, " ", "all"), ye = "[" + escapeRegExp(de) + "]", be = de[0], he = (se = se.replace(new RegExp(ye, "g"), be)).trim();
+        }
+      } else pe && (pe.force_ascii || !0 === pe) && (he = (se = se.replace(/[^\x00-\x7F]/g, "")).replace(/\W|_/g, " ").toLowerCase().trim()), he = ge.replace(se, _e, " ", "all").toLowerCase().trim();
+
+      return pe && pe.collapseWhitespace && (he = he.replace(/\s+/g, " ")), he;
+    }, de.clone_and_set_option_defaults = function (se) {
+      if (se && se.isAClone) return se;
+      var pe = {
+        isAClone: !0
+      };
+
+      if (se) {
+        var he,
+            de = Object.keys(se);
+
+        for (he = 0; he < de.length; he++) {
+          pe[de[he]] = se[de[he]];
+        }
+      }
+
+      return void 0 !== pe.full_process && !1 === pe.full_process || (pe.full_process = !0), void 0 !== pe.force_ascii && !0 === pe.force_ascii || (pe.force_ascii = !1), void 0 !== pe.normalize && !1 === pe.normalize || (pe.normalize = !0), void 0 !== pe.astral && !0 === pe.astral && (pe.full_process = !1), void 0 !== pe.collapseWhitespace && !1 === pe.collapseWhitespace || (pe.collapseWhitespace = !0), pe;
+    }, de.isCustomFunc = function (se) {
+      return "function" != typeof se || "token_set_ratio" !== se.name && "partial_token_set_ratio" !== se.name && "token_sort_ratio" !== se.name && "partial_token_sort_ratio" !== se.name && "QRatio" !== se.name && "WRatio" !== se.name && "distance" !== se.name && "partial_ratio" !== se.name;
+    }, de;
+  }(be, me, xe),
+      Pe = Ne.validate,
+      Fe = Ne.process_and_sort,
+      qe = Ne.tokenize,
+      Te = Ne.full_process,
+      Xe = Ne.clone_and_set_option_defaults,
+      Be = Ne.isCustomFunc,
+      Le = De.exports(Xe, Re, QRatio, extract).dedupe;
+
+  function QRatio(se, pe, he) {
+    var de = Xe(he);
+    return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, Pe(se) && Pe(pe) ? _ratio(se, pe, de) : 0;
+  }
+
+  function token_set_ratio(se, pe, he) {
+    var de = Xe(he);
+    return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, Pe(se) && Pe(pe) ? _token_set(se, pe, de) : 0;
+  }
+
+  function partial_token_set_ratio(se, pe, he) {
+    var de = Xe(he);
+    return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, Pe(se) && Pe(pe) ? (de.partial = !0, _token_set(se, pe, de)) : 0;
+  }
+
+  function token_sort_ratio(se, pe, he) {
+    var de = Xe(he);
+    return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, Pe(se) && Pe(pe) ? (de.proc_sorted || (se = Fe(se), pe = Fe(pe)), _ratio(se, pe, de)) : 0;
+  }
+
+  function partial_token_sort_ratio(se, pe, he) {
+    var de = Xe(he);
+    return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, Pe(se) && Pe(pe) ? (de.partial = !0, de.proc_sorted || (se = Fe(se), pe = Fe(pe)), _partial_ratio(se, pe, de)) : 0;
+  }
+
+  function extract(se, he, de) {
+    var ge,
+        ve = Xe(de);
+    if (Re(he)) ge = he.length;else {
+      if (!(he instanceof Object)) throw new Error("Invalid choices");
+      ge = Ae(he).length;
+    }
+    if (!he || 0 === ge) return void 0 !== typeof console && console.warn("No choices"), [];
+    if (ve.processor && "function" != typeof ve.processor) throw new Error("Invalid Processor");
+    if (ve.processor || (ve.processor = function (se) {
+      return se;
+    }), ve.scorer && "function" != typeof ve.scorer) throw new Error("Invalid Scorer");
+    ve.scorer || (ve.scorer = QRatio);
+    var ye = Be(ve.scorer);
+    ve.cutoff && "number" == typeof ve.cutoff || (ve.cutoff = -1);
+
+    var pre_processor = function pre_processor(se, pe) {
+      return se;
+    };
+
+    ve.full_process && (pre_processor = Te, ye || (ve.processed = !0));
+
+    var _e = !1;
+
+    ye || (se = pre_processor(se, ve), ve.full_process = !1, ve.astral && ve.normalize && (ve.normalize = !1, String.prototype.normalize ? (_e = !0, se = se.normalize()) : void 0 !== typeof console && console.warn("Normalization not supported in your environment")), 0 === se.length && void 0 !== typeof console && console.warn("Processed query is empty string"));
+    var be,
+        me,
+        xe,
+        we,
+        je = [],
+        Ee = !1,
+        Se = !1,
+        Oe = !1;
+
+    if ("token_sort_ratio" === ve.scorer.name || "partial_token_sort_ratio" === ve.scorer.name) {
+      var Ce = Fe(se);
+      Se = !0;
+    } else if ("token_set_ratio" === ve.scorer.name || "partial_token_set_ratio" === ve.scorer.name) {
+      var Ie = qe(se, ve);
+      Oe = !0;
+    }
+
+    return ve.returnObjects ? (xe = function xe(se, pe) {
+      return se.score - pe.score;
+    }, we = function we(se, pe) {
+      return pe.score - se.score;
+    }) : (xe = function xe(se, pe) {
+      return se[1] - pe[1];
+    }, we = function we(se, pe) {
+      return pe[1] - se[1];
+    }), ke(he, function (pe, he) {
+      ve.tokens = void 0, ve.proc_sorted = !1, Se ? (ve.proc_sorted = !0, pe && pe.proc_sorted ? me = pe.proc_sorted : (me = pre_processor(ve.processor(pe), ve), me = Fe(_e ? me.normalize() : me)), be = ve.scorer(Ce, me, ve)) : Oe ? (me = "x", pe && pe.tokens ? (ve.tokens = [Ie, pe.tokens], ve.trySimple && (me = pre_processor(ve.processor(pe), ve))) : (me = pre_processor(ve.processor(pe), ve), ve.tokens = [Ie, qe(_e ? me.normalize() : me, ve)]), be = ve.scorer(se, me, ve)) : ye ? (me = ve.processor(pe), be = ve.scorer(se, me, ve)) : ("string" == typeof (me = pre_processor(ve.processor(pe), ve)) && 0 !== me.length || (Ee = !0), _e && "string" == typeof me && (me = me.normalize()), be = ve.scorer(se, me, ve)), be > ve.cutoff && (ve.returnObjects ? je.push({
+        choice: pe,
+        score: be,
+        key: he
+      }) : je.push([pe, be, he]));
+    }), Ee && void 0 !== typeof console && console.log("One or more choices were empty. (post-processing if applied)"), ve.limit && "number" == typeof ve.limit && ve.limit > 0 && ve.limit < ge && !ve.unsorted ? je = pe.nlargest(je, ve.limit, xe) : ve.unsorted || (je = je.sort(we)), je;
+  }
+
+  function extractAsync(se, he, de, ge) {
+    var ve,
+        ye,
+        _e = Xe(de);
+
+    "object" == typeof de.abortController && (ve = de.abortController), "object" == typeof de.cancelToken && (ye = de.cancelToken);
+    var be = 256;
+    "number" == typeof _e.asyncLoopOffset && (be = _e.asyncLoopOffset < 1 ? 1 : _e.asyncLoopOffset);
+    var me,
+        xe = !1;
+    if (he && he.length && Re(he)) me = he.length, xe = !0;else {
+      if (!(he instanceof Object)) return void ge(new Error("Invalid choices"));
+      me = Object.keys(he).length;
+    }
+    if (!he || 0 === me) return void 0 !== typeof console && console.warn("No choices"), void ge(null, []);
+    if (_e.processor && "function" != typeof _e.processor) ge(new Error("Invalid Processor"));else if (_e.processor || (_e.processor = function (se) {
+      return se;
+    }), _e.scorer && "function" != typeof _e.scorer) ge(new Error("Invalid Scorer"));else {
+      _e.scorer || (_e.scorer = QRatio);
+      var we = Be(_e.scorer);
+      _e.cutoff && "number" == typeof _e.cutoff || (_e.cutoff = -1);
+
+      var pre_processor = function pre_processor(se, pe) {
+        return se;
+      };
+
+      _e.full_process && (pre_processor = Te, we || (_e.processed = !0));
+      var je = !1;
+      we || (se = pre_processor(se, _e), _e.full_process = !1, _e.astral && _e.normalize && (_e.normalize = !1, String.prototype.normalize ? (je = !0, se = se.normalize()) : void 0 !== typeof console && console.warn("Normalization not supported in your environment")), 0 === se.length && void 0 !== typeof console && console.warn("Processed query is empty string"));
+      var ke,
+          Ee,
+          Ae,
+          Se,
+          Oe,
+          Ce = [],
+          Ie = !1,
+          ze = !1,
+          $e = !1;
+
+      if ("token_sort_ratio" === _e.scorer.name || "partial_token_sort_ratio" === _e.scorer.name) {
+        var Me = Fe(se);
+        ze = !0;
+      } else if ("token_set_ratio" === _e.scorer.name || "partial_token_set_ratio" === _e.scorer.name) {
+        var Ne = qe(se, _e);
+        $e = !0;
+      }
+
+      _e.returnObjects ? (Se = function Se(se, pe) {
+        return se.score - pe.score;
+      }, Oe = function Oe(se, pe) {
+        return pe.score - se.score;
+      }) : (Se = function Se(se, pe) {
+        return se[1] - pe[1];
+      }, Oe = function Oe(se, pe) {
+        return pe[1] - se[1];
+      });
+      var Pe = Object.keys(he);
+      xe ? searchLoop(0) : searchLoop(Pe[0], 0);
+    }
+
+    function searchLoop(de, Re) {
+      (xe || he.hasOwnProperty(de)) && (_e.tokens = void 0, _e.proc_sorted = !1, ze ? (_e.proc_sorted = !0, he[de] && he[de].proc_sorted ? Ee = he[de].proc_sorted : (Ee = pre_processor(_e.processor(he[de]), _e), Ee = Fe(je ? Ee.normalize() : Ee)), Ae = _e.scorer(Me, Ee, _e)) : $e ? (Ee = "x", he[de] && he[de].tokens ? (_e.tokens = [Ne, he[de].tokens], _e.trySimple && (Ee = pre_processor(_e.processor(he[de]), _e))) : (Ee = pre_processor(_e.processor(he[de]), _e), _e.tokens = [Ne, qe(je ? Ee.normalize() : Ee, _e)]), Ae = _e.scorer(se, Ee, _e)) : we ? (Ee = _e.processor(he[de]), Ae = _e.scorer(se, Ee, _e)) : ("string" == typeof (Ee = pre_processor(_e.processor(he[de]), _e)) && 0 !== Ee.length || (Ie = !0), je && "string" == typeof Ee && (Ee = Ee.normalize()), Ae = _e.scorer(se, Ee, _e)), ke = xe ? parseInt(de) : de, Ae > _e.cutoff && (_e.returnObjects ? Ce.push({
+        choice: he[de],
+        score: Ae,
+        key: ke
+      }) : Ce.push([he[de], Ae, ke]))), ve && !0 === ve.signal.aborted ? ge(new Error("aborted")) : ye && !0 === ye.canceled ? ge(new Error("canceled")) : xe && de < he.length - 1 ? de % be == 0 ? setImmediate(function () {
+        searchLoop(de + 1);
+      }) : searchLoop(de + 1) : Re < Pe.length - 1 ? Re % be == 0 ? setImmediate(function () {
+        searchLoop(Pe[Re + 1], Re + 1);
+      }) : searchLoop(Pe[Re + 1], Re + 1) : (Ie && void 0 !== typeof console && console.log("One or more choices were empty. (post-processing if applied)"), _e.limit && "number" == typeof _e.limit && _e.limit > 0 && _e.limit < me && !_e.unsorted ? Ce = pe.nlargest(Ce, _e.limit, Se) : _e.unsorted || (Ce = Ce.sort(Oe)), ge(null, Ce));
+    }
+  }
+
+  var He = "%*SuperUniqueWildcardKey*%",
+      We = !1;
+
+  function _getCharacterCounts(se, pe) {
+    var he = se;
+
+    if (pe.astral) {
+      pe.normalize && (String.prototype.normalize ? he = se.normalize() : We || (void 0 !== typeof console && console.warn("Normalization not supported in your environment"), We = !0));
+      var de = Ce(he);
+    } else de = he.split("");
+
+    var ge = {};
+    if (pe.wildcards) for (var ve = 0; ve < de.length; ve++) {
+      var ye = de[ve];
+      pe.wildcards.indexOf(ye) > -1 ? ge[He] ? ge[He] += 1 : ge[He] = 1 : ge[ye] ? ge[ye] += 1 : ge[ye] = 1;
+    } else for (ve = 0; ve < de.length; ve++) {
+      ge[ye = de[ve]] ? ge[ye] += 1 : ge[ye] = 1;
+    }
+    return ge;
+  }
+
+  function _token_similarity_sort(se, pe, he) {
+    for (var ge = pe, ve = se.reduce(function (se, pe) {
+      return se[pe] = _getCharacterCounts(pe, he), se;
+    }, {}), ye = ge.reduce(function (se, pe) {
+      return se[pe] = _getCharacterCounts(pe, he), se;
+    }, {}), _e = [], be = 0; ge.length && be < se.length;) {
+      var me = Ie(ge, function (pe) {
+        return he = ve[se[be]], ge = ye[pe], _e = Object.keys(he), me = Object.keys(ge), xe = de(_e, me).map(function (se) {
+          return he[se] * ge[se];
+        }).reduce(function (se, pe) {
+          return se + pe;
+        }, 0), we = _e.map(function (se) {
+          return Math.pow(he[se], 2);
+        }).reduce(function (se, pe) {
+          return se + pe;
+        }, 0), je = me.map(function (se) {
+          return Math.pow(ge[se], 2);
+        }).reduce(function (se, pe) {
+          return se + pe;
+        }, 0), xe / (Math.sqrt(we) * Math.sqrt(je));
+
+        var he, ge, _e, me, xe, we, je;
+      }, "desc")[0];
+      _e.push(me), be++, ge = ge.filter(function (se) {
+        return se !== me;
+      });
+    }
+
+    return _e.concat(ge);
+  }
+
+  function _order_token_lists(se, pe, he, de) {
+    var ge = pe,
+        ve = de;
+    if (pe.length > de.length) ge = de, ve = pe;else if (pe.length === de.length) {
+      if (se.length > he.length) ge = de, ve = pe;else [se, he].sort()[0] === he && (ge = de, ve = pe);
+    }
+    return [ge, ve];
+  }
+
+  function _token_similarity_sort_ratio(se, pe, he) {
+    if (he.tokens) de = he.tokens[0], ge = he.tokens[1];else var de = qe(se, he),
+        ge = qe(pe, he);
+
+    var ve = _order_token_lists(se, de.sort(), pe, ge.sort()),
+        ye = ve[0];
+
+    var _e = _token_similarity_sort(ye, ve[1], he);
+
+    return he.partial ? _partial_ratio(ye.join(" "), _e.join(" "), he) : _ratio(ye.join(" "), _e.join(" "), he);
+  }
+
+  function _token_set(se, pe, he) {
+    if (he.tokens) ye = he.tokens[0], be = he.tokens[1];else var ye = qe(se, he),
+        be = qe(pe, he);
+    if (he.wildcards) var me = xe($e, he, Me),
+        wildCompare = function wildCompare(se, pe) {
+      return 0 === me(se, pe);
+    },
+        we = ge(ye, be, wildCompare),
+        je = _e(ye, be, wildCompare),
+        ke = _e(be, ye, wildCompare);else we = de(ye, be), je = ve(ye, be), ke = ve(be, ye);
+    var Ee = we.sort().join(" "),
+        Ae = je.sort(),
+        Se = ke.sort();
+    if (he.sortBySimilarity) var Oe = _order_token_lists(se, Ae, pe, Se),
+        Re = Oe[0],
+        Ce = Oe[1],
+        Ie = Re.join(" "),
+        ze = _token_similarity_sort(Re, Ce, he).join(" ");else Ie = Ae.join(" "), ze = Se.join(" ");
+    var Ne = Ee + " " + Ie,
+        Pe = Ee + " " + ze;
+    Ee = Ee.trim(), Ne = Ne.trim(), Pe = Pe.trim();
+    var Fe = _ratio;
+    if (he.partial && (Fe = _partial_ratio, Ee.length > 0)) return 100;
+    var Te = [Fe(Ee, Ne, he), Fe(Ee, Pe, he), Fe(Ne, Pe, he)];
+    return he.trySimple && Te.push(Fe(se, pe, he)), Math.max.apply(null, Te);
+  }
+
+  var Ge,
+      Qe,
+      Ve,
+      Ye,
+      Ze = !1;
+
+  function _ratio(pe, he, de) {
+    if (!Pe(pe)) return 0;
+    if (!Pe(he)) return 0;
+
+    if (de.ratio_alg && "difflib" === de.ratio_alg) {
+      var ge = new se(null, pe, he).ratio();
+      return Math.round(100 * ge);
+    }
+
+    var ve, ye;
+    return void 0 === de.subcost && (de.subcost = 2), de.astral ? (de.normalize && (String.prototype.normalize ? (pe = pe.normalize(), he = he.normalize()) : Ze || (void 0 !== typeof console && console.warn("Normalization not supported in your environment"), Ze = !0)), ve = ze(pe, he, de, Ce), ye = Ce(pe).length + Ce(he).length) : de.wildcards ? (ve = $e(pe, he, de, Me), ye = pe.length + he.length) : (ve = Me(pe, he, de), ye = pe.length + he.length), Math.round((ye - ve) / ye * 100);
+  }
+
+  function _partial_ratio(pe, he, de) {
+    if (!Pe(pe)) return 0;
+    if (!Pe(he)) return 0;
+    if (pe.length <= he.length) var ge = pe,
+        ve = he;else ge = he, ve = pe;
+
+    for (var ye = new se(null, ge, ve).getMatchingBlocks(), _e = [], be = 0; be < ye.length; be++) {
+      var me = ye[be][1] - ye[be][0] > 0 ? ye[be][1] - ye[be][0] : 0,
+          xe = me + ge.length,
+          we = _ratio(ge, ve.substring(me, xe), de);
+
+      if (we > 99.5) return 100;
+
+      _e.push(we);
+    }
+
+    return Math.max.apply(null, _e);
+  }
+
+  Object.keys || (Object.keys = (Ge = Object.prototype.hasOwnProperty, Qe = !{
+    toString: null
+  }.propertyIsEnumerable("toString"), Ye = (Ve = ["toString", "toLocaleString", "valueOf", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "constructor"]).length, function (se) {
+    if ("object" != typeof se && ("function" != typeof se || null === se)) throw new TypeError("Object.keys called on non-object");
+    var pe,
+        he,
+        de = [];
+
+    for (pe in se) {
+      Ge.call(se, pe) && de.push(pe);
+    }
+
+    if (Qe) for (he = 0; he < Ye; he++) {
+      Ge.call(se, Ve[he]) && de.push(Ve[he]);
+    }
+    return de;
+  }));
+  var Ke = void 0;
+  "undefined" != typeof Promise && (Ke = function Ke(se, pe, he) {
+    return new Promise(function (de, ge) {
+      extractAsync(se, pe, he, function (se, pe) {
+        se ? ge(se) : de(pe);
+      });
+    });
+  });
+  var Je = {
+    distance: function distance(se, pe, he) {
+      var de = Xe(he);
+      return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, void 0 === de.subcost && (de.subcost = 1), de.astral ? ze(se, pe, de, Ce) : $e(se, pe, de, Me);
+    },
+    ratio: QRatio,
+    partial_ratio: function partial_ratio(se, pe, he) {
+      var de = Xe(he);
+      return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, Pe(se) && Pe(pe) ? _partial_ratio(se, pe, de) : 0;
+    },
+    token_set_ratio: token_set_ratio,
+    token_sort_ratio: token_sort_ratio,
+    partial_token_set_ratio: partial_token_set_ratio,
+    partial_token_sort_ratio: partial_token_sort_ratio,
+    token_similarity_sort_ratio: function token_similarity_sort_ratio(se, pe, he) {
+      var de = Xe(he);
+      return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, Pe(se) && Pe(pe) ? _token_similarity_sort_ratio(se, pe, de) : 0;
+    },
+    partial_token_similarity_sort_ratio: function partial_token_similarity_sort_ratio(se, pe, he) {
+      var de = Xe(he);
+      return se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, Pe(se) && Pe(pe) ? (de.partial = !0, _token_similarity_sort_ratio(se, pe, de)) : 0;
+    },
+    WRatio: function WRatio(se, pe, he) {
+      var de = Xe(he);
+      if (se = de.full_process ? Te(se, de) : se, pe = de.full_process ? Te(pe, de) : pe, de.full_process = !1, !Pe(se)) return 0;
+      if (!Pe(pe)) return 0;
+
+      var ge = !0,
+          ve = .95,
+          ye = .9,
+          _e = _ratio(se, pe, de),
+          be = Math.max(se.length, pe.length) / Math.min(se.length, pe.length);
+
+      if (be < 1.5 && (ge = !1), be > 8 && (ye = .6), ge) {
+        var me = _partial_ratio(se, pe, de) * ye,
+            xe = partial_token_sort_ratio(se, pe, de) * ve * ye,
+            we = partial_token_set_ratio(se, pe, de) * ve * ye;
+        return Math.round(Math.max(_e, me, xe, we));
+      }
+
+      var je = token_sort_ratio(se, pe, de) * ve,
+          ke = token_set_ratio(se, pe, de) * ve;
+      return Math.round(Math.max(_e, je, ke));
+    },
+    full_process: Te,
+    extract: extract,
+    extractAsync: extractAsync,
+    extractAsPromised: Ke,
+    process_and_sort: Fe,
+    unique_tokens: qe,
+    dedupe: Le
+  };
+  he.exports = Je;
+}();
+var We = he.exports;
+var Ge = We.distance,
+    Qe = We.ratio,
+    Ve = We.partial_ratio,
+    Ye = We.token_set_ratio,
+    Ze = We.token_sort_ratio,
+    Ke = We.partial_token_set_ratio,
+    Je = We.partial_token_sort_ratio,
+    er = We.token_similarity_sort_ratio,
+    tr = We.partial_token_similarity_sort_ratio,
+    rr = We.WRatio,
+    nr = We.full_process,
+    or = We.extract,
+    ar = We.extractAsync,
+    ir = We.extractAsPromised,
+    cr = We.process_and_sort,
+    ur = We.unique_tokens,
+    sr = We.dedupe;
+
 ;// CONCATENATED MODULE: ./src/lib.ts
-var lib_templateObject, lib_templateObject2, lib_templateObject3;
+var lib_templateObject, lib_templateObject2, lib_templateObject3, lib_templateObject4, lib_templateObject5, lib_templateObject6, lib_templateObject7;
 
 function src_lib_slicedToArray(arr, i) { return src_lib_arrayWithHoles(arr) || src_lib_iterableToArrayLimit(arr, i) || src_lib_unsupportedIterableToArray(arr, i) || src_lib_nonIterableRest(); }
 
@@ -7276,6 +10572,7 @@ function lib_taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.sli
 
 
 
+
 var prefChangeSettings = property_get("logPreferenceChange"); // So we have to reorder them to the rules page
 // This will be empty if we haven't broken the stone or have 0 fites left
 
@@ -7285,13 +10582,17 @@ var pvpIDs = Array.from(Array(activeMinisSorted.length).keys());
 var sortedPvpIDs = pvpIDs; // Just a "declaration"; initialization to be delayed
 
 function initializeSortedPvpIDs() {
-  sortedPvpIDs = activeMinisSorted.map(sortedMini => activeMinis.findIndex(mini => sortedMini.slice(0, mini.length) === mini));
-  if (!sortedPvpIDs.every((id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i)) throw new Error("Error with sortedPvpIDs: ".concat(sortedPvpIDs, "!"));
-  if (!pvpIDs.every(i => {
-    var sortedMini = activeMinisSorted[i];
-    var mini = activeMinis[sortedPvpIDs[i]];
-    return sortedMini.slice(0, mini.length) === mini;
-  })) throw new Error("Error with mapping!");
+  sortedPvpIDs = activeMinisSorted.map(sortedMini => activeMinis.indexOf(activeMinis.reduce((a, b) => Qe(a, sortedMini) > Qe(b, sortedMini) ? a : b)));
+
+  if (!sortedPvpIDs.every((id, i) => id >= 0 && id < activeMinis.length && sortedPvpIDs.indexOf(id) === i)) {
+    sortedPvpIDs.forEach((sortedID, id) => (0,external_kolmafia_namespaceObject.print)("Mapping ".concat(activeMinis[sortedID], " to ").concat(activeMinisSorted[id])));
+    throw new Error("Error with sortedPvpIDs: ".concat(sortedPvpIDs, "!"));
+  }
+
+  if (sortedPvpIDs.filter((id, i) => sortedPvpIDs.indexOf(id) === i).length !== sortedPvpIDs.length) {
+    sortedPvpIDs.forEach((sortedId, id) => (0,external_kolmafia_namespaceObject.print)("Mapping ".concat(activeMinis[sortedId], " to ").concat(activeMinisSorted[id])));
+    throw new Error("Error with mapping!");
+  }
 }
 var verbose = !property_get("PVP_MAB_reduced_verbosity", false);
 function getFightRecords() {
@@ -7311,6 +10612,16 @@ function useMeteoriteade() {
   var potionsToBuy = potionsToUse - (0,external_kolmafia_namespaceObject.itemAmount)(template_string_$item(lib_templateObject || (lib_templateObject = lib_taggedTemplateLiteral(["Meteorite-Ade"]))));
   if (potionsToBuy > 0) (0,external_kolmafia_namespaceObject.buy)(template_string_$item(lib_templateObject2 || (lib_templateObject2 = lib_taggedTemplateLiteral(["Meteorite-Ade"]))), potionsToBuy, 10000);
   (0,external_kolmafia_namespaceObject.use)(template_string_$item(lib_templateObject3 || (lib_templateObject3 = lib_taggedTemplateLiteral(["Meteorite-Ade"]))), potionsToUse);
+}
+function usePunchingMirror() {
+  // eslint-disable-next-line libram/verify-constants
+  if (!have(template_string_$item(lib_templateObject4 || (lib_templateObject4 = lib_taggedTemplateLiteral(["punching mirror"])))) || property_get("_punchingMirrorUsed", false)) return; // eslint-disable-next-line libram/verify-constants
+
+  (0,external_kolmafia_namespaceObject.use)(template_string_$item(lib_templateObject5 || (lib_templateObject5 = lib_taggedTemplateLiteral(["punching mirror"]))));
+}
+function useDiploma() {
+  if (!have(template_string_$item(lib_templateObject6 || (lib_templateObject6 = lib_taggedTemplateLiteral(["School of Hard Knocks Diploma"])))) || property_get("_hardKnocksDiplomaUsed")) return;
+  (0,external_kolmafia_namespaceObject.use)(template_string_$item(lib_templateObject7 || (lib_templateObject7 = lib_taggedTemplateLiteral(["School of Hard Knocks Diploma"]))));
 }
 function breakStone() {
   if (!args.breakStone && !(0,external_kolmafia_namespaceObject.hippyStoneBroken)()) {
@@ -7488,6 +10799,7 @@ function updateExp3IXWeights(miniID: number, result: boolean): void {
 
 
 
+
 function parseCompactMode(result, whoAreWe) {
   var slicedResult = result;
   var whoAmI = whoAreWe[0],
@@ -7499,7 +10811,7 @@ function parseCompactMode(result, whoAreWe) {
     slicedResult = slicedResult.slice(slicedResult.indexOf("<td nowrap>"));
     var curString = slicedResult.slice(0, slicedResult.indexOf("</td></tr>") + 9);
     var mini = ((_curString$match$map = (_curString$match = curString.match(RegExp(/<td nowrap><b>(.*?)<\/b><\/td>/))) === null || _curString$match === void 0 ? void 0 : _curString$match.map(s => s.replace("<td nowrap><b>", "").replace("</b></td>", ""))) !== null && _curString$match$map !== void 0 ? _curString$match$map : ["unknown mini"])[0];
-    var miniID = activeMinisSorted.findIndex(sortedMini => sortedMini === mini);
+    var miniID = activeMinisSorted.indexOf(activeMinisSorted.reduce((a, b) => Qe(a, mini) > Qe(b, mini) ? a : b));
     if (curString.includes("A tie-breaker")) (0,external_kolmafia_namespaceObject.print)("We tied the mini: ".concat(mini), "blue");else {
       // The winner is whosever's name is bolded
       var weWon = false;
@@ -7538,7 +10850,7 @@ function parseNonCompactMode(result, whoAreWe) {
     var splitIdx = slicedResult.slice(5).includes("Round ") ? slicedResult.slice(5).indexOf("Round ") + 5 : slicedResult.indexOf('<div class="final">');
     var curString = slicedResult.slice(0, splitIdx);
     var mini = ((_curString$match$map2 = (_curString$match2 = curString.match(RegExp(/<b class="miniclick">(.*?)<\/b>/))) === null || _curString$match2 === void 0 ? void 0 : _curString$match2.map(s => s.replace('<b class="miniclick">', "").replace("</b>", ""))) !== null && _curString$match$map2 !== void 0 ? _curString$match$map2 : ["unknown mini"])[0];
-    var miniID = activeMinisSorted.findIndex(sortedMini => sortedMini === mini);
+    var miniID = activeMinisSorted.indexOf(activeMinisSorted.reduce((a, b) => Qe(a, mini) > Qe(b, mini) ? a : b));
 
     if (curString.includes("A tie-breaker")) {
       if (verbose) (0,external_kolmafia_namespaceObject.print)("We tied the mini: ".concat(mini), "blue");
@@ -7603,6 +10915,8 @@ function main() {
 
   breakStone();
   useMeteoriteade();
+  useDiploma();
+  usePunchingMirror();
   updateSeason();
   updateWinRate();
   var todaysWins = property_get("todaysPVPWins", 0),
