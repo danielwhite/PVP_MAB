@@ -164,6 +164,8 @@ export function updateWinRate(): void {
 }
 
 export function equipPVPOutfit(): void {
+  if (args.no_optimize) return;
+
   // Can we find a better way to determine if we are already wearing a PVP-optimal outfit?
   cliExecute("unequip all");
   cliExecute("UberPvPOptimizer");

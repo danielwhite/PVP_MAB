@@ -36,4 +36,8 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
     (x) => x as Strategy,
     "multi-armed bandit strategy"
   ),
+  no_optimize: Args.flag({
+    help: "Skip the uberpvpoptimizer step",
+    default: false,
+  }),
 });
