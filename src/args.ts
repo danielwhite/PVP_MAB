@@ -50,4 +50,8 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
     help: "Set to equip a specific outfit instead of UberPvPOptimizer.",
     default: "",
   }),
+  no_optimize: Args.flag({
+    help: "Skip the uberpvpoptimizer step",
+    default: false,
+  }),
 });
