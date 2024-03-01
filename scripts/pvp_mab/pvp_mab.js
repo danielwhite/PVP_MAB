@@ -7251,6 +7251,10 @@ var args = Args.create("pvp_mab", "A multi-armed bandit script for pvp", {
   outfit: Args.string({
     help: "Set to equip a specific outfit instead of UberPvPOptimizer.",
     default: ""
+  }),
+  no_optimize: Args.flag({
+    help: "Skip the uberpvpoptimizer step",
+    default: false
   })
 });
 ;// CONCATENATED MODULE: ./src/distributions.ts
@@ -10669,6 +10673,8 @@ function updateWinRate() {
   }
 }
 function equipPVPOutfit() {
+  if (args.no_optimize) return;
+
   if (args.outfit === "") {
     // Can we find a better way to determine if we are already wearing a PVP-optimal outfit?
     (0,external_kolmafia_namespaceObject.cliExecute)("unequip all");
