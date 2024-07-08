@@ -177,6 +177,8 @@ export function pvpAttack(attackType: string): string {
   print("");
   print(`Chose mini: ${activeMinis[pvpChoice]}`, "green");
 
+  const beforePVPScriptName = get("beforePVPScript");
+  if (beforePVPScriptName.length > 0) cliExecute(beforePVPScriptName);
   return visitUrl(
     `peevpee.php?action=fight&place=fight&ranked=1&stance=${pvpChoice}&attacktype=${attackType}&pwd`
   );
