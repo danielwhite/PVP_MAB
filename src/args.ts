@@ -40,4 +40,8 @@ export const args = Args.create("pvp_mab", "A multi-armed bandit script for pvp"
     help: "Skip the uberpvpoptimizer step",
     default: false,
   }),
+  reset: Args.flag({
+    help: "Resets the stats of the current season",
+    default: false,
+  }),
 });

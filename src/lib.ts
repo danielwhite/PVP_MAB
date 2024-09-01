@@ -126,6 +126,7 @@ export function updateSeason(): void {
   )[1];
 
   if (
+    !args.reset &&
     get("myCurrentPVPSeason", "") === currentSeason &&
     get("totalSeasonPVPWins", 0) + get("totalSeasonPVPLosses", 0) > 0
   )
