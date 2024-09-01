@@ -125,9 +125,14 @@ export function updateSeason(): void {
     ) ?? ["", "0"]
   )[1];
 
-  if (get("myCurrentPVPSeason", "") === currentSeason) return;
+  if (
+    get("myCurrentPVPSeason", "") === currentSeason &&
+    get("totalSeasonPVPWins", 0) + get("totalSeasonPVPLosses", 0) > 0
+  )
+    return;
   if (!hippyStoneBroken())
     throw new Error("We cannot update the season until you've broken your stone!");
+  if (pvpIDs.length === 0) throw new Error("There are current no valid PVP minis!");
 
   // Reset wins and losses (pad all at 7 wins 7 losses [prime numbers good])
   pvpIDs.forEach((i) => {
