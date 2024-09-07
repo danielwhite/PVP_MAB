@@ -25,6 +25,12 @@ export function main(argstring = ""): void {
     Args.showHelp(args);
     return;
   }
+  if (args.reset) {
+    print("Resetting the stats of the current season!");
+    breakStone();
+    updateSeason();
+    return;
+  }
   breakStone();
   useMeteoriteade();
   useDiploma();
