@@ -7255,6 +7255,10 @@ var args = Args.create("pvp_mab", "A multi-armed bandit script for pvp", {
   no_optimize: Args.flag({
     help: "Skip the uberpvpoptimizer step",
     default: false
+  }),
+  reset: Args.flag({
+    help: "Resets the stats of the current season",
+    default: false
   })
 });
 ;// CONCATENATED MODULE: ./src/distributions.ts
@@ -10641,8 +10645,9 @@ function updateSeason() {
   var _visitUrl$match;
 
   var currentSeason = Array.from((_visitUrl$match = (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?place=rules").match(RegExp(/<b>Current Season: <\/b>(.*?)( \\(Post-Season\\))?<br \/>/))) !== null && _visitUrl$match !== void 0 ? _visitUrl$match : ["", "0"])[1];
-  if (property_get("myCurrentPVPSeason", "") === currentSeason) return;
-  if (!(0,external_kolmafia_namespaceObject.hippyStoneBroken)()) throw new Error("We cannot update the season until you've broken your stone!"); // Reset wins and losses (pad all at 7 wins 7 losses [prime numbers good])
+  if (!args.reset && property_get("myCurrentPVPSeason", "") === currentSeason && property_get("totalSeasonPVPWins", 0) + property_get("totalSeasonPVPLosses", 0) > 0) return;
+  if (!(0,external_kolmafia_namespaceObject.hippyStoneBroken)()) throw new Error("We cannot update the season until you've broken your stone!");
+  if (pvpIDs.length === 0) throw new Error("There are current no valid PVP minis!"); // Reset wins and losses (pad all at 7 wins 7 losses [prime numbers good])
 
   pvpIDs.forEach(i => {
     _set("myCurrentPVPWins_".concat(i), 7);
@@ -10694,6 +10699,8 @@ function pvpAttack(attackType) {
   var pvpChoice = getBestMini();
   (0,external_kolmafia_namespaceObject.print)("");
   (0,external_kolmafia_namespaceObject.print)("Chose mini: ".concat(activeMinis[pvpChoice]), "green");
+  var beforePVPScriptName = property_get("beforePVPScript");
+  if (beforePVPScriptName.length > 0) (0,external_kolmafia_namespaceObject.cliExecute)(beforePVPScriptName);
   return (0,external_kolmafia_namespaceObject.visitUrl)("peevpee.php?action=fight&place=fight&ranked=1&stance=".concat(pvpChoice, "&attacktype=").concat(attackType, "&pwd"));
 }
 function printStats() {
@@ -10916,6 +10923,13 @@ function main() {
 
   if (args.help) {
     Args.showHelp(args);
+    return;
+  }
+
+  if (args.reset) {
+    (0,external_kolmafia_namespaceObject.print)("Resetting the stats of the current season!");
+    breakStone();
+    updateSeason();
     return;
   }
 
